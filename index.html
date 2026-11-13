@@ -354,7 +354,7 @@ async function initSupabase(){
   if (supabaseClient) return; 
   
   try{
-    supabaseClient=window.supabase.createClient(state.supabase.url,state.supabase.key);
+    supabaseClient=window.supabase.createClient(state.supabase.url,state.supabase.key, { auth: { flowType: 'implicit' } });
     const {data:{session}}=await supabaseClient.auth.getSession();
     if(session){
       currentUser=session.user;
