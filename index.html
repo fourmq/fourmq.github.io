@@ -423,24 +423,73 @@ function openSyncSettings(){
   const sb=state.supabase;
   const loggedIn=!!currentUser;
   const email=currentUser?.email||sb.email||'';
-  
+
   openSheet(`
     <h2>☁️ Синхронизация</h2>
-    <p style="font-size:13px;color:var(--text-sec);margin-bottom:12px;line-height:1.5;">Включите синхронизацию, чтобы данные сохранялись в облаке и были доступны с телефона и компьютера.</p>
-    
+    <p style="font-size:13px;color:var(--text-sec);margin-bottom:12px;line-height:1.5;">Введите URL, ключ и придумайте пароль. Один и тот же пароль нужно ввести на всех устройствах.</p>
+
     <div class="field"><label>Supabase URL</label><input type="text" id="sb-url" value="${escapeHtml(sb.url)}" placeholder="https://xxx.supabase.co"></div>
     <div class="field"><label>Anon key</label><input type="password" id="sb-key" value="${escapeHtml(sb.key)}" placeholder="eyJhbGciOi..."></div>
-    <div class="field"><label>Email для входа</label><input type="email" id="sb-email" value="${escapeHtml(email)}" placeholder="you@mail.com" ${loggedIn?'disabled':''}></div>
-    
-    ${loggedIn?`<div style="padding:12px;background:var(--green-soft);border-radius:10px;font-size:13px;color:var(--green-text);margin-bottom:12px;">✅ Вошли как ${escapeHtml(email)}</div>`:''}
-    
-    <div class="sheet-actions" style="flex-wrap:wrap;">
-      ${loggedIn?`<button class="btn-danger" onclick="signOut()">Выйти</button>`:`<button class="btn-cancel" onclick="sendMagicLink()">Отправить magic link</button>`}
-      <button class="btn-primary" onclick="saveSyncSettings()">Сохранить</button>
-    </div>
-    
-    ${loggedIn?`<button class="btn-cancel" style="margin-top:8px;" onclick="manualSync()">🔄 Синхронизировать сейчас</button>`:''}
+
+    ${loggedIn ? `
+      <div style="padding:12px;background:var(--green-soft);border-radius:10px;font-size:13px;color:var(--green-text);margin-bottom:12px;">✅ Вошли как ${escapeHtml(email)}</div>
+      <div class="sheet-actions" style="flex-wrap:wrap;">
+        <button class="btn-danger" onclick="signOut()">Выйти</button>
+        <button class="btn-primary" onclick="saveSyncSettings()">Сохранить ключи</button>
+      </div>
+      <button class="btn-cancel" style="margin-top:8px;" onclick="manualSync()">🔄 Синхронизировать сейчас</button>
+    ` : `
+      <div class="field"><label>Ваш Email</label><input type="email" id="sb-email" value="${escapeHtml(email)}" placeholder="you@mail.com"></div>
+      <div class="field"><label>Придумайте пароль (мин. 6 символов)</label><input type="password" id="sb-password" placeholder="••••••••"></div>
+      
+      <div class="sheet-actions" style="flex-wrap:wrap; margin-top:16px;">
+        <button class="btn-cancel" onclick="loginWithPassword()" style="background:var(--accent-soft);color:var(--accent);">Войти</button>
+        <button class="btn-primary" onclick="registerWithPassword()">Регистрация</button>
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:var(--text-sec);text-align:center;">Если вы здесь впервые — нажмите «Регистрация».</div>
+    `}
   `);
+}
+
+async function loginWithPassword(){
+  const email=document.getElementById('sb-email').value.trim();
+  const password=document.getElementById('sb-password').value;
+  const url=document.getElementById('sb-url').value.trim();
+  const key=document.getElementById('sb-key').value.trim();
+  
+  if(!email||!password||!url||!key){alert('Заполните все поля');return}
+  
+  state.supabase.url=url; state.supabase.key=key; state.supabase.email=email;
+  localStorage.setItem(STORAGE,JSON.stringify(state));
+  
+  try{
+    if(!supabaseClient) supabaseClient=window.supabase.createClient(url,key);
+    const {data, error}=await supabaseClient.auth.signInWithPassword({ email, password });
+    if(error)throw error;
+    showToast('✅ Вход выполнен!');
+    closeSheet();
+  }catch(e){alert('Ошибка входа: ' + e.message)}
+}
+
+async function registerWithPassword(){
+  const email=document.getElementById('sb-email').value.trim();
+  const password=document.getElementById('sb-password').value;
+  const url=document.getElementById('sb-url').value.trim();
+  const key=document.getElementById('sb-key').value.trim();
+  
+  if(!email||!password||!url||!key){alert('Заполните все поля');return}
+  if(password.length < 6){alert('Пароль должен быть не менее 6 символов');return}
+  
+  state.supabase.url=url; state.supabase.key=key; state.supabase.email=email;
+  localStorage.setItem(STORAGE,JSON.stringify(state));
+  
+  try{
+    if(!supabaseClient) supabaseClient=window.supabase.createClient(url,key);
+    const {data, error}=await supabaseClient.auth.signUp({ email, password });
+    if(error)throw error;
+    showToast('✅ Аккаунт создан! Данные синхронизируются.');
+    closeSheet();
+  }catch(e){alert('Ошибка регистрации: ' + e.message)}
 }
 
 function saveSyncSettings(){
