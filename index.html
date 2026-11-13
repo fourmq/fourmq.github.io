@@ -354,12 +354,13 @@ async function initSupabase(){
   if (supabaseClient) return; 
   
   try{
-    supabaseClient=window.supabase.createClient(state.supabase.url,state.supabase.key, { auth: { flowType: 'implicit' } });
+    supabaseClient=window.supabase.createClient(state.supabase.url,state.supabase.key);
     const {data:{session}}=await supabaseClient.auth.getSession();
     if(session){
       currentUser=session.user;
       updateSyncStatus('online','Вошли как '+(session.user.email||'???'));
       await pullFromCloud();
+      subscribeToCloudChanges(); // <--- ДОБАВЛЕНА ЭТА СТРОКА
     } else {
       updateSyncStatus('online','Не вошли');
     }
@@ -368,6 +369,7 @@ async function initSupabase(){
         currentUser=s.user;
         updateSyncStatus('online','Вошли как '+(s.user.email||'???'));
         await pullFromCloud();
+        subscribeToCloudChanges(); // <--- И СЮДА ТОЖЕ
         renderAll();
       } else {
         currentUser=null;
@@ -377,6 +379,33 @@ async function initSupabase(){
   } catch(e){
     updateSyncStatus('offline','Ошибка: '+e.message);
   } 
+}
+
+// НОВАЯ ФУНКЦИЯ: Слушаем изменения из облака
+function subscribeToCloudChanges() {
+  if (!supabaseClient || !currentUser) return;
+
+  supabaseClient
+    .channel('cantilena_realtime')
+    .on(
+      'postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'cantilena_data', filter: `user_id=eq.${currentUser.id}` },
+      (payload) => {
+        // Когда приходят новые данные из облака (с другого устройства)
+        const cloudData = payload.new.data;
+        if (cloudData && cloudData.habits) {
+          // Обновляем стейт и перерисовываем экран БЕЗ отправки обратно в облако
+          state = migrateState(cloudData);
+          if(!state.supabase) state.supabase = {};
+          state.supabase.lastSync = Date.now();
+          localStorage.setItem(STORAGE, JSON.stringify(state));
+          applyTheme();
+          renderAll();
+          showToast('🔄 Обновлено с другого устройства');
+        }
+      }
+    )
+    .subscribe();
 }
 
 function updateSyncStatus(status, text){
