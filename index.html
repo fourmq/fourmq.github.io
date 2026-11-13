@@ -376,7 +376,64 @@ const save=()=>{ if(!state.supabase)state.supabase={}; state.supabase.lastSync=D
 
 // ============ Синхронизация (Supabase) ============
 let supabaseClient=null, syncTimer=null, currentUser=null;
-async function initSupabase(){ if(!state.supabase.url||!state.supabase.key||!window.supabase){updateSyncStatus('offline','Не настроено');return} try{supabaseClient=window.supabase.createClient(state.supabase.url,state.supabase.key);const {data:{session}}=await supabaseClient.auth.getSession();if(session){currentUser=session.user;updateSyncStatus('online','Вошли как '+session.user.email);await pullFromCloud()}else{updateSyncStatus('online','Не вошли')}supabaseClient.auth.onAuthStateChange(async(e,s)=>{if(s){currentUser=s.user;updateSyncStatus('online','Вошли как '+s.user.email);await pullFromCloud();renderAll()}else{currentUser=null;updateSyncStatus('online','Не вошли')}})}catch(e){updateSyncStatus('offline','Ошибка: '+e.message)} }
+let supabaseClient=null, syncTimer=null, currentUser=null;
+
+async function initSupabase(){ 
+  if(!state.supabase.url || !state.supabase.key || !window.supabase){
+    updateSyncStatus('offline','Не настроено');
+    return;
+  }
+  
+  // ЗАЩИТА ОТ ДУБЛИКАТОВ (исправляет желтую ошибку в консоли)
+  if (supabaseClient) return; 
+  
+  try{
+    supabaseClient=window.supabase.createClient(state.supabase.url,state.supabase.key);
+    const {data:{session}}=await supabaseClient.auth.getSession();
+    if(session){
+      currentUser=session.user;
+      updateSyncStatus('online','Вошли как '+(session.user.email||'???'));
+      await pullFromCloud();
+    } else {
+      updateSyncStatus('online','Не вошли');
+    }
+    
+    supabaseClient.auth.onAuthStateChange(async(e,s)=>{
+      if(s){
+        currentUser=s.user;
+        updateSyncStatus('online','Вошли как '+(s.user.email||'???'));
+        await pullFromCloud();
+        renderAll();
+      } else {
+        currentUser=null;
+        updateSyncStatus('online','Не вошли');
+      }
+    });
+  } catch(e){
+    updateSyncStatus('offline','Ошибка: '+e.message);
+    console.error(e);
+  } 
+}
+
+async function sendMagicLink(){
+  const email=document.getElementById('sb-email').value.trim();
+  const url=document.getElementById('sb-url').value.trim();
+  const key=document.getElementById('sb-key').value.trim();
+  if(!email||!url||!key){alert('Заполните все поля');return}
+  
+  state.supabase.url=url;state.supabase.key=key;state.supabase.email=email;
+  localStorage.setItem(STORAGE,JSON.stringify(state));
+  
+  try{
+    if (!supabaseClient) {
+        supabaseClient=window.supabase.createClient(url,key);
+    }
+    const {error}=await supabaseClient.auth.signInWithOtp({email});
+    if(error)throw error;
+    showToast('📧 Проверьте почту — отправлена ссылка для входа');
+    closeSheet();
+  }catch(e){alert('Ошибка: '+e.message)}
+}
 function updateSyncStatus(status,text){const el=document.getElementById('sidebar-sync');if(!el)return;el.innerHTML=`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${status==='online'?'var(--green)':'var(--text-tert)'};margin-right:6px;"></span>${text}`}
 function scheduleSync(){if(!currentUser||!supabaseClient)return;clearTimeout(syncTimer);syncTimer=setTimeout(pushToCloud,1500)}
 async function pushToCloud(){if(!currentUser||!supabaseClient)return;try{const {error}=await supabaseClient.from('cantilena_data').upsert({user_id:currentUser.id,data:state,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error)throw error;state.supabase.lastSync=Date.now();localStorage.setItem(STORAGE,JSON.stringify(state))}catch(e){console.error(e)}}
