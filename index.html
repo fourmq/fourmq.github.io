@@ -376,7 +376,6 @@ const save=()=>{ if(!state.supabase)state.supabase={}; state.supabase.lastSync=D
 
 // ============ Синхронизация (Supabase) ============
 let supabaseClient=null, syncTimer=null, currentUser=null;
-let supabaseClient=null, syncTimer=null, currentUser=null;
 
 async function initSupabase(){ 
   if(!state.supabase.url || !state.supabase.key || !window.supabase){
