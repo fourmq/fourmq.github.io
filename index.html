@@ -382,19 +382,27 @@ async function initSupabase(){
 }
 
 // НОВАЯ ФУНКЦИЯ: Слушаем изменения из облака
+let realtimeChannel = null;
+
 function subscribeToCloudChanges() {
   if (!supabaseClient || !currentUser) return;
+  
+  // Если канал уже есть, отключаем его, чтобы не было дублей
+  if (realtimeChannel) {
+    supabaseClient.removeChannel(realtimeChannel);
+  }
 
-  supabaseClient
-    .channel('cantilena_realtime')
+  realtimeChannel = supabaseClient
+    .channel('cantilena_changes')
     .on(
       'postgres_changes',
-      { event: 'UPDATE', schema: 'public', table: 'cantilena_data', filter: `user_id=eq.${currentUser.id}` },
+      { event: '*', schema: 'public', table: 'cantilena_data', filter: `user_id=eq.${currentUser.id}` },
       (payload) => {
-        // Когда приходят новые данные из облака (с другого устройства)
-        const cloudData = payload.new.data;
+        const cloudData = payload.new ? payload.new.data : null;
         if (cloudData && cloudData.habits) {
-          // Обновляем стейт и перерисовываем экран БЕЗ отправки обратно в облако
+          // Защита от эха: если это те же данные, что у нас уже есть, ничего не делаем
+          if (JSON.stringify(cloudData) === JSON.stringify(state)) return;
+
           state = migrateState(cloudData);
           if(!state.supabase) state.supabase = {};
           state.supabase.lastSync = Date.now();
@@ -405,7 +413,9 @@ function subscribeToCloudChanges() {
         }
       }
     )
-    .subscribe();
+    .subscribe((status) => {
+       console.log("Realtime status:", status); // Это покажет в консоли, работает ли подписка
+    });
 }
 
 function updateSyncStatus(status, text){
