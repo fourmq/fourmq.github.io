@@ -379,10 +379,14 @@ async function initSupabase(){
   } 
 }
 
-function updateSyncStatus(status,text){
-  const el=document.getElementById('sidebar-sync');
-  if(!el)return;
-  el.innerHTML=`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${status==='online'?'var(--green)':'var(--text-tert)'};margin-right:6px;"></span>${text}`;
+function updateSyncStatus(status, text){
+  const el = document.getElementById('sidebar-sync');
+  if(!el) return;
+  if (status === 'online') {
+    el.innerHTML = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:6px;"></span><span style="color:var(--green);font-weight:600;">${text}</span>`;
+  } else {
+    el.innerHTML = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--text-tert);margin-right:6px;"></span>${text}`;
+  }
 }
 
 function scheduleSync(){if(!currentUser||!supabaseClient)return;clearTimeout(syncTimer);syncTimer=setTimeout(pushToCloud,1500)}
@@ -420,76 +424,40 @@ async function pullFromCloud(){
 }
 
 function openSyncSettings(){
-  const sb=state.supabase;
-  const loggedIn=!!currentUser;
-  const email=currentUser?.email||sb.email||'';
+  const sb = state.supabase;
+  const loggedIn = !!currentUser;
+  const email = currentUser?.email || sb.email || '';
 
   openSheet(`
     <h2>☁️ Синхронизация</h2>
-    <p style="font-size:13px;color:var(--text-sec);margin-bottom:12px;line-height:1.5;">Введите URL, ключ и придумайте пароль. Один и тот же пароль нужно ввести на всех устройствах.</p>
-
-    <div class="field"><label>Supabase URL</label><input type="text" id="sb-url" value="${escapeHtml(sb.url)}" placeholder="https://xxx.supabase.co"></div>
-    <div class="field"><label>Anon key</label><input type="password" id="sb-key" value="${escapeHtml(sb.key)}" placeholder="eyJhbGciOi..."></div>
-
+    
     ${loggedIn ? `
-      <div style="padding:12px;background:var(--green-soft);border-radius:10px;font-size:13px;color:var(--green-text);margin-bottom:12px;">✅ Вошли как ${escapeHtml(email)}</div>
-      <div class="sheet-actions" style="flex-wrap:wrap;">
-        <button class="btn-danger" onclick="signOut()">Выйти</button>
-        <button class="btn-primary" onclick="saveSyncSettings()">Сохранить ключи</button>
+      <div style="padding:20px;background:var(--green-soft);border-radius:14px;font-size:15px;color:var(--green-text);margin-bottom:20px;text-align:center;font-weight:700;">
+        🟢 Вы в аккаунте<br>
+        <span style="font-weight:500;font-size:13px;opacity:0.8;">${escapeHtml(email)}</span>
       </div>
-      <button class="btn-cancel" style="margin-top:8px;" onclick="manualSync()">🔄 Синхронизировать сейчас</button>
+      <p style="font-size:13px;color:var(--text-sec);text-align:center;margin-bottom:20px;">Все изменения автоматически сохраняются в облако и доступны на других устройствах.</p>
+      
+      <button class="btn-primary" onclick="manualSync()" style="margin-bottom:8px;">🔄 Синхронизировать сейчас</button>
+      <button class="btn-cancel" onclick="closeSheet()" style="margin-bottom:8px;">Закрыть</button>
+      <button class="btn-danger" onclick="signOut()">Выйти из аккаунта</button>
     ` : `
+      <div style="padding:20px;background:var(--pink-soft);border-radius:14px;font-size:15px;color:var(--pink);margin-bottom:20px;text-align:center;font-weight:700;">
+        🔴 Вы не авторизованы<br>
+        <span style="font-weight:500;font-size:13px;opacity:0.8;">Данные не сохраняются в облако</span>
+      </div>
+      
+      <div class="field"><label>Supabase URL</label><input type="text" id="sb-url" value="${escapeHtml(sb.url)}" placeholder="https://xxx.supabase.co"></div>
+      <div class="field"><label>Anon key</label><input type="password" id="sb-key" value="${escapeHtml(sb.key)}" placeholder="eyJhbGciOi..."></div>
       <div class="field"><label>Ваш Email</label><input type="email" id="sb-email" value="${escapeHtml(email)}" placeholder="you@mail.com"></div>
-      <div class="field"><label>Придумайте пароль (мин. 6 символов)</label><input type="password" id="sb-password" placeholder="••••••••"></div>
+      <div class="field"><label>Пароль</label><input type="password" id="sb-password" placeholder="••••••••"></div>
       
       <div class="sheet-actions" style="flex-wrap:wrap; margin-top:16px;">
         <button class="btn-cancel" onclick="loginWithPassword()" style="background:var(--accent-soft);color:var(--accent);">Войти</button>
         <button class="btn-primary" onclick="registerWithPassword()">Регистрация</button>
       </div>
-      <div style="margin-top:12px;font-size:12px;color:var(--text-sec);text-align:center;">Если вы здесь впервые — нажмите «Регистрация».</div>
     `}
   `);
-}
-
-async function loginWithPassword(){
-  const email=document.getElementById('sb-email').value.trim();
-  const password=document.getElementById('sb-password').value;
-  const url=document.getElementById('sb-url').value.trim();
-  const key=document.getElementById('sb-key').value.trim();
-  
-  if(!email||!password||!url||!key){alert('Заполните все поля');return}
-  
-  state.supabase.url=url; state.supabase.key=key; state.supabase.email=email;
-  localStorage.setItem(STORAGE,JSON.stringify(state));
-  
-  try{
-    if(!supabaseClient) supabaseClient=window.supabase.createClient(url,key);
-    const {data, error}=await supabaseClient.auth.signInWithPassword({ email, password });
-    if(error)throw error;
-    showToast('✅ Вход выполнен!');
-    closeSheet();
-  }catch(e){alert('Ошибка входа: ' + e.message)}
-}
-
-async function registerWithPassword(){
-  const email=document.getElementById('sb-email').value.trim();
-  const password=document.getElementById('sb-password').value;
-  const url=document.getElementById('sb-url').value.trim();
-  const key=document.getElementById('sb-key').value.trim();
-  
-  if(!email||!password||!url||!key){alert('Заполните все поля');return}
-  if(password.length < 6){alert('Пароль должен быть не менее 6 символов');return}
-  
-  state.supabase.url=url; state.supabase.key=key; state.supabase.email=email;
-  localStorage.setItem(STORAGE,JSON.stringify(state));
-  
-  try{
-    if(!supabaseClient) supabaseClient=window.supabase.createClient(url,key);
-    const {data, error}=await supabaseClient.auth.signUp({ email, password });
-    if(error)throw error;
-    showToast('✅ Аккаунт создан! Данные синхронизируются.');
-    closeSheet();
-  }catch(e){alert('Ошибка регистрации: ' + e.message)}
 }
 
 function saveSyncSettings(){
