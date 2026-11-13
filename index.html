@@ -382,9 +382,7 @@ async function initSupabase(){
     updateSyncStatus('offline','Не настроено');
     return;
   }
-  
-  // ЗАЩИТА ОТ ДУБЛИКАТОВ (исправляет желтую ошибку в консоли)
-  if (supabaseClient) return; 
+  if (supabaseClient) return; // Защита от дубликатов
   
   try{
     supabaseClient=window.supabase.createClient(state.supabase.url,state.supabase.key);
@@ -410,17 +408,98 @@ async function initSupabase(){
     });
   } catch(e){
     updateSyncStatus('offline','Ошибка: '+e.message);
-    console.error(e);
   } 
+}
+
+function updateSyncStatus(status,text){
+  const el=document.getElementById('sidebar-sync');
+  if(!el)return;
+  el.innerHTML=`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${status==='online'?'var(--green)':'var(--text-tert)'};margin-right:6px;"></span>${text}`;
+}
+
+function scheduleSync(){if(!currentUser||!supabaseClient)return;clearTimeout(syncTimer);syncTimer=setTimeout(pushToCloud,1500)}
+
+async function pushToCloud(){
+  if(!currentUser||!supabaseClient)return;
+  try{
+    const {error}=await supabaseClient.from('cantilena_data').upsert({user_id:currentUser.id,data:state,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+    if(error)throw error;
+    state.supabase.lastSync=Date.now();
+    localStorage.setItem(STORAGE,JSON.stringify(state));
+  }catch(e){console.error('Sync push failed',e)}
+}
+
+async function pullFromCloud(){
+  if(!currentUser||!supabaseClient)return;
+  try{
+    const {data,error}=await supabaseClient.from('cantilena_data').select('*').eq('user_id',currentUser.id).maybeSingle();
+    if(error)throw error;
+    if(data&&data.data&&data.data.habits){
+      const cloudTime=new Date(data.updated_at).getTime();
+      const localTime=state.supabase.lastSync||0;
+      if(cloudTime>localTime+2000){
+        state=migrateState(data.data);
+        if(!state.supabase)state.supabase={};
+        state.supabase.lastSync=cloudTime;
+        localStorage.setItem(STORAGE,JSON.stringify(state));
+        applyTheme();
+        renderAll();
+      }
+    }else{
+      await pushToCloud();
+    }
+  }catch(e){console.error('Sync pull failed',e)}
+}
+
+function openSyncSettings(){
+  const sb=state.supabase;
+  const loggedIn=!!currentUser;
+  const email=currentUser?.email||sb.email||'';
+  
+  openSheet(`
+    <h2>☁️ Синхронизация</h2>
+    <p style="font-size:13px;color:var(--text-sec);margin-bottom:12px;line-height:1.5;">Включите синхронизацию, чтобы данные сохранялись в облаке и были доступны с телефона и компьютера.</p>
+    
+    <div class="field"><label>Supabase URL</label><input type="text" id="sb-url" value="${escapeHtml(sb.url)}" placeholder="https://xxx.supabase.co"></div>
+    <div class="field"><label>Anon key</label><input type="password" id="sb-key" value="${escapeHtml(sb.key)}" placeholder="eyJhbGciOi..."></div>
+    <div class="field"><label>Email для входа</label><input type="email" id="sb-email" value="${escapeHtml(email)}" placeholder="you@mail.com" ${loggedIn?'disabled':''}></div>
+    
+    ${loggedIn?`<div style="padding:12px;background:var(--green-soft);border-radius:10px;font-size:13px;color:var(--green-text);margin-bottom:12px;">✅ Вошли как ${escapeHtml(email)}</div>`:''}
+    
+    <div class="sheet-actions" style="flex-wrap:wrap;">
+      ${loggedIn?`<button class="btn-danger" onclick="signOut()">Выйти</button>`:`<button class="btn-cancel" onclick="sendMagicLink()">Отправить magic link</button>`}
+      <button class="btn-primary" onclick="saveSyncSettings()">Сохранить</button>
+    </div>
+    
+    ${loggedIn?`<button class="btn-cancel" style="margin-top:8px;" onclick="manualSync()">🔄 Синхронизировать сейчас</button>`:''}
+  `);
+}
+
+function saveSyncSettings(){
+  const url=document.getElementById('sb-url').value.trim();
+  const key=document.getElementById('sb-key').value.trim();
+  state.supabase.url=url;
+  state.supabase.key=key;
+  localStorage.setItem(STORAGE,JSON.stringify(state));
+  closeSheet();
+  if(url&&key){
+    initSupabase();
+    showToast('✓ Ключи сохранены');
+  } else {
+    showToast('Синхронизация отключена');
+  }
 }
 
 async function sendMagicLink(){
   const email=document.getElementById('sb-email').value.trim();
   const url=document.getElementById('sb-url').value.trim();
   const key=document.getElementById('sb-key').value.trim();
-  if(!email||!url||!key){alert('Заполните все поля');return}
   
-  state.supabase.url=url;state.supabase.key=key;state.supabase.email=email;
+  if(!email||!url||!key){alert('Заполните все поля (URL, Key, Email)');return}
+  
+  state.supabase.url=url;
+  state.supabase.key=key;
+  state.supabase.email=email;
   localStorage.setItem(STORAGE,JSON.stringify(state));
   
   try{
@@ -431,61 +510,27 @@ async function sendMagicLink(){
     if(error)throw error;
     showToast('📧 Проверьте почту — отправлена ссылка для входа');
     closeSheet();
-  }catch(e){alert('Ошибка: '+e.message)}
-}
-function updateSyncStatus(status,text){const el=document.getElementById('sidebar-sync');if(!el)return;el.innerHTML=`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${status==='online'?'var(--green)':'var(--text-tert)'};margin-right:6px;"></span>${text}`}
-function scheduleSync(){if(!currentUser||!supabaseClient)return;clearTimeout(syncTimer);syncTimer=setTimeout(pushToCloud,1500)}
-async function pushToCloud(){if(!currentUser||!supabaseClient)return;try{const {error}=await supabaseClient.from('cantilena_data').upsert({user_id:currentUser.id,data:state,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error)throw error;state.supabase.lastSync=Date.now();localStorage.setItem(STORAGE,JSON.stringify(state))}catch(e){console.error(e)}}
-async function pullFromCloud(){if(!currentUser||!supabaseClient)return;try{const {data,error}=await supabaseClient.from('cantilena_data').select('*').eq('user_id',currentUser.id).maybeSingle();if(error)throw error;if(data&&data.data&&data.data.habits){const cloudTime=new Date(data.updated_at).getTime();const localTime=state.supabase.lastSync||0;if(cloudTime>localTime+2000){state=migrateState(data.data);if(!state.supabase)state.supabase={};state.supabase.lastSync=cloudTime;localStorage.setItem(STORAGE,JSON.stringify(state));applyTheme();renderAll()}}else{await pushToCloud()}}catch(e){console.error(e)}}
-
-// ============ Настройки, PWA, CSV ============
-if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(e => console.log('SW reg failed', e)); }); }
-function openSettings() {
-  openSheet(`
-    <h2>Настройки</h2>
-    <div class="settings-row">
-      <span>Напоминания</span>
-      <label class="switch"><input type="checkbox" id="notify-toggle" ${state.notifications.enabled?'checked':''} onchange="toggleNotifications(this.checked)"><span class="slider"></span></label>
-    </div>
-    <p style="font-size:12px;color:var(--text-sec);margin-top:8px;line-height:1.4;">Уведомления работают, если приложение добавлено на экран «Домой». Приложение напомнит утром (в 8:00) и вечером (в 21:00).</p>
-    <div style="margin-top:16px;">
-      <button class="btn-cancel" onclick="openSyncSettings()">☁️ Синхронизация</button>
-      <button class="btn-cancel" onclick="cycleTheme()">🌓 Сменить тему</button>
-      <button class="btn-cancel" onclick="closeSheet()">Закрыть</button>
-    </div>
-  `);
-}
-async function toggleNotifications(enabled) {
-  if (enabled) {
-    if (!("Notification" in window)) { alert("Ваш браузер не поддерживает уведомления"); return; }
-    const permission = await Notification.requestPermission();
-    if (permission === "granted") { state.notifications.enabled = true; save(); showToast("🔔 Уведомления включены"); } 
-    else { document.getElementById('notify-toggle').checked = false; state.notifications.enabled = false; save(); alert("Вы отклонили разрешение на уведомления."); }
-  } else { state.notifications.enabled = false; save(); }
-}
-setInterval(() => {
-  if (!state.notifications || !state.notifications.enabled) return;
-  const now = new Date(); const h = now.getHours(), m = now.getMinutes(); const today = todayStr(); const lastNotified = localStorage.getItem('lastNotified_' + today);
-  if (h === 8 && m === 0 && state.notifications.morning && lastNotified !== 'morning') { new Notification("Доброе утро! ☀️", { body: "Не забудьте отметить настроение и заглянуть в фокус дня." }); localStorage.setItem('lastNotified_' + today, 'morning'); }
-  if (h === 21 && m === 0 && state.notifications.evening && lastNotified !== 'evening') { new Notification("Как прошел день? 🌙", { body: "Пора заполнить дневник и закрыть кольца активности." }); localStorage.setItem('lastNotified_' + today, 'evening'); }
-}, 60000);
-
-function exportCSV() {
-  let csv = "Дата,Настроение,Продуктивность,Тревога,Энергия,Сон (ч),Экран (ч)\n";
-  Object.keys(state.surveys).sort().forEach(d => {
-    const s = state.surveys[d];
-    csv += `${d},${s.emotions?.joy||''},${s.mental?.productivity||''},${s.emotions?.anxiety||''},${s.physical?.energy||''},${s.physical?.sleepHours||''},${s.screen?.totalHours||''}\n`;
-  });
-  const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `cantilena-data-${todayStr()}.csv`; a.click();
-}
-
-function fireConfetti() {
-  const colors = ['#FF3B30', '#FF9500', '#34C759', '#007AFF', '#AF52DE', '#FF2D55'];
-  for (let i = 0; i < 50; i++) {
-    const piece = document.createElement('div'); piece.className = 'confetti-piece'; piece.style.left = Math.random() * 100 + 'vw'; piece.style.top = -10 + 'px'; piece.style.background = colors[Math.floor(Math.random() * colors.length)]; piece.style.animationDuration = (Math.random() * 2 + 2) + 's'; piece.style.animationDelay = (Math.random() * 0.5) + 's';
-    document.body.appendChild(piece); setTimeout(() => piece.remove(), 4000);
+  }catch(e){
+    alert('Ошибка: '+e.message);
   }
 }
+
+async function signOut(){
+  if(supabaseClient) await supabaseClient.auth.signOut();
+  currentUser=null;
+  updateSyncStatus('online','Не вошли');
+  closeSheet();
+  showToast('Вы вышли из аккаунта');
+}
+
+async function manualSync(){
+  await pullFromCloud();
+  await pushToCloud();
+  showToast('🔄 Данные синхронизированы');
+  closeSheet();
+}
+
+window.addEventListener('load',()=>{setTimeout(initSupabase,500)});
 
 // ============ Логика приложения ============
 function applyTheme(){const sysDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;const dark=state.theme==='dark'||(state.theme==='auto'&&sysDark);document.documentElement.setAttribute('data-theme',dark?'dark':'light')}
