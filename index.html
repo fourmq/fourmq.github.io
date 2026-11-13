@@ -356,29 +356,64 @@ async function initSupabase(){
   try{
     supabaseClient=window.supabase.createClient(state.supabase.url,state.supabase.key);
     const {data:{session}}=await supabaseClient.auth.getSession();
+    
     if(session){
       currentUser=session.user;
       updateSyncStatus('online','Вошли как '+(session.user.email||'???'));
       await pullFromCloud();
-      subscribeToCloudChanges(); // <--- ДОБАВЛЕНА ЭТА СТРОКА
+      startAutoSync(); // <--- ЗАПУСКАЕМ УМНУЮ ПРОВЕРКУ
     } else {
       updateSyncStatus('online','Не вошли');
     }
+    
     supabaseClient.auth.onAuthStateChange(async(e,s)=>{
       if(s){
         currentUser=s.user;
         updateSyncStatus('online','Вошли как '+(s.user.email||'???'));
         await pullFromCloud();
-        subscribeToCloudChanges(); // <--- И СЮДА ТОЖЕ
+        startAutoSync(); // <--- ЗАПУСКАЕМ ПРИ ВХОДЕ
         renderAll();
       } else {
         currentUser=null;
         updateSyncStatus('online','Не вошли');
+        if (syncInterval) clearInterval(syncInterval);
       }
     });
   } catch(e){
     updateSyncStatus('offline','Ошибка: '+e.message);
   } 
+}
+
+// НОВАЯ ФУНКЦИЯ: Автоматическая проверка каждые 10 секунд
+let syncInterval = null;
+function startAutoSync() {
+  if (syncInterval) clearInterval(syncInterval);
+  
+  // Проверяем каждые 10 секунд (10000 мс)
+  syncInterval = setInterval(async () => {
+    if (!currentUser || !supabaseClient) return;
+    
+    try {
+      const {data, error} = await supabaseClient.from('cantilena_data').select('*').eq('user_id',currentUser.id).maybeSingle();
+      if(error || !data || !data.data || !data.data.habits) return;
+      
+      const cloudTime = new Date(data.updated_at).getTime();
+      const localTime = state.supabase.lastSync || 0;
+      
+      // Если на сервере данные новее (с учетом 2-секундной задержки), обновляем
+      if(cloudTime > localTime + 2000){
+        state = migrateState(data.data);
+        if(!state.supabase) state.supabase = {};
+        state.supabase.lastSync = cloudTime;
+        localStorage.setItem(STORAGE, JSON.stringify(state));
+        applyTheme();
+        renderAll();
+        showToast('🔄 Обновлено с другого устройства');
+      }
+    } catch(e) {
+      console.log('Фоновая проверка пропущена', e);
+    }
+  }, 10000);
 }
 
 // НОВАЯ ФУНКЦИЯ: Слушаем изменения из облака
