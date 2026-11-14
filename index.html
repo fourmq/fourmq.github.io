@@ -20,23 +20,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-s
 .app{width:100%;height:100%;display:flex;background:var(--bg);overflow:hidden}
 
 /* ЗАСТАВКА */
-#splash{position:fixed;inset:0;background:#3E1728;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s ease-out, visibility .6s}
+#splash{position:fixed;inset:0;background:#3E1728;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s ease-out, visibility .6s;cursor:pointer}
 #splash.hidden{opacity:0;visibility:hidden}
 .splash-svg{width:200px;height:200px;margin-bottom:20px;overflow:visible}
 .splash-title{color:#F2A0C0;font-size:28px;font-weight:700;letter-spacing:2px;opacity:0;animation:fadeIn 1s .5s forwards}
 @keyframes fadeIn{to{opacity:1}}
-
-/* Анимация шарика: падение вниз, качение, возврат */
-#splash-ball { animation: dropAndReturn 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-@keyframes dropAndReturn {
-  0% { transform: translate(0px, 0px); }
-  15% { transform: translate(0px, 90px); } /* Падает на волну */
-  20% { transform: translate(0px, 85px); } /* Отскок */
-  25% { transform: translate(0px, 90px); } /* Приземлился */
-  60% { transform: translate(130px, 90px); } /* Катится по волне */
-  85% { transform: translate(130px, 90px); } /* Пауза */
-  100% { transform: translate(0px, 0px); } /* Возвращается */
-}
 
 .main-area{flex:1;display:flex;flex-direction:column;min-width:0;position:relative;overflow:hidden}
 @keyframes screenIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -84,7 +72,6 @@ main{flex:1;overflow-y:auto;padding-bottom:24px;-webkit-overflow-scrolling:touch
 .quote-text{margin-bottom:8px}
 .quote-author{font-size:12px;font-weight:600;font-style:normal;color:var(--text-tert)}
 
-/* Настройки */
 .settings-group{background:var(--card);border-radius:16px;margin-bottom:20px;overflow:hidden}
 .settings-header{font-size:12px;font-weight:600;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;padding:0 16px 8px;margin-top:8px}
 .settings-row{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:.5px solid var(--separator);font-size:16px;font-weight:500}
@@ -101,7 +88,6 @@ main{flex:1;overflow-y:auto;padding-bottom:24px;-webkit-overflow-scrolling:touch
 input:checked + .slider{background-color:var(--green)}
 input:checked + .slider:before{transform:translateX(20px)}
 
-/* Графики */
 .chart-svg{width:100%;height:auto;display:block;overflow:visible}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .stat-card{background:var(--card);border-radius:16px;padding:14px}
@@ -184,24 +170,24 @@ input:checked + .slider:before{transform:translateX(20px)}
 .tab svg{width:24px;height:24px;transition:transform .2s}
 .tab.active svg{transform:scale(1.08)}
 
-/* ИСПРАВЛЕННЫЙ СВАЙП И ШТОРКА */
+/* СВАЙП */
 .backdrop{position:absolute;inset:0;background:var(--overlay);opacity:0;pointer-events:none;transition:opacity .3s;z-index:99}
 .backdrop.open{opacity:1;pointer-events:auto}
-.sheet{position:absolute;bottom:0;left:0;right:0;background:var(--bg);color:var(--text);border-radius:20px 20px 0 0;padding:12px 20px calc(env(safe-area-inset-bottom,0px) + 28px);max-height:90vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);z-index:100;will-change:transform}
+.sheet{position:absolute;bottom:0;left:0;right:0;background:var(--bg);color:var(--text);border-radius:20px 20px 0 0;padding:0 20px calc(env(safe-area-inset-bottom,0px) + 28px);max-height:90vh;overflow-y:auto;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);z-index:100;will-change:transform}
 .sheet.open{transform:translateY(0)}
 .sheet.dragging{transition:none}
-.sheet-handle{width:40px;height:5px;background:var(--text-tert);border-radius:3px;margin:0 auto 14px; cursor: grab;}
-.sheet-handle:active{cursor:grabbing;}
+.sheet-handle-wrap{padding:14px 0 12px; touch-action:none; display:flex; justify-content:center; cursor:grab; position:sticky; top:0; background:var(--bg); z-index:10;}
+.sheet-handle{width:40px;height:5px;background:var(--text-tert);border-radius:3px;}
 .sheet h2{font-size:22px;font-weight:700;margin-bottom:16px;padding:0 4px}
 
 .field{margin-bottom:14px}
 .field label{display:block;font-size:13px;font-weight:600;color:var(--text-sec);margin-bottom:6px}
 .field input[type=range]{width:100%;accent-color:var(--accent)}
-.field input[type=text],.field input[type=number],.field input[type=date],.field input[type=time],.field input[type=email],.field input[type=password],.field textarea,.field select{width:100%;padding:10px 12px;border:1px solid var(--separator-med);border-radius:10px;font-size:16px;font-family:inherit;background:var(--card);outline:none;color:var(--text);display:block;}
+.field input[type=text],.field input[type=number],.field input[type=date],.field input[type=time],.field input[type=email],.field input[type=password],.field textarea,.field select{width:100%;padding:10px 12px;border:1px solid var(--separator-med);border-radius:10px;font-size:16px;font-family:inherit;background:var(--card);outline:none;color:var(--text);display:block;height:44px;}
 
 /* Заметки */
 .note-toolbar { position: sticky; top: 0; background: var(--bg); z-index: 10; display: flex; gap: 4px; padding: 8px 0; border-bottom: .5px solid var(--separator); margin-bottom: 8px; flex-wrap: wrap; }
-.note-toolbar button { background: var(--chip-bg); border: none; border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; color: var(--text); display:flex; align-items:center; justify-content:center;}
+.note-toolbar button { background: var(--chip-bg); border: none; border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; color: var(--text); display:flex; align-items:center; justify-content:center;min-width:36px;min-height:36px;}
 .note-toolbar button:active { background: var(--chip-bg-strong); }
 #edit-note-title { width: 100%; font-size: 20px; font-weight: 700; border: none; outline: none; background: transparent; color: var(--text); margin-bottom: 8px; padding: 4px 0; }
 #edit-note-body { min-height: 400px; font-size: 16px; line-height: 1.55; outline: none; color: var(--text); padding-bottom: 40px; }
@@ -217,9 +203,10 @@ input:checked + .slider:before{transform:translateX(20px)}
 .toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-20px);background:rgba(0,0,0,.85);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:200;pointer-events:none;opacity:0;transition:opacity .3s,transform .3s cubic-bezier(.2,.9,.3,1);backdrop-filter:blur(10px)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* Утилиты для сетки */
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+.empty-hint { text-align: center; color: var(--text-sec); padding: 20px 16px; font-size: 14px; line-height: 1.5; }
 
 @media (min-width: 900px) { 
   .sidebar{display:flex} 
@@ -234,15 +221,21 @@ input:checked + .slider:before{transform:translateX(20px)}
 </head>
 <body>
 
-<!-- ЗАСТАВКА С ИСПРАВЛЕННОЙ АНИМАЦИЕЙ -->
+<!-- ЗАСТАВКА С АНИМАЦИЕЙ -->
 <div id="splash">
   <svg class="splash-svg" viewBox="0 0 512 512">
     <rect width="512" height="512" rx="115" fill="#3E1728" />
-    <path id="wavePath" d="M 75 320 C 130 210, 180 210, 230 280 S 310 400, 370 350 S 420 280, 430 260" fill="none" stroke="#F2A0C0" stroke-width="32" stroke-linecap="round"/>
-    <!-- Исходная позиция шарика: cx=256, cy=150 -->
-    <g id="splash-ball">
-      <circle cx="256" cy="150" r="25" fill="#F2A0C0" />
-    </g>
+    <path d="M 75 320 C 130 210, 180 210, 230 280 S 310 400, 370 350 S 420 280, 430 260" fill="none" stroke="#F2A0C0" stroke-width="32" stroke-linecap="round"/>
+    <circle r="25" fill="#F2A0C0" cx="0" cy="0">
+      <animateMotion dur="2.5s" fill="freeze" begin="0s"
+        path="M 256 150 
+              L 256 340 
+              Q 285 405, 320 400 
+              Q 360 385, 385 355 
+              Q 405 330, 415 305 
+              Q 340 210, 256 150"
+      />
+    </circle>
   </svg>
   <div class="splash-title">Cantilena</div>
 </div>
@@ -389,7 +382,7 @@ input:checked + .slider:before{transform:translateX(20px)}
       <section id="screen-notes" class="screen">
         <div id="notes-list-view">
           <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
-            <input id="notes-search" placeholder="Поиск" style="flex:1;padding:10px;border-radius:10px;border:none;background:var(--chip-bg);color:var(--text);outline:none;font-size:16px;" oninput="renderNotes()">
+            <input id="notes-search" placeholder="Поиск" style="flex:1;padding:10px;border-radius:10px;border:none;background:var(--chip-bg);color:var(--text);outline:none;font-size:16px;height:42px;">
             <button onclick="addNote()" style="width:42px;height:42px;border-radius:10px;background:var(--accent);border:none;color:#fff;display:flex;align-items:center;justify-content:center;">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
@@ -438,6 +431,8 @@ input:checked + .slider:before{transform:translateX(20px)}
       </section>
 
       <section id="screen-stats" class="screen">
+        <div id="stats-summary" class="card" style="padding:12px 16px;text-align:center;color:var(--text-sec);font-size:13px;"></div>
+
         <div class="section-title">📊 Аналитика (14 дней)</div>
         <div class="card">
           <div id="chart-mood-prod"></div>
@@ -503,7 +498,9 @@ input:checked + .slider:before{transform:translateX(20px)}
 
     <div class="backdrop" id="backdrop" onclick="closeSheet()"></div>
     <div class="sheet" id="sheet">
-      <div class="sheet-handle" id="sheet-handle"></div>
+      <div class="sheet-handle-wrap" id="sheet-handle-wrap">
+        <div class="sheet-handle"></div>
+      </div>
       <div id="sheet-content"></div>
     </div>
   </div>
@@ -516,6 +513,11 @@ setTimeout(() => {
   const splash = document.getElementById('splash');
   if (splash) splash.classList.add('hidden'); 
 }, 2500);
+
+// Клик по заставке — пропустить
+document.getElementById('splash').addEventListener('click', () => {
+  document.getElementById('splash').classList.add('hidden');
+});
 
 // ============ Служебные функции ============
 const todayStr=()=>new Date().toISOString().slice(0,10);
@@ -543,7 +545,7 @@ function playSound(type) {
   } catch(e){}
 }
 
-// ============ Иконки (Единый стиль, все SVG) ============
+// ============ Иконки ============
 const ICONS={
   sunrise:'<path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/>',
   activity:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
@@ -599,6 +601,47 @@ function changeDay(offset) { const d = new Date(currentDate + 'T12:00:00'); d.se
 function goToday() { currentDate = todayStr(); haptic(); renderAll(); }
 function updateDateNav() { const label = document.getElementById('date-nav-label'); if(!label)return; if(currentDate === todayStr()) { label.innerHTML = 'Сегодня'; } else { const d = new Date(currentDate + 'T12:00:00'); label.innerHTML = `${d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', weekday: 'short' })} <span class="back-today" onclick="goToday()">Вернуться</span>`; } }
 
+// === ДИНАМИЧЕСКИЙ ЗАГОЛОВОК ===
+function getDynamicTitle() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const target = new Date(currentDate + 'T12:00:00'); target.setHours(0,0,0,0);
+  const diffDays = Math.round((target - today) / 86400000);
+  
+  if (diffDays === 0) return getGreeting();
+  if (diffDays === -1) return 'Вчера';
+  if (diffDays === -2) return 'Позавчера';
+  if (diffDays === -3) return '3 дня назад';
+  if (diffDays === 1) return 'Завтра';
+  if (diffDays === 2) return 'Послезавтра';
+  if (diffDays === 3) return 'Через 3 дня';
+  
+  // Проверка: текущая неделя
+  const dow = today.getDay() || 7;
+  const mondayThisWeek = new Date(today); mondayThisWeek.setDate(today.getDate() - dow + 1);
+  const sundayThisWeek = new Date(mondayThisWeek); sundayThisWeek.setDate(mondayThisWeek.getDate() + 6);
+  
+  if (target >= mondayThisWeek && target <= sundayThisWeek) return 'На этой неделе';
+  
+  const sundayLastWeek = new Date(mondayThisWeek); sundayLastWeek.setDate(mondayThisWeek.getDate() - 1);
+  const mondayLastWeek = new Date(sundayLastWeek); mondayLastWeek.setDate(sundayLastWeek.getDate() - 6);
+  if (target >= mondayLastWeek && target <= sundayLastWeek) return 'На прошлой неделе';
+  
+  // Проверка месяца
+  if (target.getFullYear() === today.getFullYear()) {
+    const mDiff = target.getMonth() - today.getMonth();
+    if (mDiff === -1) return 'В прошлом месяце';
+    if (mDiff === 1) return 'В следующем месяце';
+    if (mDiff < -1) return 'Раньше';
+    if (mDiff > 1) return 'Позже';
+  } else if (target.getFullYear() === today.getFullYear() - 1) {
+    return 'В прошлом году';
+  } else if (target.getFullYear() === today.getFullYear() + 1) {
+    return 'В следующем году';
+  }
+  
+  return target.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
 const SEED_KEY='cantilena_seed_v4', STORAGE='cantilena_v13';
 function loadState(){let raw=null;for(const key of [STORAGE,'cantilena_v12','cantilena_v11']){try{const s=JSON.parse(localStorage.getItem(key));if(s&&Array.isArray(s.habits)){raw=s;break}}catch(e){}}const s=migrateState(raw||{});seedDefaults(s);localStorage.setItem(STORAGE,JSON.stringify(s));return s}
 function seedDefaults(s){if(localStorage.getItem(SEED_KEY))return;const existing=new Set(s.habits.map(h=>h.name));let order=s.habits.length;DEFAULT_HABITS.forEach(d=>{if(!existing.has(d.name)){const clone=JSON.parse(JSON.stringify(d));s.habits.push({...clone,id:uid(),checks:{},skips:{},archived:false,order:order++,createdAt:Date.now()})}});localStorage.setItem(SEED_KEY,'1')}
@@ -636,54 +679,44 @@ const save=()=>{
   if (ind) { ind.classList.add('show'); clearTimeout(saveIndicatorTimer); saveIndicatorTimer = setTimeout(() => { ind.classList.remove('show'); }, 2000); }
 };
 
-// ============ КАСТОМНЫЙ СВАЙП ============
-let startY = 0;
-let currentY = 0;
-let isDragging = false;
+// ============ КАСТОМНЫЙ СВАЙП (ТОЛЬКО ЗА ХОЛДИК) ============
+let startY = 0, currentY = 0, isDragging = false;
 const sheet = document.getElementById('sheet');
+const handleWrap = document.getElementById('sheet-handle-wrap');
 
-sheet.addEventListener('touchstart', (e) => {
-    // Если шторка закрыта или мы не на самом верху списка — не свайпаем
-    if (!sheet.classList.contains('open') || sheet.scrollTop > 0) return;
-    
+handleWrap.addEventListener('touchstart', (e) => {
     startY = e.touches[0].clientY;
     currentY = startY;
     isDragging = true;
     sheet.classList.add('dragging');
 });
 
-sheet.addEventListener('touchmove', (e) => {
+handleWrap.addEventListener('touchmove', (e) => {
     if (!isDragging) return;
     currentY = e.touches[0].clientY;
     const diff = currentY - startY;
     
-    // Двигаем только вниз
     if (diff > 0) {
         sheet.style.transform = `translateY(${diff}px)`;
-        // Отключаем скролл страницы под шторкой
         e.preventDefault(); 
-    } else {
-        // Если пошли вверх — просто сбрасываем сдвиг (резинка)
-        sheet.style.transform = `translateY(0)`;
     }
 }, { passive: false });
 
-sheet.addEventListener('touchend', () => {
+handleWrap.addEventListener('touchend', () => {
     if (!isDragging) return;
     isDragging = false;
     sheet.classList.remove('dragging');
     
     const diff = currentY - startY;
     
-    // Если потянули больше 100px — закрываем
-    if (diff > 100) {
+    if (diff > 80) {
+        sheet.style.transform = '';
         closeSheet();
-        // Принудительно сбрасываем трансформ, чтобы не залипало
-        setTimeout(() => { sheet.style.transform = ''; }, 300); 
     } else {
-        // Иначе возвращаем на место
-        sheet.style.transform = `translateY(0)`;
+        sheet.style.transform = '';
     }
+    startY = 0;
+    currentY = 0;
 });
 
 // ============ Синхронизация ============
@@ -813,27 +846,27 @@ function openSettings() {
       <div class="settings-row">
         <div class="left"><div class="icon" style="background:var(--accent);">${svgIcon('cloud','#fff',16)}</div>Supabase URL</div>
       </div>
-      <div style="padding:0 16px 12px;"><input type="text" id="sb-url" value="${escapeHtml(sb.url)}" placeholder="https://xxx.supabase.co" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--bg);color:var(--text);outline:none;font-size:16px;"></div>
+      <div style="padding:0 16px 12px;"><input type="text" id="sb-url" value="${escapeHtml(sb.url)}" placeholder="https://xxx.supabase.co" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
       
       <div class="settings-row">
         <div class="left"><div class="icon" style="background:var(--accent);">${svgIcon('key','#fff',16)}</div>Anon Key</div>
       </div>
-      <div style="padding:0 16px 12px;"><input type="password" id="sb-key" value="${escapeHtml(sb.key)}" placeholder="eyJhbGciOi..." style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--bg);color:var(--text);outline:none;font-size:16px;"></div>
+      <div style="padding:0 16px 12px;"><input type="password" id="sb-key" value="${escapeHtml(sb.key)}" placeholder="eyJhbGciOi..." style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
 
       ${!loggedIn ? `
         <div class="settings-row">
           <div class="left"><div class="icon" style="background:var(--green);">${svgIcon('mail','#fff',16)}</div>Ваш Email</div>
         </div>
-        <div style="padding:0 16px 12px;"><input type="email" id="sb-email" placeholder="you@mail.com" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--bg);color:var(--text);outline:none;font-size:16px;"></div>
+        <div style="padding:0 16px 12px;"><input type="email" id="sb-email" placeholder="you@mail.com" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
         
         <div class="settings-row">
           <div class="left"><div class="icon" style="background:var(--green);">${svgIcon('lock','#fff',16)}</div>Пароль</div>
         </div>
-        <div style="padding:0 16px 12px;"><input type="password" id="sb-password" placeholder="••••••••" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--bg);color:var(--text);outline:none;font-size:16px;"></div>
+        <div style="padding:0 16px 12px;"><input type="password" id="sb-password" placeholder="••••••••" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
         
         <div style="padding:12px 16px;display:flex;gap:8px;">
-          <button onclick="loginWithPassword()" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--accent-soft);color:var(--accent);font-weight:600;cursor:pointer;">Войти</button>
-          <button onclick="registerWithPassword()" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;">Регистрация</button>
+          <button onclick="loginWithPassword()" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--accent-soft);color:var(--accent);font-weight:600;cursor:pointer;font-family:inherit;">Войти</button>
+          <button onclick="registerWithPassword()" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;font-family:inherit;">Регистрация</button>
         </div>
       ` : `
         <div class="settings-row" onclick="manualSync()" style="cursor:pointer;">
@@ -967,14 +1000,23 @@ function isoWeek(d=new Date()){const dt=new Date(Date.UTC(d.getFullYear(),d.getM
 
 const TITLES={today:'Сегодня',tasks:'Задачи',notes:'Заметки',calendar:'Календарь',stats:'Статистика'};
 function getGreeting(){const h=new Date().getHours();if(h>=5&&h<12)return 'Доброе утро';if(h>=12&&h<18)return 'Добрый день';if(h>=18&&h<23)return 'Добрый вечер';return 'Доброй ночи'}
-function updateTopbar(){const active=document.querySelector('.screen.active');const id=active?active.id.replace('screen-',''):'today';const titleEl=document.getElementById('topbar-title');if(id==='today')titleEl.textContent=(currentDate===todayStr())?getGreeting():'Дневник';else titleEl.textContent=TITLES[id]}
+function updateTopbar(){
+  const active=document.querySelector('.screen.active');
+  const id=active?active.id.replace('screen-',''):'today';
+  const titleEl=document.getElementById('topbar-title');
+  if(id==='today'){
+    titleEl.textContent = getDynamicTitle();
+  } else {
+    titleEl.textContent = TITLES[id];
+  }
+}
 function switchTab(name){if(currentNoteId)saveCurrentNote();document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));document.querySelectorAll('.sidebar-nav button').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id==='screen-'+name));document.querySelector('main').scrollTop=0;updateTopbar();haptic();renderAll()}
 document.querySelectorAll('.tab, .sidebar-nav button').forEach(tab=>tab.onclick=()=>switchTab(tab.dataset.tab));
 function tickClock(){const now=new Date();document.getElementById('clock').textContent=now.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});document.getElementById('datestr').textContent=now.toLocaleDateString('ru-RU',{weekday:'short',day:'numeric',month:'short'});updateTopbar()}
 setInterval(tickClock,30000);tickClock();
 
 function openSheet(html){document.getElementById('sheet-content').innerHTML=html;document.getElementById('sheet').classList.add('open');document.getElementById('backdrop').classList.add('open');document.getElementById('sheet').scrollTop=0}
-function closeSheet(){document.getElementById('sheet').classList.remove('open');document.getElementById('backdrop').classList.remove('open'); document.getElementById('sheet').style.transform = '';}
+function closeSheet(){const s=document.getElementById('sheet');s.classList.remove('open');document.getElementById('backdrop').classList.remove('open');s.style.transform=''}
 
 // Привычки
 function isScheduledOn(h,dateStr){const d=new Date(dateStr+'T12:00:00');const sch=h.schedule||{type:'daily'};if(sch.type==='daily')return true;if(sch.type==='weekdays')return(sch.days||[]).includes(d.getDay());if(sch.type==='interval'){const start=new Date((sch.startDate||h.createdAt)+'T12:00:00');const diff=Math.floor((d-start)/86400000);return diff>=0&&diff%(sch.interval||2)===0}return true}
@@ -986,7 +1028,7 @@ function habitsScheduledForDate(dateStr){return activeHabits().filter(h=>{if(h.s
 
 function renderHabitsToday(){
   const el=document.getElementById('habits-today');const t=currentDate;const list=habitsScheduledForDate(t);
-  if(!list.length){el.innerHTML='<div style="color:var(--text-sec);font-size:14px;text-align:center;padding:20px;">Нет привычек</div>';return}
+  if(!list.length){el.innerHTML='<div class="empty-hint">Нет привычек на этот день.<br>Нажмите ⚙️, чтобы настроить или добавить новую.</div>';return}
   el.innerHTML=list.map(h=>{
     const cnt=h.checks[t]||0;const done=isHabitDoneForDate(h,t);const skipped=h.skips&&h.skips[t];const streak=habitStreak(h);const isCounter=h.target>1;
     const pillText=isCounter&&!done?(cnt>0?`${cnt}/${h.target}`:`0/${h.target}`):'';
@@ -1019,7 +1061,7 @@ function skipHabitToday(id){const h=state.habits.find(x=>x.id===id);if(!h)return
 function openHabitSettings(){
   const habits=[...state.habits].sort((a,b)=>(a.order||0)-(b.order||0));
   const list=habits.map((h,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:.5px solid var(--separator);"><div style="display:flex;flex-direction:column;gap:2px;"><button onclick="moveHabit(${h.id},-1)" style="width:28px;height:22px;border-radius:6px;border:none;background:var(--chip-bg);">▲</button><button onclick="moveHabit(${h.id},1)" style="width:28px;height:22px;border-radius:6px;border:none;background:var(--chip-bg);">▼</button></div><div style="width:36px;height:36px;border-radius:10px;background:${hexToRgba(h.color,0.15)};display:flex;align-items:center;justify-content:center;">${svgIcon(h.icon,h.color,20)}</div><div style="flex:1;cursor:pointer;" onclick="closeSheet();setTimeout(()=>openHabitEditor(${h.id}),100)"><h4 style="font-size:15px;font-weight:600;">${escapeHtml(h.name)}</h4><p style="font-size:12px;color:var(--text-sec);">${h.schedule.type==='daily'?'Каждый день':h.schedule.type==='weekdays'?'Дни недели':'Раз в неделю'}</p></div><button onclick="event.stopPropagation();deleteHabit(${h.id})" style="background:none;border:none;color:var(--text-tert);display:flex;align-items:center;">${svgIcon('x','currentColor',20)}</button></div>`).join('');
-  openSheet(`<h2>Привычки</h2><p style="font-size:13px;color:var(--text-sec);margin-bottom:12px;">Порядок и настройки.</p><div class="card tight" style="margin-bottom:12px;">${list}</div><button class="btn-primary" onclick="closeSheet();setTimeout(openHabitEditor,100)">+ Новая</button><div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Готово</button></div>`);
+  openSheet(`<h2>Привычки</h2><p style="font-size:13px;color:var(--text-sec);margin-bottom:12px;">Порядок и настройки.</p><div class="card tight" style="margin-bottom:12px;">${list}</div><button class="btn-primary" onclick="closeSheet();setTimeout(openHabitEditor,100)">+ Новая привычка</button><div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Готово</button></div>`);
 }
 function moveHabit(id,dir){const sorted=state.habits.slice().sort((a,b)=>(a.order||0)-(b.order||0));const idx=sorted.findIndex(h=>h.id===id);const newIdx=idx+dir;if(newIdx<0||newIdx>=sorted.length)return;[sorted[idx],sorted[newIdx]]=[sorted[newIdx],sorted[idx]];sorted.forEach((h,i)=>h.order=i);haptic();save();openHabitSettings()}
 function deleteHabit(id){if(!confirm('Удалить привычку?'))return;state.habits=state.habits.filter(h=>h.id!==id);save();openHabitSettings();renderAll()}
@@ -1040,11 +1082,11 @@ function renderHabitEditor(){
     <div class="field"><label>${isWeekly?'Раз в неделю':'Сколько раз в день'}</label><input type="number" id="h-target" min="1" max="99" value="${isWeekly?(sch.interval||3):h.target}"></div>
     <div class="field"><label>Повторяемость</label>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
-        <button class="schedule-pill ${sch.type==='daily'?'active':''}" style="padding:8px 12px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:${sch.type==='daily'?'var(--accent)':'var(--input-bg)'};color:${sch.type==='daily'?'#fff':'var(--text)'};" onclick="setScheduleType('daily')">Каждый день</button>
-        <button class="schedule-pill ${sch.type==='weekdays'?'active':''}" style="padding:8px 12px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:${sch.type==='weekdays'?'var(--accent)':'var(--input-bg)'};color:${sch.type==='weekdays'?'#fff':'var(--text)'};" onclick="setScheduleType('weekdays')">Дни недели</button>
-        <button class="schedule-pill ${sch.type==='weekly'?'active':''}" style="padding:8px 12px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:${sch.type==='weekly'?'var(--accent)':'var(--input-bg)'};color:${sch.type==='weekly'?'#fff':'var(--text)'};" onclick="setScheduleType('weekly')">N раз в неделю</button>
+        <button class="schedule-pill ${sch.type==='daily'?'active':''}" style="padding:8px 12px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:${sch.type==='daily'?'var(--accent)':'var(--input-bg)'};color:${sch.type==='daily'?'#fff':'var(--text)'};cursor:pointer;font-family:inherit;" onclick="setScheduleType('daily')">Каждый день</button>
+        <button class="schedule-pill ${sch.type==='weekdays'?'active':''}" style="padding:8px 12px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:${sch.type==='weekdays'?'var(--accent)':'var(--input-bg)'};color:${sch.type==='weekdays'?'#fff':'var(--text)'};cursor:pointer;font-family:inherit;" onclick="setScheduleType('weekdays')">Дни недели</button>
+        <button class="schedule-pill ${sch.type==='weekly'?'active':''}" style="padding:8px 12px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:${sch.type==='weekly'?'var(--accent)':'var(--input-bg)'};color:${sch.type==='weekly'?'#fff':'var(--text)'};cursor:pointer;font-family:inherit;" onclick="setScheduleType('weekly')">N раз в неделю</button>
       </div>
-      ${sch.type==='weekdays'?`<div style="display:flex;gap:6px;justify-content:space-between;">${[1,2,3,4,5,6,0].map(d=>`<button style="width:36px;height:36px;border-radius:50%;border:none;font-size:13px;font-weight:600;background:${(sch.days||[]).includes(d)?'var(--accent)':'var(--input-bg)'};color:${(sch.days||[]).includes(d)?'#fff':'var(--text)'};" onclick="toggleWeekday(${d})">${WEEKDAYS_SHORT[d]}</button>`).join('')}</div>`:''}
+      ${sch.type==='weekdays'?`<div style="display:flex;gap:6px;justify-content:space-between;">${[1,2,3,4,5,6,0].map(d=>`<button style="width:36px;height:36px;border-radius:50%;border:none;font-size:13px;font-weight:600;background:${(sch.days||[]).includes(d)?'var(--accent)':'var(--input-bg)'};color:${(sch.days||[]).includes(d)?'#fff':'var(--text)'};cursor:pointer;font-family:inherit;" onclick="toggleWeekday(${d})">${WEEKDAYS_SHORT[d]}</button>`).join('')}</div>`:''}
       ${sch.type==='weekly'?`<p style="font-size:13px;color:var(--text-sec);">Отмечайте в любой день недели.</p>`:''}
     </div>
     <div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Отмена</button><button class="btn-primary" onclick="saveHabit()">Сохранить</button></div>
@@ -1078,11 +1120,11 @@ function openTaskEditor(id){
   openSheet(`
     <h2>${id?'Задача':'Новая задача'}</h2>
     
-    <div class="field"><label>Название</label><input type="text" id="t-title" value="${escapeHtml(t.title)}"></div>
+    <div class="field"><label>Название</label><input type="text" id="t-title" value="${escapeHtml(t.title)}" placeholder="Например: Позвонить маме"></div>
     
     <div class="grid-2">
       <div class="field"><label>Проект</label><select id="t-project"><option value="">Без проекта</option>${projectsOptions}</select></div>
-      <div class="field"><label>Приоритет</label><div style="display:flex;gap:4px;" id="t-priorities">${[1,2,3,4].map(p=>`<button class="filter-pill ${t.priority===p?'active':''}" data-p="${p}" style="padding:8px 10px;border-radius:10px;border:none;font-weight:600;flex:1;background:${t.priority===p?'var(--accent)':'var(--card)'};color:${t.priority===p?'#fff':'var(--text-sec)'};" onclick="pickPriority(this)">P${p}</button>`).join('')}</div></div>
+      <div class="field"><label>Приоритет</label><div style="display:flex;gap:4px;" id="t-priorities">${[1,2,3,4].map(p=>`<button class="filter-pill ${t.priority===p?'active':''}" data-p="${p}" style="padding:10px 0;border-radius:10px;border:none;font-weight:600;flex:1;background:${t.priority===p?'var(--accent)':'var(--card)'};color:${t.priority===p?'#fff':'var(--text-sec)'};cursor:pointer;font-family:inherit;" onclick="pickPriority(this)">P${p}</button>`).join('')}</div></div>
     </div>
 
     <div class="grid-2">
@@ -1091,7 +1133,7 @@ function openTaskEditor(id){
     </div>
     
     <div class="grid-2">
-      <div class="field"><label>Длительность (мин)</label><input type="number" id="t-duration" min="0" max="1440" step="5" value="${t.duration||''}" placeholder="30"></div>
+      <div class="field"><label>Длительность, мин</label><input type="number" id="t-duration" min="0" max="1440" step="5" value="${t.duration||''}" placeholder="30"></div>
       <div class="field"><label>Описание</label><input type="text" id="t-desc" value="${escapeHtml(t.description||'')}" placeholder="Детали..."></div>
     </div>
     
@@ -1115,20 +1157,40 @@ function saveTask(){
 }
 
 function renderTasks(){
-  const filtersEl=document.getElementById('task-filters');const today=currentDate;
+  const filtersEl=document.getElementById('task-filters');
+  const today=currentDate;
+  const weekEnd=new Date();weekEnd.setDate(weekEnd.getDate()+7);
+  const weekEndStr=weekEnd.toISOString().slice(0,10);
+  
   const todayTasks=state.tasks.filter(t=>t.recurrence?(matchesRecurrence(t,today)&&!isTaskDoneOn(t,today)):(t.date===today&&!t.done));
-  const filters=[{id:'today',label:'Сегодня',count:todayTasks.length},{id:'projects',label:'Проекты',count:state.projects.length}];
-  filtersEl.innerHTML=filters.map(f=>`<button class="filter-pill ${state.taskFilter===f.id?'active':''}" style="padding:8px 14px;border-radius:18px;border:none;font-weight:600;background:${state.taskFilter===f.id?'var(--accent)':'var(--card)'};color:${state.taskFilter===f.id?'#fff':'var(--text-sec)'};" onclick="setTaskFilter('${f.id}')">${f.label}<span class="count">${f.count}</span></button>`).join('');
+  const weekTasks=state.tasks.filter(t=>t.recurrence?!isTaskDoneOn(t,today):(t.date&&t.date>=today&&t.date<=weekEndStr&&!t.done));
+  const inboxTasks=state.tasks.filter(t=>!t.recurrence&&!t.date&&!t.done);
+  
+  const filters=[
+    {id:'today',label:'Сегодня',count:todayTasks.length},
+    {id:'week',label:'Неделя',count:weekTasks.length},
+    {id:'inbox',label:'Входящие',count:inboxTasks.length},
+    {id:'projects',label:'Проекты',count:state.projects.length}
+  ];
+  filtersEl.innerHTML=filters.map(f=>`<button class="filter-pill ${state.taskFilter===f.id?'active':''}" style="padding:8px 14px;border-radius:18px;border:none;font-weight:600;background:${state.taskFilter===f.id?'var(--accent)':'var(--card)'};color:${state.taskFilter===f.id?'#fff':'var(--text-sec)'};cursor:pointer;font-family:inherit;white-space:nowrap;" onclick="setTaskFilter('${f.id}')">${f.label} <span class="count">${f.count}</span></button>`).join('');
+  
   const content=document.getElementById('tasks-content');
+  
   if(state.taskFilter==='projects'){
-    content.innerHTML=`<div class="add-row" style="display:flex;gap:8px;margin-bottom:8px;"><input id="new-project" placeholder="Новый проект" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--card);color:var(--text);outline:none;font-size:16px;" onkeydown="if(event.key==='Enter')addProject()"><button onclick="addProject()" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:18px;">+</button></div>${state.projects.map(p=>{const c=state.tasks.filter(t=>t.projectId===p.id&&!isTaskDoneOn(t,today)).length;return `<div class="card flat" style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="openProject(${p.id})"><span style="width:12px;height:12px;border-radius:3px;background:${p.color};"></span><div style="flex:1;font-weight:600;">${escapeHtml(p.name)}</div><span style="color:var(--text-sec);font-size:13px;">${c}</span></div>`}).join('')}`;return;
+    content.innerHTML=`<div class="add-row" style="display:flex;gap:8px;margin-bottom:8px;"><input id="new-project" placeholder="Новый проект" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--card);color:var(--text);outline:none;font-size:16px;height:42px;" onkeydown="if(event.key==='Enter')addProject()"><button onclick="addProject()" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:18px;cursor:pointer;">+</button></div>${state.projects.map(p=>{const c=state.tasks.filter(t=>t.projectId===p.id&&!isTaskDoneOn(t,today)).length;return `<div class="card flat" style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="openProject(${p.id})"><span style="width:12px;height:12px;border-radius:3px;background:${p.color};"></span><div style="flex:1;font-weight:600;">${escapeHtml(p.name)}</div><span style="color:var(--text-sec);font-size:13px;">${c}</span></div>`}).join('')}`;
+    return;
   }
-  const tasks=state.tasks.filter(t=>t.recurrence?matchesRecurrence(t,today):t.date===today);
+  
+  let tasks;
+  if(state.taskFilter==='today')tasks=state.tasks.filter(t=>t.recurrence?matchesRecurrence(t,today):t.date===today);
+  else if(state.taskFilter==='week')tasks=state.tasks.filter(t=>t.recurrence?matchesRecurrence(t,today):(t.date&&t.date>=today&&t.date<=weekEndStr));
+  else tasks=state.tasks.filter(t=>!t.recurrence&&!t.date);
+  
   tasks.sort((a,b)=>(isTaskDoneOn(a,today)?1:0)-(isTaskDoneOn(b,today)?1:0)||a.priority-b.priority);
-  content.innerHTML=tasks.length?`<div class="card tight">${tasks.map(t=>taskRowHTML(t,today)).join('')}</div>`:`<div class="card"><div style="color:var(--text-sec);font-size:14px;text-align:center;padding:20px;">Задач нет</div></div>`;
+  content.innerHTML=tasks.length?`<div class="card tight">${tasks.map(t=>taskRowHTML(t,today)).join('')}</div>`:`<div class="card"><div class="empty-hint">Задач нет.<br>Нажмите +, чтобы добавить.</div></div>`;
 }
 function setTaskFilter(f){state.taskFilter=f;haptic();save();renderTasks()}
-function openProject(id){const p=state.projects.find(x=>x.id===id);const tasks=state.tasks.filter(t=>t.projectId===id);openSheet(`<h2>${escapeHtml(p.name)}</h2><div class="card tight" style="margin-bottom:12px;">${tasks.length?tasks.map(t=>taskRowHTML(t)).join(''):'<div style="color:var(--text-sec);font-size:14px;text-align:center;padding:20px;">Задач нет</div>'}</div><div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Закрыть</button><button class="btn-danger" onclick="deleteProject(${id})">Удалить</button></div>`)}
+function openProject(id){const p=state.projects.find(x=>x.id===id);const tasks=state.tasks.filter(t=>t.projectId===id);openSheet(`<h2>${escapeHtml(p.name)}</h2><div class="card tight" style="margin-bottom:12px;">${tasks.length?tasks.map(t=>taskRowHTML(t)).join(''):'<div class="empty-hint">Задач нет</div>'}</div><div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Закрыть</button><button class="btn-danger" onclick="deleteProject(${id})">Удалить</button></div>`)}
 function addProject(){const inp=document.getElementById('new-project');const name=inp.value.trim();if(!name)return;state.projects.push({id:uid(),name,color:PALETTE[state.projects.length%PALETTE.length]});inp.value='';save();renderTasks()}
 function deleteProject(id){if(!confirm('Удалить проект?'))return;state.projects=state.projects.filter(p=>p.id!==id);state.tasks.forEach(t=>{if(t.projectId===id)t.projectId=null});save();closeSheet();renderTasks()}
 
@@ -1138,7 +1200,7 @@ function renderFocusOfDay() {
   tasks.sort((a,b) => a.priority - b.priority);const top = tasks[0];focusCard.style.display = 'block';document.getElementById('focus-title').innerHTML = escapeHtml(top.title);document.getElementById('focus-meta').innerText = top.priority === 1 ? "Высокий приоритет" : "Следующая задача";
 }
 
-// ============ ПУЛЬС ДНЯ (Множественные смайлики) ============
+// ============ ПУЛЬС ДНЯ ============
 function quickMood(value){
   const t = currentDate;
   if(!state.moods[t]) state.moods[t] = [];
@@ -1146,7 +1208,6 @@ function quickMood(value){
   const now = Date.now();
   const lastMood = state.moods[t][state.moods[t].length - 1];
   
-  // Проверка лимита: 30 минут = 1800000 мс
   if (lastMood && (now - lastMood.ts < 1800000)) {
     const minsLeft = Math.ceil((1800000 - (now - lastMood.ts)) / 60000);
     showToast(`⏳ Следующая отметка через ${minsLeft} мин.`);
@@ -1186,7 +1247,6 @@ function renderQuickMoodUI() {
   });
 }
 
-// ============ ВЕЧЕРНИЙ ОПРОС (Заполняет кольцо) ============
 function getDailySurveyProgress(dateStr) {
   const s = state.surveys[dateStr];
   if (s && s.evening) return 1; 
@@ -1276,6 +1336,11 @@ function updateRings(){
 function renderAll(){ updateDateNav(); updateTopbar(); updateRings(); renderQuickMoodUI(); renderFocusOfDay(); renderHabitsToday(); renderTasksTodayMini(); renderTasks(); renderNotes(); renderCalendar(); renderStats(); }
 
 // Статистика
+function lastNDates(n){const a=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);a.push(d.toISOString().slice(0,10))}return a}
+function avgOf(a){const v=a.filter(x=>x!=null&&!isNaN(x));return v.length?v.reduce((x,y)=>x+y,0)/v.length:null}
+function corr(xs,ys){const p=xs.map((x,i)=>[x,ys[i]]).filter(([x,y])=>x!=null&&y!=null&&!isNaN(x)&&!isNaN(y));const n=p.length;if(n<3)return null;const mx=p.reduce((a,q)=>a+q[0],0)/n,my=p.reduce((a,q)=>a+q[1],0)/n;let num=0,dx=0,dy=0;for(const[x,y]of p){num+=(x-mx)*(y-my);dx+=(x-mx)**2;dy+=(y-my)**2}const den=Math.sqrt(dx*dy);return den?num/den:null}
+function surveyMetric(dateStr,path){const s=state.surveys[dateStr];if(!s)return null;const val=path.split('.').reduce((o,k)=>o&&o[k],s);if(val!=null)return val;const flat={'emotions.joy':s.mood,'mental.productivity':s.productivity,'emotions.anxiety':s.anxiety,'screen.totalHours':s.screenTime};return flat[path]??null}
+
 function renderChart(series) {
   const el = document.getElementById('chart-mood-prod');
   const W = 380, H = 130, pad = { top: 10, right: 8, bottom: 18, left: 22 };
@@ -1308,9 +1373,7 @@ function renderStatsGrid() {
     { key: 'emotions.anxiety', label: 'Тревога', inv: true },
     { key: 'physical.energy', label: 'Энергия' },
     { key: 'physical.sleepHours', label: 'Сон', suffix: ' ч' },
-    { key: 'screen.totalHours', label: 'Экран', suffix: ' ч', inv: true },
-    { key: 'mental.focus', label: 'Фокус' },
-    { key: 'emotions.calm', label: 'Спокойствие' }
+    { key: 'screen.totalHours', label: 'Экран', suffix: ' ч', inv: true }
   ];
   document.getElementById('stats-grid').innerHTML = metrics.map(m => {
     const cur = avgOf(d7.map(d => surveyMetric(d, m.key)));
@@ -1335,7 +1398,7 @@ function renderWeekdayPatterns() {
     if (prod != null) prods[wd].push(prod);
   });
   const rows = [1, 2, 3, 4, 5, 6, 0].map(wd => ({ wd, name: WEEKDAYS_LONG[wd], joy: avgOf(buckets[wd]), prod: avgOf(prods[wd]) }));
-  if (!rows.some(r => r.joy != null || r.prod != null)) { el.innerHTML = '<div style="color:var(--text-sec);text-align:center;">Нужно больше данных</div>'; return; }
+  if (!rows.some(r => r.joy != null || r.prod != null)) { el.innerHTML = '<div class="empty-hint">Пройдите опрос за 2-3 недели, чтобы увидеть паттерны по дням недели.</div>'; return; }
   el.innerHTML = rows.map(r => {
     const w = (r.joy || 0) / 10 * 100;
     return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px;">
@@ -1374,7 +1437,7 @@ function renderCorrMatrix() {
       html += `<div class="corr-cell ${cellClass(v)}">${v != null ? v.toFixed(2) : '·'}</div>`;
     });
   });
-  html += '</div><div style="font-size:11px;color:var(--text-sec);margin-top:8px;text-align:center;">r Пирсона</div>';
+  html += '</div><div style="font-size:11px;color:var(--text-sec);margin-top:8px;text-align:center;">r Пирсона. Ярче = сильнее связь. Требуется ≥ 3 дней.</div>';
   el.innerHTML = html;
 }
 
@@ -1394,17 +1457,23 @@ function renderPsyProfile() {
   if (anx != null) { burnRisk += anx; parts++; }
   if (sleepQ != null) { burnRisk += (10 - sleepQ); parts++; }
   const burn = parts ? burnRisk / parts : 0;
-  const burnLabel = burn > 7 ? '🔴 Высокий' : burn > 5 ? '🟡 Умеренный' : '🟢 Низкий';
+  const burnLabel = burn > 7 ? '🔴 Высокий' : burn > 5 ? '🟡 Умеренный' : burn > 0 ? '🟢 Низкий' : '—';
   const sleepCorr = corr(days.map(d => surveyMetric(d, 'physical.sleepHours')), days.map(d => surveyMetric(d, 'emotions.joy')));
   const screenAnx = corr(days.map(d => surveyMetric(d, 'screen.totalHours')), days.map(d => surveyMetric(d, 'emotions.anxiety')));
   const socSat = get('social.satisfaction');
+  
+  if (balance == null && burn === 0 && sleepCorr == null && socSat == null) {
+    el.innerHTML = '<div class="expert-badge badge-psy">Психолог</div><div class="empty-hint">Пройдите 2-3 вечерних опроса, чтобы получить психологический профиль.</div>';
+    return;
+  }
+  
   el.innerHTML = `<div class="expert-badge badge-psy">Психолог</div>
     <div class="insight"><b>Эмоциональный баланс:</b> ${balanceLabel} ${balance != null ? `(${balance.toFixed(1)})` : ''}</div>
     <div class="insight"><b>Индикатор выгорания:</b> ${burnLabel} ${burn ? `(${burn.toFixed(1)}/10)` : ''}</div>
     ${sleepCorr != null && Math.abs(sleepCorr) > 0.3 ? `<div class="insight"><b>Сон влияет на настроение:</b> r=${sleepCorr.toFixed(2)}</div>` : ''}
     ${screenAnx != null && Math.abs(screenAnx) > 0.3 ? `<div class="insight"><b>Экран ↔ тревога:</b> r=${screenAnx.toFixed(2)}</div>` : ''}
     ${socSat != null && socSat < 5 ? `<div class="insight"><b>Общение:</b> ${socSat.toFixed(1)}/10</div>` : ''}
-    <div class="insight" style="color:var(--text-sec);font-size:13px;">На основе ${days.filter(d => state.surveys[d]).length} опросов</div>`;
+    <div class="insight" style="color:var(--text-sec);font-size:13px;">На основе ${days.filter(d => state.surveys[d]).length} опросов за 14 дней</div>`;
 }
 
 function renderPedRecommendations() {
@@ -1426,7 +1495,7 @@ function renderPedRecommendations() {
   const wdProds = {}; lastNDates(30).forEach(d => { if (!state.surveys[d]) return; const wd = new Date(d + 'T12:00:00').getDay(); const p = surveyMetric(d, 'mental.productivity'); if (p != null) (wdProds[wd] = wdProds[wd] || []).push(p); });
   let bestWd = null, bestVal = 0;
   Object.entries(wdProds).forEach(([wd, arr]) => { const a = avgOf(arr); if (a && a > bestVal) { bestVal = a; bestWd = +wd; } });
-  if (bestWd != null) recs.push({ e: '📅', t: `Самый продуктивный — ${WEEKDAYS_LONG[bestWd]} (${bestVal.toFixed(1)}/10).` });
+  if (bestWd != null) recs.push({ e: '📅', t: `Самый продуктивный день — ${WEEKDAYS_LONG[bestWd]} (${bestVal.toFixed(1)}/10).` });
   if (!recs.length) recs.push({ e: '📊', t: 'Собираем данные. Пройдите 3-5 опросов.' });
   el.innerHTML = `<div class="expert-badge badge-ped">Педагог</div>` + recs.map(r => `<div class="insight">${r.e} ${escapeHtml(r.t)}</div>`).join('');
 }
@@ -1438,16 +1507,28 @@ function renderYearInPixels() {
 
 function renderStats() {
   const d14 = lastNDates(14);
+  
+  // Сводка
+  const daysWithData = Object.keys(state.surveys).filter(d => state.surveys[d] && (state.surveys[d].evening || (state.surveys[d].emotions && state.surveys[d].emotions.joy))).length;
+  const summaryEl = document.getElementById('stats-summary');
+  if (daysWithData === 0) {
+    summaryEl.innerHTML = '📊 Пока нет данных. Пройдите первый вечерний опрос (кнопка на главной), чтобы начать собирать аналитику.';
+  } else if (daysWithData < 3) {
+    summaryEl.innerHTML = `📊 Данных пока мало (${daysWithData} дн.). Пройдите ещё ${3-daysWithData} опроса — появятся графики и паттерны.`;
+  } else {
+    summaryEl.innerHTML = `📊 Статистика на основе <b>${daysWithData}</b> дней опросов. Чем больше данных, тем точнее рекомендации.`;
+  }
+  
   renderChart([{ color: 'var(--orange)', data: d14.map(d => surveyMetric(d, 'emotions.joy')) }, { color: 'var(--accent)', data: d14.map(d => surveyMetric(d, 'mental.productivity')) }]);
   renderStatsGrid(); renderWeekdayPatterns(); renderCorrMatrix(); renderPsyProfile(); renderPedRecommendations(); renderYearInPixels();
 }
 
-function renderTasksTodayMini(){const t=currentDate;const tasks=state.tasks.filter(x=>x.recurrence?matchesRecurrence(x,t):x.date===t);document.getElementById('tasks-today-mini').innerHTML=tasks.length?tasks.map(x=>taskRowHTML(x,t)).join(''):'<div style="color:var(--text-sec);font-size:14px;text-align:center;padding:20px;">Задач нет</div>'}
+function renderTasksTodayMini(){const t=currentDate;const tasks=state.tasks.filter(x=>x.recurrence?matchesRecurrence(x,t):x.date===t);document.getElementById('tasks-today-mini').innerHTML=tasks.length?tasks.map(x=>taskRowHTML(x,t)).join(''):'<div class="empty-hint">Задач нет. Нажмите +, чтобы добавить.</div>'}
 
 let currentNoteId=null,noteSaveTimer=null;
 function scheduleNoteSave(){clearTimeout(noteSaveTimer);noteSaveTimer=setTimeout(saveCurrentNote,1500)}
 function saveCurrentNote(){if(!currentNoteId)return;clearTimeout(noteSaveTimer);const n=state.notes.find(x=>x.id===currentNoteId);if(!n)return;n.title=document.getElementById('edit-note-title').value.trim()||'Без названия';const body=document.getElementById('edit-note-body');body.querySelectorAll('input[type=checkbox]').forEach(cb=>{if(cb.checked)cb.setAttribute('checked','checked');else cb.removeAttribute('checked')});n.body=body.innerHTML;n.updatedAt=Date.now();save()}
-function renderNotes(){const chips=document.getElementById('folder-chips');if(chips){const folders=[{id:'all',name:'Все',icon:'📚'},...state.noteFolders];chips.innerHTML=folders.map(f=>{const isActive=state.selectedFolder===f.id;const isCustom=f.id!=='all';return `<button class="folder-chip ${isActive?'active':''}" style="padding:7px 13px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:${isActive?'var(--orange)':'var(--chip-bg)'};color:${isActive?'#fff':'var(--text)'};white-space:nowrap;" onclick="onFolderChip('${f.id}',${isCustom})">${f.icon||''} ${escapeHtml(f.name)}</button>`}).join('')+`<button class="folder-chip" style="padding:7px 10px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:var(--accent);color:#fff;" onclick="openFolderEditor()">＋</button>`}const el=document.getElementById('notes-list');if(!el)return;const search=(document.getElementById('notes-search')?.value||'').toLowerCase();let notes=state.notes;if(state.selectedFolder!=='all')notes=notes.filter(n=>n.folderId===state.selectedFolder);if(search)notes=notes.filter(n=>(n.title||'').toLowerCase().includes(search)||stripHtml(n.body).toLowerCase().includes(search));notes.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updatedAt||0)-(a.updatedAt||0));if(!notes.length){el.innerHTML='<div style="color:var(--text-sec);font-size:14px;text-align:center;padding:20px;">Заметок нет</div>';return}el.innerHTML=notes.map(n=>{const preview=stripHtml(n.body).slice(0,80);const dt=new Date(n.updatedAt);const dateStr=dt.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});return `<div style="padding:12px 4px;border-bottom:.5px solid var(--separator);cursor:pointer;display:flex;align-items:flex-start;gap:8px;" onclick="openNote(${n.id})">${n.pinned?'<span style="color:var(--orange);font-size:12px;margin-top:3px;">📌</span>':''}<div style="flex:1;min-width:0;"><h4 style="font-size:15px;font-weight:600;margin-bottom:2px;">${escapeHtml(n.title||'Без названия')}</h4><p style="font-size:13px;color:var(--text-sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">${escapeHtml(preview)||'Пустая'}</p></div><span style="font-size:11px;color:var(--text-sec);margin-left:auto;white-space:nowrap;">${dateStr}</span></div>`}).join('')}
+function renderNotes(){const chips=document.getElementById('folder-chips');if(chips){const folders=[{id:'all',name:'Все',icon:'📚'},...state.noteFolders];chips.innerHTML=folders.map(f=>{const isActive=state.selectedFolder===f.id;const isCustom=f.id!=='all';return `<button class="folder-chip ${isActive?'active':''}" style="padding:7px 13px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:${isActive?'var(--orange)':'var(--chip-bg)'};color:${isActive?'#fff':'var(--text)'};white-space:nowrap;cursor:pointer;font-family:inherit;" onclick="onFolderChip('${f.id}',${isCustom})">${f.icon||''} ${escapeHtml(f.name)}</button>`}).join('')+`<button class="folder-chip" style="padding:7px 10px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;" onclick="openFolderEditor()">＋</button>`}const el=document.getElementById('notes-list');if(!el)return;const search=(document.getElementById('notes-search')?.value||'').toLowerCase();let notes=state.notes;if(state.selectedFolder!=='all')notes=notes.filter(n=>n.folderId===state.selectedFolder);if(search)notes=notes.filter(n=>(n.title||'').toLowerCase().includes(search)||stripHtml(n.body).toLowerCase().includes(search));notes.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updatedAt||0)-(a.updatedAt||0));if(!notes.length){el.innerHTML='<div class="empty-hint">Заметок нет.<br>Нажмите +, чтобы создать.</div>';return}el.innerHTML=notes.map(n=>{const preview=stripHtml(n.body).slice(0,80);const dt=new Date(n.updatedAt);const dateStr=dt.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});return `<div style="padding:12px 4px;border-bottom:.5px solid var(--separator);cursor:pointer;display:flex;align-items:flex-start;gap:8px;" onclick="openNote(${n.id})">${n.pinned?'<span style="color:var(--orange);font-size:12px;margin-top:3px;">📌</span>':''}<div style="flex:1;min-width:0;"><h4 style="font-size:15px;font-weight:600;margin-bottom:2px;">${escapeHtml(n.title||'Без названия')}</h4><p style="font-size:13px;color:var(--text-sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">${escapeHtml(preview)||'Пустая'}</p></div><span style="font-size:11px;color:var(--text-sec);margin-left:auto;white-space:nowrap;">${dateStr}</span></div>`}).join('')}
 function onFolderChip(id,isCustom){if(isCustom&&state.selectedFolder===id){openFolderEditor(id);return}state.selectedFolder=id;haptic();save();renderNotes()}
 function openFolderEditor(id){const folder=id?state.noteFolders.find(f=>f.id===id):null;openSheet(`<h2>${folder?'Папка':'Новая папка'}</h2><div class="field"><label>Название</label><input type="text" id="f-name" value="${folder?escapeHtml(folder.name):''}"></div><div class="field"><label>Иконка</label><input type="text" id="f-icon" value="${folder?escapeHtml(folder.icon||'📁'):'📁'}" maxlength="2"></div><div class="sheet-actions">${folder?`<button class="btn-danger" onclick="deleteFolder('${id}')">Удалить</button>`:''}<button class="btn-cancel" onclick="closeSheet()">Отмена</button><button class="btn-primary" onclick="saveFolder('${id||''}')">Сохранить</button></div>`)}
 function saveFolder(id){const name=document.getElementById('f-name').value.trim();const icon=document.getElementById('f-icon').value.trim()||'📁';if(!name)return;if(id){const f=state.noteFolders.find(x=>x.id===id);if(f){f.name=name;f.icon=icon}}else{state.noteFolders.push({id:uid()+'',name,icon})}save();closeSheet();renderNotes()}
@@ -1461,7 +1542,7 @@ function deleteCurrentNote(){if(!currentNoteId||!confirm('Удалить?'))retu
 
 let calDate=new Date();
 function renderCalendar(){const y=calDate.getFullYear(),m=calDate.getMonth();const first=new Date(y,m,1);const startWeekday=(first.getDay()+6)%7;const daysInMonth=new Date(y,m+1,0).getDate();const today=todayStr();document.getElementById('cal-title').textContent=calDate.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});const cells=[];for(let i=0;i<startWeekday;i++)cells.push('<div class="cal-day empty"></div>');for(let d=1;d<=daysInMonth;d++){const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const sDone=!!state.surveys[dateStr];const hDone=state.habits.some(h=>!h.archived&&isHabitDoneForDate(h,dateStr));const tDone=state.tasks.some(t=>t.recurrence?(matchesRecurrence(t,dateStr)&&isTaskDoneOn(t,dateStr)):(t.date===dateStr&&t.done));cells.push(`<div class="cal-day ${dateStr===today?'today':''}" style="aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;background:var(--input-bg);gap:2px;cursor:pointer;color:var(--text);${dateStr===today?'outline:2px solid var(--accent);':''}" onclick="openDayDetail('${dateStr}')"><div>${d}</div><div style="display:flex;gap:2px;"><span style="width:4px;height:4px;border-radius:50%;background:${sDone?'var(--pink)':'var(--text-tert)'}"></span><span style="width:4px;height:4px;border-radius:50%;background:${hDone?'var(--green)':'var(--text-tert)'}"></span><span style="width:4px;height:4px;border-radius:50%;background:${tDone?'var(--accent)':'var(--text-tert)'}"></span></div></div>`)}document.getElementById('cal-grid').innerHTML=cells.join('')}
-function openDayDetail(dateStr){const s=state.surveys[dateStr];const habitsDone=state.habits.filter(h=>!h.archived&&isHabitDoneForDate(h,dateStr));const tasksOnDay=state.tasks.filter(t=>t.recurrence?matchesRecurrence(t,dateStr):t.date===dateStr);const tasksDone=tasksOnDay.filter(t=>isTaskDoneOn(t,dateStr));const isToday=dateStr===todayStr();openSheet(`<h2>${formatDateHuman(dateStr)}</h2>${isToday?'<div class="past-chip">Сегодня</div>':''}<div class="survey-section">Опрос</div>${s?`<div class="insight"><b>Радость:</b> ${s.emotions?.joy??'—'}/10 · <b>Продуктивность:</b> ${s.mental?.productivity??'—'}/10</div>`:`<div style="color:var(--text-sec);font-size:14px;text-align:center;padding:20px;">Опрос не заполнен</div>`}<div class="survey-section">Привычки (${habitsDone.length}/${state.habits.filter(h=>!h.archived).length})</div>${habitsDone.length?habitsDone.map(h=>`<div class="insight">${svgIcon(h.icon,h.color,14)} ${escapeHtml(h.name)}</div>`).join(''):'<div style="color:var(--text-sec);font-size:14px;text-align:center;padding:20px;">Ни одна не выполнена</div>'}<div class="survey-section">Задачи (${tasksDone.length}/${tasksOnDay.length})</div>${tasksOnDay.length?tasksOnDay.map(t=>`<div class="insight">${isTaskDoneOn(t,dateStr)?'✅':'○'} ${escapeHtml(t.title)}</div>`).join(''):'<div style="color:var(--text-sec);font-size:14px;text-align:center;padding:20px;">Задач не было</div>'}<div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Закрыть</button><button class="btn-primary" onclick="closeSheet();goToDate('${dateStr}')">Открыть →</button></div>`)}
+function openDayDetail(dateStr){const s=state.surveys[dateStr];const habitsDone=state.habits.filter(h=>!h.archived&&isHabitDoneForDate(h,dateStr));const tasksOnDay=state.tasks.filter(t=>t.recurrence?matchesRecurrence(t,dateStr):t.date===dateStr);const tasksDone=tasksOnDay.filter(t=>isTaskDoneOn(t,dateStr));const isToday=dateStr===todayStr();openSheet(`<h2>${formatDateHuman(dateStr)}</h2>${isToday?'<div style="display:inline-block;padding:2px 8px;background:var(--chip-bg);border-radius:6px;font-size:11px;color:var(--text-sec);margin-bottom:8px;">Сегодня</div>':''}<div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Опрос</div>${s?`<div class="insight"><b>Радость:</b> ${s.emotions?.joy??'—'}/10 · <b>Продуктивность:</b> ${s.mental?.productivity??'—'}/10</div>`:`<div class="empty-hint">Опрос не заполнен</div>`}<div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Привычки (${habitsDone.length}/${state.habits.filter(h=>!h.archived).length})</div>${habitsDone.length?habitsDone.map(h=>`<div class="insight">${svgIcon(h.icon,h.color,14)} ${escapeHtml(h.name)}</div>`).join(''):'<div class="empty-hint">Ни одна не выполнена</div>'}<div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Задачи (${tasksDone.length}/${tasksOnDay.length})</div>${tasksOnDay.length?tasksOnDay.map(t=>`<div class="insight">${isTaskDoneOn(t,dateStr)?'✅':'○'} ${escapeHtml(t.title)}</div>`).join(''):'<div class="empty-hint">Задач не было</div>'}<div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Закрыть</button><button class="btn-primary" onclick="closeSheet();goToDate('${dateStr}')">Открыть →</button></div>`)}
 function goToDate(dateStr){currentDate=dateStr;switchTab('today')}
 function prevMonth(){calDate.setMonth(calDate.getMonth()-1);haptic();renderCalendar()}
 function nextMonth(){calDate.setMonth(calDate.getMonth()+1);haptic();renderCalendar()}
