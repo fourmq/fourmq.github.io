@@ -11,7 +11,7 @@ export function migrateState(s) {
   if (s.settings.sounds === undefined) s.settings.sounds = true;
   s.reminders = s.reminders || [];
   s.moods = s.moods || {};
-  s.focusSessions = s.focusSessions || []; // <--- История фокуса
+  s.focusSessions = s.focusSessions || []; // История фокуса
   
   s.supabase = s.supabase || { url: '', key: '', email: '', lastSync: null };
   s.habits = (s.habits || []).map((h, i) => {
