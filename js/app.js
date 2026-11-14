@@ -443,10 +443,48 @@ window.renderStats = function() {
   else if (daysWithData < 3) summaryEl.innerHTML = `📊 Данных пока мало (${daysWithData} дн.). Пройди ещё ${3 - daysWithData} опроса — появятся графики и паттерны.`;
   else summaryEl.innerHTML = `📊 Статистика на основе <b>${daysWithData}</b> дней опросов.`;
 
+  renderFocusAnalytics();
   renderAutoInsights(); renderDreamProgress();
   renderChart([{ color: 'var(--td-orange)', data: d14.map(d => surveyMetric(d, 'emotions.joy')) }, { color: 'var(--td-blue)', data: d14.map(d => surveyMetric(d, 'mental.productivity')) }, { color: 'var(--pink)', data: d14.map(d => surveyMetric(d, 'emotions.anxiety')) }]);
   renderTrends4W(); renderStatsGrid(); renderWeekdayPatterns(); renderCorrMatrix(); renderPsyProfile(); renderPedRecommendations(); renderYearInPixels();
 };
+
+function renderFocusAnalytics() {
+  const el = document.getElementById('focus-analytics');
+  if (!el) return;
+  const sessions = state.focusSessions || [];
+  const totalMins = sessions.reduce((sum, s) => sum + s.duration, 0);
+  const totalHours = (totalMins / 60).toFixed(1);
+  const treesGrown = sessions.length;
+  
+  // По проектам
+  const projStats = {};
+  sessions.forEach(s => {
+    if (!s.taskId) return;
+    const t = state.tasks.find(x => x.id == s.taskId);
+    if (t && t.projectId) {
+      const p = state.projects.find(x => x.id === t.projectId);
+      if (p) projStats[p.name] = (projStats[p.name] || 0) + s.duration;
+    } else {
+      projStats['Без проекта'] = (projStats['Без проекта'] || 0) + s.duration;
+    }
+  });
+  
+  let projHtml = '';
+  Object.keys(projStats).sort((a,b) => projStats[b] - projStats[a]).forEach(k => {
+    const hrs = (projStats[k] / 60).toFixed(1);
+    projHtml += `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:.5px solid var(--separator); font-size:13px;"><span>${escapeHtml(k)}</span><b style="color:var(--text);">${hrs} ч</b></div>`;
+  });
+
+  el.innerHTML = `
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+      <div style="text-align:center; padding:12px; background:var(--input-bg); border-radius:12px;"><div style="font-size:22px; font-weight:700;">${totalHours} ч</div><div style="font-size:11px; color:var(--text-sec);">Всего в фокусе</div></div>
+      <div style="text-align:center; padding:12px; background:var(--input-bg); border-radius:12px;"><div style="font-size:22px; font-weight:700;">${treesGrown} 🌳</div><div style="font-size:11px; color:var(--text-sec);">Деревьев выращено</div></div>
+    </div>
+    <div style="font-size:11px; font-weight:700; color:var(--text-sec); text-transform:uppercase; margin-bottom:6px;">Время по проектам</div>
+    ${projHtml || '<div class="empty-hint" style="padding:0;">Пока нет данных.</div>'}
+  `;
+}
 
 function renderChart(series) {
   const el = document.getElementById('chart-mood-prod'); const W = 380, H = 130, pad = { top: 10, right: 8, bottom: 18, left: 22 };
@@ -570,6 +608,7 @@ window.switchTab = function(name) {
   if (name === 'focus') {
     window.populateFocusTasks();
     document.getElementById('floating-timer').classList.remove('active');
+    document.body.classList.remove('zen-active'); // Выходим из дзен-режима при переходе
   } else if (focusRunning) {
     document.getElementById('floating-timer').classList.add('active');
   }
@@ -607,30 +646,132 @@ window.exportData = function() { const blob = new Blob([JSON.stringify(state, nu
 window.exportCSV = function() { let csv = "Дата,Настроение,Продуктивность,Тревога,Энергия,Смысл,Сон_ч\n"; Object.keys(state.surveys).sort().forEach(d => { const s = state.surveys[d]; const avg = (state.moods[d] || []).length ? Math.round(state.moods[d].reduce((sum, m) => sum + m.val, 0) / state.moods[d].length) : ''; csv += `${d},${avg},${s.mental?.productivity || ''},${s.emotions?.anxiety || ''},${s.physical?.energy || ''},${s.mental?.meaning || ''},${s.physical?.sleepHours || ''}\n`; }); const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `cantilena-data-${todayStr()}.csv`; a.click(); };
 window.importData = function(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = ev => { try { const data = JSON.parse(ev.target.result); if (!data || !Array.isArray(data.habits)) throw new Error('Неверный формат'); if (!confirm('Заменить данные?')) return; const newState = migrateState(data); Object.keys(state).forEach(k => delete state[k]); Object.assign(state, newState); save(); window.renderAll(); alert('Импорт успешно!'); } catch (err) { alert('Ошибка: ' + err.message); } }; reader.readAsText(file); e.target.value = ''; };
 
-// ============ 12. ФОКУС-ТАЙМЕР ============
-let focusInterval = null, focusRunning = false, focusTimeLeft = 25 * 60, focusTotalTime = 25 * 60;
-window.setFocusTime = function(mins) { if (focusRunning) return; focusTotalTime = mins * 60; focusTimeLeft = focusTotalTime; updateFocusDisplay(); };
-function updateFocusDisplay() { const m = Math.floor(focusTimeLeft / 60); const s = focusTimeLeft % 60; const timeStr = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; const display = document.getElementById('focus-display'); if (display) display.textContent = timeStr; const floatTime = document.getElementById('float-time'); if (floatTime) floatTime.textContent = timeStr; const status = document.getElementById('focus-status'); if (status && focusRunning) status.textContent = 'В процессе...'; else if (status && !focusRunning && focusTimeLeft < focusTotalTime) status.textContent = 'На паузе'; }
+// ============ 12. ФОКУС-ТАЙМЕР (С ДЗЕН-РЕЖИМОМ И ДЕРЕВОМ) ============
+let focusInterval = null, focusRunning = false, focusTimeLeft = 25 * 60, focusTotalTime = 25 * 60, focusMode = 'focus';
+
+window.setFocusTime = function(mins) { 
+  if (focusRunning) return; 
+  focusTotalTime = mins * 60; 
+  focusTimeLeft = focusTotalTime; 
+  document.getElementById('focus-custom-mins').value = mins;
+  updateFocusDisplay(); 
+};
+
+function updateFocusDisplay() { 
+  const m = Math.floor(focusTimeLeft / 60); 
+  const s = focusTimeLeft % 60; 
+  const timeStr = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; 
+  const display = document.getElementById('focus-display'); if (display) display.textContent = timeStr; 
+  const floatTime = document.getElementById('float-time'); if (floatTime) floatTime.textContent = timeStr; 
+  const status = document.getElementById('focus-status'); 
+  if (status && focusRunning) status.textContent = focusMode === 'break' ? 'Отдых...' : 'В процессе...'; 
+  else if (status && !focusRunning && focusTimeLeft < focusTotalTime) status.textContent = 'На паузе'; 
+  
+  // Анимация дерева
+  const treePath = document.getElementById('tree-path');
+  if (treePath && focusMode === 'focus') {
+    const progress = 1 - (focusTimeLeft / focusTotalTime);
+    const dashLen = 150 * progress; // Примерная длина пути
+    treePath.style.strokeDasharray = `${dashLen} 300`;
+  }
+}
+
 window.toggleFocusTimer = function() {
   const btn = document.getElementById('focus-main-btn'); const floatBtn = document.getElementById('float-play-icon');
-  if (focusRunning) { clearInterval(focusInterval); focusRunning = false; if (btn) btn.textContent = 'Продолжить'; if (floatBtn) floatBtn.innerHTML = `<path d="m5 3 14 9-14 9V3z"/>`; updateFocusDisplay(); }
-  else {
-    if (focusTimeLeft <= 0) focusTimeLeft = focusTotalTime;
-    const taskSelect = document.getElementById('focus-task-select'); let taskName = 'Фокус';
+  
+  if (focusRunning) { 
+    clearInterval(focusInterval); focusRunning = false; 
+    if (btn) btn.textContent = 'Продолжить'; 
+    if (floatBtn) floatBtn.innerHTML = `<path d="m5 3 14 9-14 9V3z"/>`; 
+    updateFocusDisplay(); 
+  } else {
+    if (focusTimeLeft <= 0) { 
+      focusTimeLeft = focusTotalTime; 
+      focusMode = 'focus';
+      document.body.classList.add('zen-active');
+    } else {
+      document.body.classList.add('zen-active');
+    }
+    
+    const taskSelect = document.getElementById('focus-task-select'); 
+    let taskName = document.getElementById('focus-desc').value.trim() || 'Фокус';
     if (taskSelect && taskSelect.value) { const t = state.tasks.find(x => x.id == taskSelect.value); if (t) taskName = t.title; }
+    
     const floatTask = document.getElementById('float-task'); if (floatTask) floatTask.textContent = taskName;
-    focusRunning = true; if (btn) btn.textContent = 'Пауза'; if (floatBtn) floatBtn.innerHTML = `<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>`;
-    document.getElementById('floating-timer').classList.add('active'); document.getElementById('focus-status').textContent = 'В процессе...';
-    focusInterval = setInterval(() => { focusTimeLeft--; updateFocusDisplay(); if (focusTimeLeft <= 0) completeFocusSession(); }, 1000);
+    focusRunning = true; 
+    if (btn) btn.textContent = 'Пауза'; 
+    if (floatBtn) floatBtn.innerHTML = `<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>`;
+    document.getElementById('floating-timer').classList.remove('active'); // Скрываем плавающий виджет на экране фокуса
+    document.getElementById('focus-status').textContent = focusMode === 'break' ? 'Отдых...' : 'В процессе...';
+    
+    focusInterval = setInterval(() => { 
+      focusTimeLeft--; 
+      updateFocusDisplay(); 
+      if (focusTimeLeft <= 0) completeFocusSession(); 
+    }, 1000);
   }
 };
-window.stopFocusTimer = function() { clearInterval(focusInterval); focusRunning = false; focusTimeLeft = focusTotalTime; updateFocusDisplay(); document.getElementById('floating-timer').classList.remove('active'); const btn = document.getElementById('focus-main-btn'); if (btn) btn.textContent = 'Начать фокус'; const status = document.getElementById('focus-status'); if (status) status.textContent = 'Готов к работе'; };
+
+window.stopFocusTimer = function() { 
+  clearInterval(focusInterval); focusRunning = false; focusTimeLeft = focusTotalTime; 
+  updateFocusDisplay(); 
+  document.getElementById('floating-timer').classList.remove('active'); 
+  document.body.classList.remove('zen-active');
+  const btn = document.getElementById('focus-main-btn'); if (btn) btn.textContent = 'Начать фокус'; 
+  const status = document.getElementById('focus-status'); if (status) status.textContent = 'Готов к работе'; 
+  
+  // Вялое дерево
+  const treePath = document.getElementById('tree-path');
+  if (treePath) treePath.style.stroke = '#555';
+  setTimeout(() => { if(treePath) treePath.style.stroke = ''; }, 2000);
+};
+
 function completeFocusSession() {
-  clearInterval(focusInterval); focusRunning = false; document.getElementById('floating-timer').classList.remove('active'); document.getElementById('focus-status').textContent = 'Сессия завершена! 🎉'; const btn = document.getElementById('focus-main-btn'); if (btn) btn.textContent = 'Начать снова';
-  const soundSel = document.getElementById('focus-sound-select'); const soundType = soundSel ? soundSel.value : 'chime'; playFocusSound(soundType);
-  if (!state.focusSessions) state.focusSessions = []; const taskSelect = document.getElementById('focus-task-select'); const taskId = taskSelect && taskSelect.value ? taskSelect.value : null;
-  state.focusSessions.push({ date: todayStr(), duration: focusTotalTime / 60, taskId: taskId, ts: Date.now() }); save(); showToast('🔥 Отличная работа! Сессия записана.'); focusTimeLeft = focusTotalTime; updateFocusDisplay();
+  clearInterval(focusInterval); focusRunning = false; 
+  document.getElementById('floating-timer').classList.remove('active'); 
+  document.body.classList.remove('zen-active');
+  document.getElementById('focus-status').textContent = focusMode === 'break' ? 'Отдых завершен!' : 'Сессия завершена! 🎉'; 
+  const btn = document.getElementById('focus-main-btn'); if (btn) btn.textContent = 'Начать снова';
+  
+  // Оставляем дерево зеленым
+  const treePath = document.getElementById('tree-path');
+  if (treePath) treePath.classList.add('tree-completed');
+  setTimeout(() => { if(treePath) treePath.classList.remove('tree-completed'); }, 3000);
+  
+  if (focusMode === 'focus') {
+    playFocusSound(document.getElementById('focus-sound-select').value);
+    
+    if (!state.focusSessions) state.focusSessions = []; 
+    const taskSelect = document.getElementById('focus-task-select'); 
+    const taskId = taskSelect && taskSelect.value ? taskSelect.value : null;
+    const desc = document.getElementById('focus-desc').value.trim();
+    
+    state.focusSessions.push({ date: todayStr(), duration: focusTotalTime / 60, taskId: taskId, desc: desc, ts: Date.now() }); 
+    save(); 
+    showToast('🔥 Отличная работа! Дерево выращено.');
+    
+    // Автозавершение
+    if (document.getElementById('focus-auto-complete').checked && taskId) {
+      Tasks.completeTaskFromFocus(taskId);
+      save(); showToast('✅ Задача выполнена!');
+    }
+    
+    // Авто-перерыв
+    if (document.getElementById('focus-auto-break').checked) {
+      focusMode = 'break';
+      focusTotalTime = 5 * 60;
+      focusTimeLeft = focusTotalTime;
+      document.getElementById('focus-status').textContent = 'Перерыв 5 минут...';
+      // Автоматически стартуем перерыв
+      window.toggleFocusTimer();
+      return;
+    }
+  }
+  
+  focusTimeLeft = focusTotalTime; 
+  updateFocusDisplay();
 }
+
 function playFocusSound(type) {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)(); const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.connect(gain); gain.connect(ctx.destination);
@@ -639,8 +780,27 @@ function playFocusSound(type) {
     else { osc.type = 'sine'; osc.frequency.setValueAtTime(880, ctx.currentTime); gain.gain.setValueAtTime(0.2, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 2); osc.start(); osc.stop(ctx.currentTime + 2); }
   } catch(e) {}
 }
-window.populateFocusTasks = function() { const sel = document.getElementById('focus-task-select'); if (!sel) return; sel.innerHTML = '<option value="">Без задачи</option>'; const activeTasks = state.tasks.filter(t => !t.done && (t.date === todayStr() || !t.date)); activeTasks.forEach(t => { const opt = document.createElement('option'); opt.value = t.id; opt.textContent = t.title; sel.appendChild(opt); }); };
 
+window.populateFocusTasks = function() { 
+  const sel = document.getElementById('focus-task-select'); if (!sel) return; 
+  sel.innerHTML = '<option value="">Без задачи</option>'; 
+  const activeTasks = state.tasks.filter(t => !t.done && (t.date === todayStr() || !t.date)); 
+  activeTasks.forEach(t => { const opt = document.createElement('option'); opt.value = t.id; opt.textContent = t.title; sel.appendChild(opt); }); 
+};
+
+// Привязка автоперерыва к настройкам
+document.addEventListener('change', (e) => {
+  if (e.target.id === 'focus-auto-break') { state.focusSettings.autoBreak = e.target.checked; save(); }
+  if (e.target.id === 'focus-auto-complete') { state.focusSettings.autoComplete = e.target.checked; save(); }
+  if (e.target.id === 'focus-custom-mins') {
+    const val = Math.max(1, Math.min(180, parseInt(e.target.value) || 25));
+    state.focusSettings.customMins = val;
+    if (!focusRunning) { setFocusTime(val); }
+    save();
+  }
+});
+
+// ============ 13. СИНХРОНИЗАЦИЯ ============
 window.loginWithPassword = async function() { const email = document.getElementById('sb-email').value.trim(); const password = document.getElementById('sb-password').value; const url = document.getElementById('sb-url').value.trim(); const key = document.getElementById('sb-key').value.trim(); if (!email || !password || !url || !key) { alert('Заполните все поля'); return; } state.supabase.url = url; state.supabase.key = key; state.supabase.email = email; save(); try { if (!supabaseClient) supabaseClient = window.supabase.createClient(url, key); const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password }); if (error) throw error; currentUser = data.user; window.closeSheet(); window.renderAll(); } catch (e) { alert('Ошибка: ' + e.message); } };
 window.registerWithPassword = async function() { const email = document.getElementById('sb-email').value.trim(); const password = document.getElementById('sb-password').value; const url = document.getElementById('sb-url').value.trim(); const key = document.getElementById('sb-key').value.trim(); if (!email || !password || !url || !key) { alert('Заполните все поля'); return; } state.supabase.url = url; state.supabase.key = key; state.supabase.email = email; save(); try { if (!supabaseClient) supabaseClient = window.supabase.createClient(url, key); const { data, error } = await supabaseClient.auth.signUp({ email, password }); if (error) throw error; currentUser = data.user; window.closeSheet(); window.renderAll(); } catch (e) { alert('Ошибка: ' + e.message); } };
 window.manualSync = async function() { await pullFromCloud(false, false); await pushToCloud(); window.showToast('🔄 Синхронизировано'); window.closeSheet(); };
