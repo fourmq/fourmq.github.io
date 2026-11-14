@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cantilena-v4'; // <-- Меняйте цифру при каждом обновлении!
+const CACHE_NAME = 'cantilena-v5'; // <-- Меняйте цифру при каждом обновлении!
 
 self.addEventListener('install', (e) => {
   self.skipWaiting(); // Заставляет браузер сразу принять новые файлы
