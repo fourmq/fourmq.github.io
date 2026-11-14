@@ -344,97 +344,130 @@ let state=loadState();
 const save=()=>{ if(!state.supabase)state.supabase={}; state.supabase.lastSync=Date.now(); localStorage.setItem(STORAGE,JSON.stringify(state)); scheduleSync(); };
 
 // ============ Синхронизация (Supabase) ============
-let supabaseClient=null, syncTimer=null, currentUser=null, syncInterval=null, realtimeChannel=null;
-let isPushing = false;
+let supabaseClient=null, syncTimer=null, currentUser=null, pollInterval=null;
+let lastCloudUpdate = 0; // Время последнего известного обновления в облаке
+let isPushing = false;   // Защита от отправки и получения одновременно
 
-async function initSupabase(){ 
+async function initSupabase(){
   if(!state.supabase.url || !state.supabase.key || !window.supabase){
     updateSyncStatus('offline','Не настроено');
     return;
   }
-  if (supabaseClient) return; 
-  
+  if (supabaseClient) return;
+
   try{
     supabaseClient=window.supabase.createClient(state.supabase.url,state.supabase.key);
     const {data:{session}}=await supabaseClient.auth.getSession();
+    
     if(session){
       currentUser=session.user;
       updateSyncStatus('online','Вошли как '+(session.user.email||'???'));
-      await pullFromCloud();
-      startAutoSync();
-      subscribeToCloudChanges();
+      await pullFromCloud(true); // Принудительно скачиваем при старте
+      startPolling();            // Запускаем фоновую проверку
     } else {
       updateSyncStatus('online','Не вошли');
     }
+
     supabaseClient.auth.onAuthStateChange(async(e,s)=>{
       if(s){
         currentUser=s.user;
         updateSyncStatus('online','Вошли как '+(s.user.email||'???'));
-        await pullFromCloud();
-        startAutoSync();
-        subscribeToCloudChanges();
+        await pullFromCloud(true);
+        startPolling();
         renderAll();
       } else {
         currentUser=null;
         updateSyncStatus('online','Не вошли');
-        if (syncInterval) clearInterval(syncInterval);
-        if (realtimeChannel) supabaseClient.removeChannel(realtimeChannel);
+        if (pollInterval) clearInterval(pollInterval);
       }
     });
   } catch(e){
     updateSyncStatus('offline','Ошибка: '+e.message);
-  } 
+  }
 }
 
-function startAutoSync() {
-  if (syncInterval) clearInterval(syncInterval);
-  syncInterval = setInterval(async () => {
+// Проверяем облако каждые 5 секунд
+function startPolling() {
+  if (pollInterval) clearInterval(pollInterval);
+  
+  pollInterval = setInterval(async () => {
     if (!currentUser || !supabaseClient || isPushing) return;
+    
+    // Если пользователь сейчас что-то печатает (в заметке или задаче), не обновляем экран!
+    if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable)) {
+        return; 
+    }
+
     try {
-      const {data, error} = await supabaseClient.from('cantilena_data').select('*').eq('user_id',currentUser.id).maybeSingle();
-      if(error || !data || !data.data || !data.data.habits) return;
-      const cloudStr = JSON.stringify(data.data);
-      const localStr = JSON.stringify(state);
-      if (cloudStr !== localStr) {
-        state = migrateState(data.data);
-        if(!state.supabase) state.supabase = {};
-        state.supabase.lastSync = Date.now();
-        localStorage.setItem(STORAGE, JSON.stringify(state));
-        applyTheme();
-        renderAll();
-        showToast('🔄 Обновлено с другого устройства');
+      // Сначала просто спрашиваем время последнего обновления
+      const {data, error} = await supabaseClient.from('cantilena_data').select('updated_at').eq('user_id', currentUser.id).maybeSingle();
+      if (error || !data) return;
+
+      const cloudTime = new Date(data.updated_at).getTime();
+      
+      // Если в облаке время новее, чем у нас — значит, кто-то другой внес изменения
+      if (cloudTime > lastCloudUpdate) {
+        await pullFromCloud();
       }
-    } catch(e) { console.log('Фоновая проверка пропущена', e); }
+    } catch(e) { console.error("Poll error", e); }
   }, 5000);
 }
 
-function subscribeToCloudChanges() {
-  if (!supabaseClient || !currentUser) return;
-  if (realtimeChannel) supabaseClient.removeChannel(realtimeChannel);
+// Скачиваем данные из облака
+async function pullFromCloud(force = false) {
+  if (!currentUser || !supabaseClient) return;
+  try {
+    const {data, error} = await supabaseClient.from('cantilena_data').select('*').eq('user_id', currentUser.id).maybeSingle();
+    if (error) throw error;
 
-  realtimeChannel = supabaseClient
-    .channel('cantilena_changes')
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'cantilena_data', filter: `user_id=eq.${currentUser.id}` },
-      (payload) => {
-        if (isPushing) return;
-        const cloudData = payload.new ? payload.new.data : null;
-        if (cloudData && cloudData.habits) {
-          if (JSON.stringify(cloudData) === JSON.stringify(state)) return;
-          state = migrateState(cloudData);
-          if(!state.supabase) state.supabase = {};
-          state.supabase.lastSync = Date.now();
-          localStorage.setItem(STORAGE, JSON.stringify(state));
-          applyTheme();
-          renderAll();
-          showToast('🔄 Обновлено в реальном времени');
-        }
+    if (data && data.data && data.data.habits) {
+      const cloudTime = new Date(data.updated_at).getTime();
+      
+      // Обновляем, если это принудительно (при старте) или если данные новее
+      if (force || cloudTime > lastCloudUpdate) {
+        state = migrateState(data.data);
+        lastCloudUpdate = cloudTime;
+        localStorage.setItem(STORAGE, JSON.stringify(state));
+        applyTheme();
+        renderAll();
+        if (!force) showToast('🔄 Обновлено с другого устройства');
       }
-    )
-    .subscribe((status) => { console.log("Realtime status:", status); });
+    } else {
+      // Если в облаке пусто, отправляем туда локальные данные
+      await pushToCloud();
+    }
+  } catch(e) { console.error("Pull error", e); }
 }
 
+// Отправляем данные в облако
+async function pushToCloud(){
+  if(!currentUser || !supabaseClient) return;
+  isPushing = true;
+  try{
+    const nowISO = new Date().toISOString();
+    const {error} = await supabaseClient.from('cantilena_data').upsert({
+      user_id: currentUser.id,
+      data: state,
+      updated_at: nowISO
+    },{onConflict:'user_id'});
+    
+    if(error) throw error;
+    lastCloudUpdate = new Date(nowISO).getTime(); // Запоминаем время успешной отправки
+  } catch(e) {
+    console.error('Sync push failed', e);
+  } finally {
+    // Блокируем проверку на 2 секунды, чтобы не скачать свои же старые данные
+    setTimeout(() => { isPushing = false; }, 2000);
+  }
+}
+
+function scheduleSync() {
+  if(!currentUser || !supabaseClient) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(pushToCloud, 1500); // Ждем 1.5 сек после клика и отправляем
+}
+
+// Функции для окна синхронизации (оставляем как были)
 function updateSyncStatus(status,text){
   const el=document.getElementById('sidebar-sync');
   if(!el)return;
@@ -445,45 +478,6 @@ function updateSyncStatus(status,text){
   }
 }
 
-function scheduleSync(){if(!currentUser||!supabaseClient)return;clearTimeout(syncTimer);syncTimer=setTimeout(pushToCloud,1500)}
-
-async function pushToCloud(){
-  if(!currentUser||!supabaseClient)return;
-  isPushing = true;
-  try{
-    const {error}=await supabaseClient.from('cantilena_data').upsert({user_id:currentUser.id,data:state,updated_at:new Date().toISOString()},{onConflict:'user_id'});
-    if(error)throw error;
-    state.supabase.lastSync=Date.now();
-    localStorage.setItem(STORAGE,JSON.stringify(state));
-  }catch(e){
-    console.error('Sync push failed',e);
-  }finally{
-    setTimeout(() => { isPushing = false; }, 2000);
-  }
-}
-
-async function pullFromCloud(){
-  if(!currentUser||!supabaseClient)return;
-  try{
-    const {data,error}=await supabaseClient.from('cantilena_data').select('*').eq('user_id',currentUser.id).maybeSingle();
-    if(error)throw error;
-    if(data&&data.data&&data.data.habits){
-      const cloudTime=new Date(data.updated_at).getTime();
-      const localTime=state.supabase.lastSync||0;
-      if(cloudTime>localTime+2000){
-        state=migrateState(data.data);
-        if(!state.supabase)state.supabase={};
-        state.supabase.lastSync=cloudTime;
-        localStorage.setItem(STORAGE,JSON.stringify(state));
-        applyTheme();
-        renderAll();
-      }
-    }else{
-      await pushToCloud();
-    }
-  }catch(e){console.error('Sync pull failed',e)}
-}
-
 function openSyncSettings(){
   const sb=state.supabase;
   const loggedIn=!!currentUser;
@@ -491,7 +485,7 @@ function openSyncSettings(){
 
   openSheet(`
     <h2>☁️ Синхронизация</h2>
-    <p style="font-size:13px;color:var(--text-sec);margin-bottom:12px;line-height:1.5;">Включите синхронизацию, чтобы данные сохранялись в облаке и были доступны с телефона и компьютера.</p>
+    <p style="font-size:13px;color:var(--text-sec);margin-bottom:12px;line-height:1.5;">Включите синхронизацию, чтобы данные сохранялись в облаке.</p>
 
     <div class="field"><label>Supabase URL</label><input type="text" id="sb-url" value="${escapeHtml(sb.url)}" placeholder="https://xxx.supabase.co"></div>
     <div class="field"><label>Anon key</label><input type="password" id="sb-key" value="${escapeHtml(sb.key)}" placeholder="eyJhbGciOi..."></div>
@@ -501,15 +495,14 @@ function openSyncSettings(){
         🟢 Вы в аккаунте<br>
         <span style="font-weight:500;font-size:13px;opacity:0.8;">${escapeHtml(email)}</span>
       </div>
-      <p style="font-size:13px;color:var(--text-sec);text-align:center;margin-bottom:20px;">Все изменения автоматически сохраняются в облако и доступны на других устройствах.</p>
+      <p style="font-size:13px;color:var(--text-sec);text-align:center;margin-bottom:20px;">Все изменения автоматически сохраняются в облако.</p>
       
       <button class="btn-primary" onclick="manualSync()" style="margin-bottom:8px;">🔄 Синхронизировать сейчас</button>
       <button class="btn-cancel" onclick="closeSheet()" style="margin-bottom:8px;">Закрыть</button>
       <button class="btn-danger" onclick="signOut()">Выйти из аккаунта</button>
     ` : `
       <div style="padding:20px;background:var(--pink-soft);border-radius:14px;font-size:15px;color:var(--pink);margin-bottom:20px;text-align:center;font-weight:700;">
-        🔴 Вы не авторизованы<br>
-        <span style="font-weight:500;font-size:13px;opacity:0.8;">Данные не сохраняются в облако</span>
+        🔴 Вы не авторизованы
       </div>
       
       <div class="field"><label>Ваш Email</label><input type="email" id="sb-email" value="${escapeHtml(email)}" placeholder="you@mail.com"></div>
@@ -519,7 +512,6 @@ function openSyncSettings(){
         <button class="btn-cancel" onclick="loginWithPassword()" style="background:var(--accent-soft);color:var(--accent);">Войти</button>
         <button class="btn-primary" onclick="registerWithPassword()">Регистрация</button>
       </div>
-      <div style="margin-top:12px;font-size:12px;color:var(--text-sec);text-align:center;">Если вы здесь впервые — нажмите «Регистрация».</div>
     `}
   `);
 }
@@ -545,6 +537,7 @@ async function loginWithPassword(){
     showToast('✅ Вход выполнен!');
     closeSheet();
     setTimeout(() => { openSyncSettings(); }, 300);
+    startPolling();
   }catch(e){alert('Ошибка входа: ' + e.message)}
 }
 
@@ -570,6 +563,7 @@ async function registerWithPassword(){
     showToast('✅ Аккаунт создан!');
     closeSheet();
     setTimeout(() => { openSyncSettings(); }, 300);
+    startPolling();
   }catch(e){alert('Ошибка регистрации: ' + e.message)}
 }
 
@@ -591,15 +585,14 @@ function saveSyncSettings(){
 async function signOut(){
   if(supabaseClient) await supabaseClient.auth.signOut();
   currentUser=null;
-  if (syncInterval) clearInterval(syncInterval);
-  if (realtimeChannel) supabaseClient.removeChannel(realtimeChannel);
+  if (pollInterval) clearInterval(pollInterval);
   updateSyncStatus('online','Не вошли');
   closeSheet();
   showToast('Вы вышли из аккаунта');
 }
 
 async function manualSync(){
-  await pullFromCloud();
+  await pullFromCloud(true);
   await pushToCloud();
   showToast('🔄 Данные синхронизированы');
   closeSheet();
