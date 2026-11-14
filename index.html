@@ -22,9 +22,9 @@
   
   --bg:#F2F2F7;--card:#fff;--input-bg:#F2F2F7;--text:#1D1D1F;--text-sec:#8E8E93;--text-tert:#C7C7CC;
   --separator:rgba(60,60,67,.1);--separator-med:rgba(60,60,67,.15);
-  --accent:var(--td-blue);--accent-soft:#E5EEFF;
-  --green:var(--td-green);--green-soft:#E8F8EC;--green-text:var(--td-green);
-  --red:var(--td-red);--pink:#FF375F;--pink-soft:#FFE4EA;
+  --accent:var(--td-red);--accent-soft:rgba(219,76,63,.1);
+  --green:var(--td-green);--green-soft:rgba(5,133,39,.1);--green-text:var(--td-green);
+  --red:var(--td-red);--pink:#FF375F;--pink-soft:rgba(255,55,95,.1);
   --orange:var(--td-orange);--purple:#AF52DE;--indigo:#5856D6;--yellow:#FFCC00;--teal:#5AC8FA;
   --tabbar:rgba(255,255,255,.88);--overlay:rgba(0,0,0,.4);--shadow:rgba(0,0,0,.05);
   --hm-empty:#EBEBF0;--chart-grid:#F2F2F7;--chip-bg:rgba(118,118,128,.12);--chip-bg-strong:rgba(118,118,128,.25);
@@ -34,7 +34,7 @@
 [data-theme=dark]{
   --bg:#1e1e1e;--card:#252525;--input-bg:#2C2C2E;--text:#e0e0e0;--text-sec:#999999;--text-tert:#555555;
   --separator:rgba(255,255,255,.1);--separator-med:rgba(255,255,255,.15);
-  --accent:var(--td-blue);--accent-soft:rgba(36,111,224,.2);
+  --accent:var(--td-red);--accent-soft:rgba(219,76,63,.2);
   --green:var(--td-green);--green-soft:rgba(5,133,39,.2);--green-text:#4ade80;
   --red:var(--td-red);--pink:#FF375F;--pink-soft:rgba(255,55,95,.15);
   --tabbar:rgba(30,30,30,.88);--overlay:rgba(0,0,0,.6);--shadow:rgba(0,0,0,.3);
@@ -58,10 +58,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-s
 @keyframes checkPop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
 @keyframes spin{100%{transform:rotate(360deg)}}
 
-.topbar{padding:calc(env(safe-area-inset-top,0px) + 4px) 20px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
+.topbar{padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 8px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
 .topbar-info{flex:1;min-width:0}
-.topbar h1{font-size:26px;font-weight:700;letter-spacing:-.6px;line-height:1.1}
-.topbar-meta{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-sec);margin-top:4px;font-weight:500}
+.topbar h1{font-size:24px;font-weight:700;letter-spacing:-.6px;line-height:1.1}
+.topbar-meta{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-sec);margin-top:2px;font-weight:500}
 .topbar-meta .time-mono{font-variant-numeric:tabular-nums;color:var(--text);font-weight:600}
 .save-indicator { font-size: 12px; color: var(--green); font-weight: 600; margin-left: 8px; opacity: 0; transition: opacity 0.3s; display: flex; align-items: center; gap: 4px; }
 .save-indicator.show { opacity: 1; }
@@ -70,65 +70,78 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-s
 .sync-icon.spinning{animation:spin 1s linear infinite}
 
 main{flex:1;overflow-y:auto;padding-bottom:100px;-webkit-overflow-scrolling:touch}
-.screen{display:none;padding:4px 16px 24px}
+.screen{display:none;padding:0 16px 24px}
 .screen.active{display:block;animation:screenIn .32s cubic-bezier(.2,.9,.3,1)}
-.card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:12px;transition:background .25s}
-.card.tight{padding:4px 16px}
-.card.flat{padding:12px 16px}
-.section-title{font-size:12px;font-weight:600;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;padding:14px 4px 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.section-title .actions{display:flex;gap:8px;align-items:center}
-.section-title .actions button{background:transparent;border:none;font-size:16px;cursor:pointer;color:var(--text-sec);padding:0;display:flex;align-items:center;justify-content:center;transition:transform .15s;line-height:1}
-.section-title .link{color:var(--accent);text-transform:none;font-weight:600;font-size:13px;cursor:pointer}
+.card{background:var(--card);border-radius:12px;padding:12px;margin-bottom:10px;transition:background .25s}
+.card.tight{padding:4px 12px}
+.card.flat{padding:10px 12px}
 
-.rings-card{display:flex;align-items:center;gap:20px;padding:20px 16px}
-.rings{width:130px;height:130px;flex-shrink:0}
+.section-title{font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;padding:10px 4px 6px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.section-title .actions{display:flex;gap:8px;align-items:center}
+.section-title .actions button{background:var(--chip-bg);border:none;font-size:14px;cursor:pointer;color:var(--text-sec);padding:0;display:flex;align-items:center;justify-content:center;transition:transform .15s;line-height:1;width:24px;height:24px;border-radius:6px;}
+.section-title .actions button:active{transform:scale(.85)}
+.section-title .link{color:var(--text-sec);text-transform:none;font-weight:600;font-size:13px;cursor:pointer}
+
+/* КОМПАКТНЫЕ КОЛЬЦА */
+.rings-card{display:flex;align-items:center;gap:16px;padding:14px 16px}
+.rings{width:100px;height:100px;flex-shrink:0}
 #ring-survey,#ring-habits,#ring-tasks{transition:stroke-dasharray 1s cubic-bezier(.32,.72,0,1)}
-.rings-legend{flex:1;display:flex;flex-direction:column;gap:11px;font-size:14px}
+.rings-legend{flex:1;display:flex;flex-direction:column;gap:8px;font-size:13px}
 .rings-legend div{display:flex;align-items:center;gap:8px}
 .rings-legend b{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:700}
 .rings-legend b.complete{color:var(--green)}
-.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
 
-.focus-card{background:linear-gradient(135deg, var(--accent-soft), var(--card));border:1px solid var(--accent-soft);position:relative;overflow:hidden}
-.focus-label{font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
-.focus-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px}
+/* КОМПАКТНЫЙ ФОКУС */
+.focus-card{background:linear-gradient(135deg, var(--accent-soft), var(--card));border:1px solid rgba(219,76,63,0.2);position:relative;overflow:hidden}
+.focus-label{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.focus-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:2px}
 .focus-meta{font-size:12px;color:var(--text-sec)}
 
-.quote-card{background:var(--card);text-align:center;padding:20px 16px;font-style:italic;color:var(--text-sec);font-size:14px;line-height:1.5}
-.quote-text{margin-bottom:8px}
-.quote-author{font-size:12px;font-weight:600;font-style:normal;color:var(--text-tert)}
+/* КОМПАКТНЫЙ ПУЛЬС */
+.quick-mood-card{padding:12px 16px}
+.quick-mood-label{font-size:11px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.quick-mood{display:flex;gap:6px;justify-content:space-between}
+.quick-mood button{flex:1;aspect-ratio:1;max-width:48px;border-radius:50%;background:var(--input-bg);border:2px solid transparent;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:all .25s cubic-bezier(.2,.9,.3,1)}
+.quick-mood button:active{transform:scale(0.9);}
+
+/* КОМПАКТНЫЙ ОПРОС */
+.survey-btn{width:100%;padding:12px;border-radius:12px;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;align-items:center;justify-content:space-between;background:var(--card);color:var(--text);border:1px solid var(--separator);margin-bottom:10px;}
+.survey-btn.done{background:var(--green-soft);border-color:rgba(5,133,39,0.2);color:var(--green-text);}
+.survey-btn .left{display:flex;align-items:center;gap:8px;}
+.survey-btn .right{font-size:12px;opacity:0.8;font-weight:500;}
 
 /* НАСТРОЙКИ */
-.settings-group{background:var(--card);border-radius:16px;margin-bottom:20px;overflow:hidden}
-.settings-header{font-size:12px;font-weight:600;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;padding:0 16px 8px;margin-top:8px}
-.settings-row{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:.5px solid var(--separator);font-size:16px;font-weight:500}
+.settings-group{background:var(--card);border-radius:12px;margin-bottom:16px;overflow:hidden}
+.settings-header{font-size:11px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;padding:0 16px 6px;margin-top:6px}
+.settings-row{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:.5px solid var(--separator);font-size:15px;font-weight:500}
 .settings-row:last-child{border-bottom:none}
 .settings-row .icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;margin-right:12px;font-size:16px;}
 .settings-row .left{display:flex;align-items:center;}
-.profile-header{display:flex;flex-direction:column;align-items:center;padding:20px;background:var(--card);border-radius:16px;margin-bottom:20px;text-align:center}
-.profile-avatar{width:64px;height:64px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:24px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.profile-header{display:flex;flex-direction:column;align-items:center;padding:16px;background:var(--card);border-radius:12px;margin-bottom:16px;text-align:center}
+.profile-avatar{width:56px;height:56px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
 
-.switch{position:relative;display:inline-block;width:50px;height:30px}
+.switch{position:relative;display:inline-block;width:44px;height:26px}
 .switch input{opacity:0;width:0;height:0}
-.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:var(--text-tert);transition:.4s;border-radius:30px}
-.slider:before{position:absolute;content:"";height:26px;width:26px;left:2px;bottom:2px;background-color:white;transition:.4s;border-radius:50%}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:var(--text-tert);transition:.4s;border-radius:26px}
+.slider:before{position:absolute;content:"";height:22px;width:22px;left:2px;bottom:2px;background-color:white;transition:.4s;border-radius:50%}
 input:checked + .slider{background-color:var(--green)}
-input:checked + .slider:before{transform:translateX(20px)}
+input:checked + .slider:before{transform:translateX(18px)}
 
 /* СТАТИСТИКА */
 .chart-svg{width:100%;height:auto;display:block;overflow:visible}
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.stat-card{background:var(--card);border-radius:16px;padding:14px}
-.stat-value.small{font-size:18px;font-weight:700}
-.stat-label{font-size:12px;color:var(--text-sec);margin-top:4px}
-.insight{padding:10px 0;border-bottom:.5px solid var(--separator);font-size:14px;line-height:1.45}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat-card{background:var(--card);border-radius:12px;padding:12px}
+.stat-value.small{font-size:16px;font-weight:700}
+.stat-label{font-size:11px;color:var(--text-sec);margin-top:2px}
+.insight{padding:8px 0;border-bottom:.5px solid var(--separator);font-size:14px;line-height:1.45}
 .insight:last-child{border-bottom:none}
 .insight b{color:var(--text)}
 .expert-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
 .badge-psy{background:var(--pink-soft);color:var(--pink)}
 .badge-ped{background:var(--green-soft);color:var(--green-text)}
 .corr-grid{display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:4px;font-size:11px;margin-top:8px}
-.corr-cell{padding:8px 4px;text-align:center;border-radius:6px;background:var(--input-bg);font-weight:600}
+.corr-cell{padding:6px 4px;text-align:center;border-radius:6px;background:var(--input-bg);font-weight:600}
 .corr-cell.header{background:transparent;color:var(--text-sec);font-weight:600}
 .corr-cell.pos-strong{background:var(--green);color:#fff}
 .corr-cell.pos-med{background:rgba(5,133,39,.6);color:#fff}
@@ -149,37 +162,37 @@ input:checked + .slider:before{transform:translateX(20px)}
 .confetti-piece { position: fixed; width: 8px; height: 8px; background: var(--accent); z-index: 9999; border-radius: 50%; pointer-events: none; animation: confettiFall linear forwards; }
 @keyframes confettiFall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
 
-.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;transition:transform .15s,background .2s}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;transition:transform .15s}
 .btn-primary:active{transform:scale(.97)}
 .btn-cancel{background:var(--input-bg);color:var(--text);border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;margin-top:8px;transition:transform .15s}
 .btn-cancel:active{transform:scale(.97)}
 .btn-danger{background:var(--red);color:#fff;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;margin-top:8px;transition:transform .15s}
 
-/* ЗАДАЧИ И ПРИВЫЧКИ (TODOIST STYLE) */
-.habit-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:.5px solid var(--separator)}
+/* СПИСКИ И ЧЕКБОКСЫ */
+.habit-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:.5px solid var(--separator)}
 .habit-row:last-child{border-bottom:none}
 .habit-row.skipped{opacity:.5}
-.check-circle{width:24px;height:24px;border-radius:50%;border:2px solid var(--text-tert);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;font-size:10px;font-weight:700;color:var(--text-sec);transition:all .2s}
+.check-circle{width:22px;height:22px;border-radius:50%;border:2px solid var(--text-tert);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;font-size:10px;font-weight:700;color:var(--text-sec);transition:all .2s}
 .check-circle:active{transform:scale(.9)}
 .check-circle.done{background:var(--green);border-color:var(--green);color:#fff}
 .check-circle.done.pop{animation:checkPop .4s}
 .check-circle svg{width:14px;height:14px;opacity:0;transition:opacity .2s}
 .check-circle.done svg{opacity:1}
 .check-circle.partial{background:var(--green);color:#fff;border-color:var(--green)}
-.habit-icon-badge{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.habit-icon-badge{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .habit-info{flex:1;min-width:0;cursor:pointer;}
 .habit-name{font-size:15px;font-weight:500;color:var(--text);line-height:1.3;}
 .habit-name.done{color:var(--text-sec);text-decoration:line-through}
-.habit-sub{font-size:12px;color:var(--text-sec);margin-top:3px}
+.habit-sub{font-size:12px;color:var(--text-sec);margin-top:2px}
 
-.task-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:.5px solid var(--separator)}
+.task-row{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:.5px solid var(--separator)}
 .task-row:last-child{border-bottom:none}
 .task-body{flex:1;cursor:pointer;min-width:0;}
 .task-title{font-size:15px;color:var(--text);line-height:1.4;}
 .task-title.done{color:var(--text-sec);text-decoration:line-through}
-.task-meta{font-size:12px;color:var(--text-sec);margin-top:4px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.task-meta{font-size:12px;color:var(--text-sec);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
 
-/* ПРИОРИТЕТЫ В TODOIST СТИЛЕ */
+/* ПРИОРИТЕТЫ */
 .check-circle.p1 { border-color: var(--td-red); color: var(--td-red); }
 .check-circle.p1.done { background: var(--td-red); color: #fff; }
 .check-circle.p2 { border-color: var(--td-orange); color: var(--td-orange); }
@@ -196,53 +209,50 @@ input:checked + .slider:before{transform:translateX(20px)}
 .date-tag.tomorrow { color: var(--td-orange); }
 .date-tag.future { color: var(--text-sec); }
 
-/* ИКОНКИ В СТРОКАХ */
-.task-icon { width: 14px; height: 14px; opacity: 0.7; }
-.task-icon.project { color: var(--text-sec); }
+.del-x{background:none;border:none;color:var(--text-tert);font-size:20px;cursor:pointer;padding:0 4px;line-height:1;}
+.del-x svg{width:16px;height:16px;}
 
-.del-x{background:none;border:none;color:var(--text-tert);font-size:22px;cursor:pointer;padding:0 4px;line-height:1;}
-.del-x svg{width:18px;height:18px;}
+/* Навигация по дням */
+.date-nav{display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:10px;padding:6px 12px;margin-bottom:10px}
+.nav-arrow{background:none;border:none;font-size:20px;color:var(--text-sec);cursor:pointer;padding:0 8px}
+.date-nav-center{font-size:14px;font-weight:600;text-align:center;flex:1;display:flex;align-items:center;justify-content:center;gap:8px}
+.back-today{font-size:11px;color:var(--text-sec);font-weight:600;cursor:pointer;background:var(--chip-bg);padding:4px 8px;border-radius:6px}
 
-.date-nav{display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:12px;padding:8px 12px;margin-bottom:12px}
-.nav-arrow{background:none;border:none;font-size:24px;color:var(--accent);cursor:pointer;padding:0 12px}
-.date-nav-center{font-size:15px;font-weight:600;text-align:center;flex:1;display:flex;align-items:center;justify-content:center;gap:8px}
-.back-today{font-size:12px;color:var(--accent);font-weight:500;cursor:pointer;background:var(--accent-soft);padding:4px 8px;border-radius:6px}
-
-.quick-mood-card{padding:14px 16px}
-.quick-mood-label{font-size:12px;font-weight:600;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
-.quick-mood{display:flex;gap:8px;justify-content:space-between}
-.quick-mood button{flex:1;aspect-ratio:1;max-width:56px;border-radius:50%;background:var(--input-bg);border:2px solid transparent;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:all .25s cubic-bezier(.2,.9,.3,1)}
-.quick-mood button:active{transform:scale(0.9);}
-
-.tabbar{position:absolute;bottom:0;left:0;right:0;background:var(--tabbar);backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--separator-med);display:flex;padding:8px 0 calc(env(safe-area-inset-bottom,0px) + 14px);z-index:10}
+/* Табы и FAB */
+.tabbar{position:absolute;bottom:0;left:0;right:0;background:var(--tabbar);backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--separator-med);display:flex;padding:8px 0 calc(env(safe-area-inset-bottom,0px) + 10px);z-index:10}
 .tab{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text-sec);cursor:pointer;font-size:10px;font-weight:500;padding:2px 0;font-family:inherit}
 .tab.active{color:var(--td-red)}
-.tab svg{width:24px;height:24px;transition:transform .2s}
+.tab svg{width:22px;height:22px;transition:transform .2s}
 .tab.active svg{transform:scale(1.08)}
 
-/* СВАЙП И ШТОРКА */
+/* АНИМИРОВАННЫЙ FAB */
+.fab { position: absolute; bottom: calc(env(safe-area-inset-bottom,0px) + 75px); right: 16px; width: 52px; height: 52px; border-radius: 50%; background: var(--td-red); color: #fff; border: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(219,76,63,0.4); cursor: pointer; z-index: 50; transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.25s; transform: scale(0); opacity: 0; pointer-events: none; }
+.fab.visible { transform: scale(1); opacity: 1; pointer-events: auto; }
+.fab:active { transform: scale(0.85); }
+.fab svg { width: 24px; height: 24px; }
+
+/* Шторка и свайп */
 .backdrop{position:absolute;inset:0;background:var(--overlay);opacity:0;pointer-events:none;transition:opacity .3s;z-index:99}
 .backdrop.open{opacity:1;pointer-events:auto}
-.sheet{position:absolute;bottom:0;left:0;right:0;background:var(--card);color:var(--text);border-radius:20px 20px 0 0;padding:0 20px calc(env(safe-area-inset-bottom,0px) + 28px);max-height:90vh;overflow-y:auto;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);z-index:100;will-change:transform}
+.sheet{position:absolute;bottom:0;left:0;right:0;background:var(--card);color:var(--text);border-radius:16px 16px 0 0;padding:0 16px calc(env(safe-area-inset-bottom,0px) + 20px);max-height:92vh;overflow-y:auto;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);z-index:100;will-change:transform}
 .sheet.open{transform:translateY(0)}
 .sheet.dragging{transition:none}
-.sheet-handle-wrap{padding:14px 0 12px; touch-action:none; display:flex; justify-content:center; cursor:grab; position:sticky; top:0; background:var(--card); z-index:10;}
-.sheet-handle{width:40px;height:5px;background:var(--text-tert);border-radius:3px;}
-.sheet h2{font-size:22px;font-weight:700;margin-bottom:16px;padding:0 4px}
+.sheet-handle-wrap{padding:12px 0 10px; touch-action:none; display:flex; justify-content:center; cursor:grab; position:sticky; top:0; background:var(--card); z-index:10;}
+.sheet-handle{width:36px;height:5px;background:var(--text-tert);border-radius:3px;}
 
-.field{margin-bottom:14px}
-.field label{display:block;font-size:13px;font-weight:600;color:var(--text-sec);margin-bottom:6px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--text-sec);margin-bottom:4px}
 .field input[type=range]{width:100%;accent-color:var(--accent)}
-.field input[type=text],.field input[type=number],.field input[type=date],.field input[type=time],.field input[type=email],.field input[type=password],.field textarea,.field select{width:100%;padding:10px 12px;border:1px solid var(--separator-med);border-radius:10px;font-size:16px;font-family:inherit;background:var(--input-bg);outline:none;color:var(--text);display:block;height:44px;}
+.field input[type=text],.field input[type=number],.field input[type=date],.field input[type=time],.field input[type=email],.field input[type=password],.field textarea,.field select{width:100%;padding:10px;border:1px solid var(--separator-med);border-radius:8px;font-size:15px;font-family:inherit;background:var(--input-bg);outline:none;color:var(--text);display:block;}
 
-/* ФОРМА ЗАДАЧИ (TODOIST STYLE) */
-.todoist-editor { display: flex; flex-direction: column; gap: 12px; padding-bottom: 20px; }
-.td-title-input { width: 100%; font-size: 20px; font-weight: 600; border: none; outline: none; background: transparent; color: var(--text); padding: 8px 0; font-family: inherit; }
-.td-desc-input { width: 100%; font-size: 15px; border: none; outline: none; background: transparent; color: var(--text-sec); padding: 4px 0; font-family: inherit; }
-.td-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
-.td-chip { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--separator-med); background: var(--bg); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text-sec); position: relative; transition: background 0.2s; }
+/* НОВАЯ ФОРМА ЗАДАЧИ */
+.todoist-editor { display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px; }
+.td-title-input { width: 100%; font-size: 18px; font-weight: 600; border: none; outline: none; background: transparent; color: var(--text); padding: 8px 0; font-family: inherit; }
+.td-desc-input { width: 100%; font-size: 14px; border: none; outline: none; background: transparent; color: var(--text-sec); padding: 4px 0; font-family: inherit; }
+.td-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.td-chip { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--separator-med); background: var(--bg); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text-sec); position: relative; transition: background 0.15s; }
 .td-chip:active { background: var(--input-bg); }
-.td-chip svg { width: 16px; height: 16px; }
+.td-chip svg { width: 14px; height: 14px; }
 .td-chip.date.today { color: var(--td-green); border-color: var(--td-green); background: var(--green-soft); }
 .td-chip.date.overdue { color: var(--td-red); border-color: var(--td-red); background: rgba(219,76,63,0.1); }
 .td-chip.prio.p1 { color: var(--td-red); border-color: var(--td-red); }
@@ -250,35 +260,38 @@ input:checked + .slider:before{transform:translateX(20px)}
 .td-chip.prio.p3 { color: var(--td-blue); border-color: var(--td-blue); }
 .td-chip.prio.p4 { color: var(--text-sec); }
 .td-chip.hidden-input { overflow: hidden; position: relative; }
-.td-chip input[type="date"], .td-chip input[type="time"], .td-chip input[type="number"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
-.td-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
-.btn-save-task { background: var(--td-red); color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; font-family: inherit; }
+.td-chip input[type="date"], .td-chip input[type="time"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.td-chip input[type="number"] { width: 30px; border: none; background: transparent; font-family: inherit; font-size: 13px; font-weight: 500; color: inherit; outline: none; text-align: right; padding: 0; }
+.td-actions { display: flex; justify-content: flex-end; margin-top: 12px; }
+.btn-save-task { background: var(--td-red); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; font-family: inherit; }
 
-/* FAB (ПЛАВАЮЩАЯ КНОПКА +) */
-.fab { position: absolute; bottom: calc(env(safe-area-inset-bottom,0px) + 80px); right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--td-red); color: #fff; border: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(219,76,63,0.4); cursor: pointer; z-index: 50; transition: transform 0.15s; }
-.fab:active { transform: scale(0.92); }
-.fab svg { width: 28px; height: 28px; }
+/* Всплывающее меню приоритета */
+.prio-menu { position: absolute; bottom: calc(100% + 8px); left: 0; background: var(--card); border: 1px solid var(--separator-med); border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); padding: 6px; display: none; flex-direction: column; gap: 2px; z-index: 100; min-width: 120px; }
+.prio-menu.open { display: flex; animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+@keyframes popIn { from { opacity: 0; transform: scale(0.9) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.prio-menu-item { padding: 8px 12px; border-radius: 6px; display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; color: var(--text); }
+.prio-menu-item:hover, .prio-menu-item:active { background: var(--chip-bg); }
+.prio-menu-item .flag-icon { width: 12px; height: 12px; border-radius: 2px; }
 
 /* Заметки */
-.note-toolbar { position: sticky; top: 0; background: var(--bg); z-index: 10; display: flex; gap: 4px; padding: 8px 0; border-bottom: .5px solid var(--separator); margin-bottom: 8px; flex-wrap: wrap; }
-.note-toolbar button { background: var(--chip-bg); border: none; border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; color: var(--text); display:flex; align-items:center; justify-content:center;min-width:36px;min-height:36px;}
+.note-toolbar { position: sticky; top: 0; background: var(--card); z-index: 10; display: flex; gap: 4px; padding: 8px 0; border-bottom: .5px solid var(--separator); margin-bottom: 8px; flex-wrap: wrap; }
+.note-toolbar button { background: var(--chip-bg); border: none; border-radius: 6px; padding: 6px 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; color: var(--text); display:flex; align-items:center; justify-content:center;min-width:32px;min-height:32px;}
 #edit-note-title { width: 100%; font-size: 20px; font-weight: 700; border: none; outline: none; background: transparent; color: var(--text); margin-bottom: 8px; padding: 4px 0; }
 #edit-note-body { min-height: 400px; font-size: 16px; line-height: 1.55; outline: none; color: var(--text); padding-bottom: 40px; }
 
-.sidebar{display:none;flex-direction:column;background:var(--sidebar);border-right:1px solid var(--sidebar-border);width:260px;flex-shrink:0;padding:20px 12px}
+.sidebar{display:none;flex-direction:column;background:var(--sidebar);border-right:1px solid var(--sidebar-border);width:240px;flex-shrink:0;padding:16px 8px}
 .sidebar-brand{padding:6px 14px 24px;font-size:22px;font-weight:800;color:var(--text);line-height:1.1}
-.sidebar-brand span{color:var(--td-red);font-weight:600;font-size:13px;display:block;margin-top:4px;letter-spacing:0;text-transform:uppercase}
+.sidebar-brand span{color:var(--td-red);font-weight:600;font-size:12px;display:block;margin-top:4px;letter-spacing:0;text-transform:uppercase}
 .sidebar-nav{display:flex;flex-direction:column;gap:4px;flex:1}
-.sidebar-nav button{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;background:none;border:none;color:var(--text-sec);cursor:pointer;font-family:inherit;font-size:15px;font-weight:500;text-align:left}
-.sidebar-nav button.active{background:var(--td-red);color:#fff;font-weight:600}
+.sidebar-nav button{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;background:none;border:none;color:var(--text-sec);cursor:pointer;font-family:inherit;font-size:15px;font-weight:500;text-align:left}
+.sidebar-nav button.active{background:var(--chip-bg);color:var(--text);font-weight:600}
 .sidebar-nav svg{width:20px;height:20px}
 
 .toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-20px);background:rgba(0,0,0,.85);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:200;pointer-events:none;opacity:0;transition:opacity .3s,transform .3s cubic-bezier(.2,.9,.3,1);backdrop-filter:blur(10px)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-.empty-hint { text-align: center; color: var(--text-sec); padding: 20px 16px; font-size: 14px; line-height: 1.5; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.empty-hint { text-align: center; color: var(--text-sec); padding: 16px; font-size: 13px; line-height: 1.5; }
 
 @media (min-width: 900px) { 
   .sidebar{display:flex} 
@@ -286,7 +299,7 @@ input:checked + .slider:before{transform:translateX(20px)}
   .fab { bottom: 24px; right: 24px; }
   .screen{max-width:960px;margin:0 auto;padding:4px 24px 24px} 
   .topbar{padding:24px 32px 8px} 
-  .sheet{left:50%;transform:translateX(-50%) translateY(100%);bottom:0;max-width:500px;border-radius:20px 20px 0 0;max-height:90vh;background:var(--card);} 
+  .sheet{left:50%;transform:translateX(-50%) translateY(100%);bottom:0;max-width:500px;border-radius:16px 16px 0 0;max-height:90vh;background:var(--card);} 
   .sheet.open{transform:translateX(-50%) translateY(0)} 
   .backdrop{background:rgba(0,0,0,.2)} 
 }
@@ -294,7 +307,6 @@ input:checked + .slider:before{transform:translateX(20px)}
 </head>
 <body>
 
-<!-- ЗАСТАВКА С АНИМАЦИЕЙ -->
 <div id="splash">
   <svg class="splash-svg" viewBox="0 0 512 512">
     <rect width="512" height="512" rx="115" fill="#3E1728" />
@@ -318,23 +330,23 @@ input:checked + .slider:before{transform:translateX(20px)}
     <div class="sidebar-brand">Cantilena<span>трекер жизни</span></div>
     <nav class="sidebar-nav" id="sidebar-nav">
       <button data-tab="today" class="active">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V21H3z" stroke-linejoin="round"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V21H3z" stroke-linejoin="round"/></svg>
         <span>Сегодня</span>
       </button>
       <button data-tab="tasks">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="6" cy="18" r="2"/><path d="M11 6h9M11 12h9M11 18h9" stroke-linecap="round"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="6" cy="18" r="2"/><path d="M11 6h9M11 12h9M11 18h9" stroke-linecap="round"/></svg>
         <span>Задачи</span>
       </button>
       <button data-tab="notes">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l5 5v13H6z" stroke-linejoin="round"/><path d="M15 3v5h5" stroke-linejoin="round"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l5 5v13H6z" stroke-linejoin="round"/><path d="M15 3v5h5" stroke-linejoin="round"/></svg>
         <span>Заметки</span>
       </button>
       <button data-tab="calendar">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke-linecap="round"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke-linecap="round"/></svg>
         <span>Календарь</span>
       </button>
       <button data-tab="stats">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2" stroke-linecap="round"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2" stroke-linecap="round"/></svg>
         <span>Статистика</span>
       </button>
     </nav>
@@ -374,19 +386,19 @@ input:checked + .slider:before{transform:translateX(20px)}
             <circle id="ring-survey" cx="60" cy="60" r="52" stroke="var(--pink)" stroke-width="10" fill="none" stroke-linecap="round" transform="rotate(-90 60 60)"/>
             <circle cx="60" cy="60" r="38" stroke="var(--green-soft)" stroke-width="10" fill="none"/>
             <circle id="ring-habits" cx="60" cy="60" r="38" stroke="var(--green)" stroke-width="10" fill="none" stroke-linecap="round" transform="rotate(-90 60 60)"/>
-            <circle cx="60" cy="60" r="24" stroke="var(--accent-soft)" stroke-width="10" fill="none"/>
-            <circle id="ring-tasks" cx="60" cy="60" r="24" stroke="var(--accent)" stroke-width="10" fill="none" stroke-linecap="round" transform="rotate(-90 60 60)"/>
+            <circle cx="60" cy="60" r="24" stroke="rgba(219,76,63,0.1)" stroke-width="10" fill="none"/>
+            <circle id="ring-tasks" cx="60" cy="60" r="24" stroke="var(--td-red)" stroke-width="10" fill="none" stroke-linecap="round" transform="rotate(-90 60 60)"/>
           </svg>
           <div class="rings-legend">
             <div><span class="dot" style="background:var(--pink)"></span>Опрос <b id="pct-survey">0%</b></div>
             <div><span class="dot" style="background:var(--green)"></span>Привычки <b id="pct-habits">0%</b></div>
-            <div><span class="dot" style="background:var(--accent)"></span>Задачи <b id="pct-tasks">0%</b></div>
+            <div><span class="dot" style="background:var(--td-red)"></span>Задачи <b id="pct-tasks">0%</b></div>
           </div>
         </div>
 
         <div class="card focus-card" id="focus-card" style="display:none;">
           <div class="focus-label">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
             Фокус дня
           </div>
           <div class="focus-title" id="focus-title"></div>
@@ -395,8 +407,8 @@ input:checked + .slider:before{transform:translateX(20px)}
 
         <div class="card quick-mood-card">
           <div class="quick-mood-label">
-            <span>Пульс дня (настроение)</span>
-            <span id="mood-count" style="color:var(--text-tert);text-transform:none;font-size:12px;">Отметок: 0</span>
+            <span>Пульс дня</span>
+            <span id="mood-count" style="color:var(--text-tert);text-transform:none;font-size:11px;">Отметок: 0</span>
           </div>
           <div class="quick-mood" id="quick-mood-row">
             <button data-val="2" onclick="quickMood(2)">😞</button>
@@ -407,11 +419,20 @@ input:checked + .slider:before{transform:translateX(20px)}
           </div>
         </div>
         
-        <button class="btn-primary" id="survey-btn" onclick="openDailySurvey()" style="margin-bottom:4px;">Пройти вечерний опрос</button>
+        <button class="survey-btn" id="survey-btn" onclick="openDailySurvey()">
+          <div class="left" id="survey-btn-content">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <span>Опрос</span>
+          </div>
+          <div class="right" id="survey-btn-time"></div>
+        </button>
 
         <div class="section-title">
           <span>Задачи на сегодня</span>
           <div class="actions">
+            <button onclick="openTaskEditor()" title="Добавить">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
             <span class="link" onclick="switchTab('tasks')">Все →</span>
           </div>
         </div>
@@ -420,34 +441,32 @@ input:checked + .slider:before{transform:translateX(20px)}
         <div class="section-title">
           <span>Привычки на сегодня</span>
           <div class="actions">
-            <button onclick="openHabitSettings()" style="background:transparent;color:var(--text-sec);font-size:18px;width:auto;">
+            <button onclick="openHabitSettings()" style="background:transparent;color:var(--text-sec);width:auto;">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
-            <button onclick="openHabitEditor()" style="background:transparent;color:var(--text-sec);">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <button onclick="openHabitEditor()" style="background:transparent;color:var(--text-sec);width:auto;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
           </div>
         </div>
         <div class="card tight" id="habits-today"></div>
         
-        <button class="weekly-cta" id="weekly-cta" onclick="openWeeklySurvey()" style="width:100%;display:flex;align-items:center;gap:14px;background:var(--card);border:none;border-radius:16px;padding:16px;margin:12px 0;cursor:pointer;">
-          <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--indigo),var(--purple));display:flex;align-items:center;justify-content:center;color:#fff;">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+        <button class="weekly-cta" onclick="openWeeklySurvey()" style="width:100%;display:flex;align-items:center;gap:14px;background:var(--card);border:none;border-radius:12px;padding:14px;margin:10px 0;cursor:pointer;">
+          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--indigo),var(--purple));display:flex;align-items:center;justify-content:center;color:#fff;">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
           </div>
-          <div style="flex:1;text-align:left;"><div style="font-size:15px;font-weight:600;color:var(--text);">Большой опрос (на неделю)</div><div style="font-size:12px;color:var(--text-sec);margin-top:2px;" id="weekly-sub">Глубокий анализ · 5-10 мин</div></div>
-          <div style="color:var(--text-tert);font-size:18px;">›</div>
+          <div style="flex:1;text-align:left;"><div style="font-size:14px;font-weight:600;color:var(--text);">Большой опрос (на неделю)</div><div style="font-size:12px;color:var(--text-sec);margin-top:2px;">Глубокий анализ · 5-10 мин</div></div>
         </button>
 
-        <div class="card quote-card">
-          <div class="quote-text" id="quote-text"></div>
-          <div class="quote-author" id="quote-author"></div>
+        <div class="card quote-card" style="padding:16px;text-align:center;font-style:italic;color:var(--text-sec);font-size:13px;line-height:1.5;">
+          <div class="quote-text" id="quote-text" style="margin-bottom:4px;"></div>
+          <div class="quote-author" id="quote-author" style="font-size:11px;font-weight:600;font-style:normal;color:var(--text-tert);"></div>
         </div>
       </section>
 
       <section id="screen-tasks" class="screen">
         <div class="tabs-scroll" id="task-filters" style="display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;"></div>
         <div id="tasks-content"></div>
-        <button class="fab" onclick="openTaskEditor()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </section>
 
       <section id="screen-notes" class="screen">
@@ -484,15 +503,14 @@ input:checked + .slider:before{transform:translateX(20px)}
             <div id="edit-note-body" contenteditable="true" oninput="scheduleNoteSave()"></div>
           </div>
         </div>
-        <button class="fab" onclick="addNote()" id="notes-fab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </section>
 
       <section id="screen-calendar" class="screen">
         <div class="card">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-            <button onclick="prevMonth()" style="background:none;border:none;font-size:22px;color:var(--text);">‹</button>
+            <button onclick="prevMonth()" style="background:none;border:none;font-size:22px;color:var(--text-sec);">‹</button>
             <h3 id="cal-title" style="font-size:17px;font-weight:700;text-transform:capitalize;"></h3>
-            <button onclick="nextMonth()" style="background:none;border:none;font-size:22px;color:var(--text);">›</button>
+            <button onclick="nextMonth()" style="background:none;border:none;font-size:22px;color:var(--text-sec);">›</button>
           </div>
           <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;text-align:center;"><span style="font-size:11px;font-weight:600;color:var(--text-sec);">Пн</span><span style="font-size:11px;font-weight:600;color:var(--text-sec);">Вт</span><span style="font-size:11px;font-weight:600;color:var(--text-sec);">Ср</span><span style="font-size:11px;font-weight:600;color:var(--text-sec);">Чт</span><span style="font-size:11px;font-weight:600;color:var(--text-sec);">Пт</span><span style="font-size:11px;font-weight:600;color:var(--text-sec);">Сб</span><span style="font-size:11px;font-weight:600;color:var(--text-sec);">Вс</span></div>
           <div class="cal-grid" id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
@@ -564,6 +582,10 @@ input:checked + .slider:before{transform:translateX(20px)}
         <span>Статистика</span>
       </button>
     </nav>
+
+    <!-- FAB Кнопки -->
+    <button class="fab" id="fab-tasks" onclick="openTaskEditor()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="fab" id="fab-notes" onclick="addNote()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
 
     <div class="backdrop" id="backdrop" onclick="closeSheet()"></div>
     <div class="sheet" id="sheet">
@@ -711,8 +733,8 @@ function getDynamicTitle() {
   return target.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-const SEED_KEY='cantilena_seed_v4', STORAGE='cantilena_v14';
-function loadState(){let raw=null;for(const key of [STORAGE,'cantilena_v13','cantilena_v12']){try{const s=JSON.parse(localStorage.getItem(key));if(s&&Array.isArray(s.habits)){raw=s;break}}catch(e){}}const s=migrateState(raw||{});seedDefaults(s);localStorage.setItem(STORAGE,JSON.stringify(s));return s}
+const SEED_KEY='cantilena_seed_v4', STORAGE='cantilena_v15';
+function loadState(){let raw=null;for(const key of [STORAGE,'cantilena_v14','cantilena_v13']){try{const s=JSON.parse(localStorage.getItem(key));if(s&&Array.isArray(s.habits)){raw=s;break}}catch(e){}}const s=migrateState(raw||{});seedDefaults(s);localStorage.setItem(STORAGE,JSON.stringify(s));return s}
 function seedDefaults(s){if(localStorage.getItem(SEED_KEY))return;const existing=new Set(s.habits.map(h=>h.name));let order=s.habits.length;DEFAULT_HABITS.forEach(d=>{if(!existing.has(d.name)){const clone=JSON.parse(JSON.stringify(d));s.habits.push({...clone,id:uid(),checks:{},skips:{},archived:false,order:order++,createdAt:Date.now()})}});localStorage.setItem(SEED_KEY,'1')}
 function migrateState(s){
   s.surveys=s.surveys||{};s.weeklySurveys=s.weeklySurveys||{};s.theme=s.theme||'auto';
@@ -1086,12 +1108,10 @@ function switchTab(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id==='screen-'+name));
   document.querySelector('main').scrollTop=0;
   
-  // Скрываем FAB на некоторых экранах
-  const fabTasks = document.querySelector('#screen-tasks .fab');
-  const fabNotes = document.querySelector('#screen-notes .fab');
-  if (name === 'tasks') { fabTasks.style.display = 'flex'; } else { fabTasks.style.display = 'none'; }
-  if (name === 'notes') { fabNotes.style.display = 'flex'; } else { fabNotes.style.display = 'none'; }
-  
+  // Плавное появление FAB
+  document.getElementById('fab-tasks').classList.toggle('visible', name === 'tasks');
+  document.getElementById('fab-notes').classList.toggle('visible', name === 'notes');
+
   updateTopbar();
   haptic();
   renderAll();
@@ -1101,7 +1121,7 @@ function tickClock(){const now=new Date();document.getElementById('clock').textC
 setInterval(tickClock,30000);tickClock();
 
 function openSheet(html){document.getElementById('sheet-content').innerHTML=html;document.getElementById('sheet').classList.add('open');document.getElementById('backdrop').classList.add('open');document.getElementById('sheet').scrollTop=0}
-function closeSheet(){const s=document.getElementById('sheet');s.classList.remove('open');document.getElementById('backdrop').classList.remove('open');s.style.transform=''}
+function closeSheet(){const s=document.getElementById('sheet');s.classList.remove('open');document.getElementById('backdrop').classList.remove('open');s.style.transform='';}
 
 // Привычки
 function isScheduledOn(h,dateStr){const d=new Date(dateStr+'T12:00:00');const sch=h.schedule||{type:'daily'};if(sch.type==='daily')return true;if(sch.type==='weekdays')return(sch.days||[]).includes(d.getDay());if(sch.type==='interval'){const start=new Date((sch.startDate||h.createdAt)+'T12:00:00');const diff=Math.floor((d-start)/86400000);return diff>=0&&diff%(sch.interval||2)===0}return true}
@@ -1183,7 +1203,7 @@ function setScheduleType(t){habitDraft.name=document.getElementById('h-name').va
 function toggleWeekday(d){habitDraft.name=document.getElementById('h-name').value;habitDraft.target=Math.max(1,parseInt(document.getElementById('h-target').value)||1);const days=habitDraft.schedule.days||[];const i=days.indexOf(d);if(i>=0)days.splice(i,1);else days.push(d);habitDraft.schedule.days=days;renderHabitEditor()}
 function saveHabit(){habitDraft.name=document.getElementById('h-name').value.trim();const val=Math.max(1,parseInt(document.getElementById('h-target').value)||1);if(habitDraft.schedule.type==='weekly')habitDraft.schedule.interval=val;else habitDraft.target=val;if(!habitDraft.name){alert('Введите название');return}if(editingHabitId){const h=state.habits.find(x=>x.id===editingHabitId);Object.assign(h,habitDraft)}else{const order=Math.max(0,...state.habits.map(x=>x.order||0))+1;state.habits.push({...habitDraft,id:uid(),checks:{},skips:{},archived:false,order,createdAt:Date.now()})}haptic('success');playSound('success');save();closeSheet();renderAll()}
 
-// Задачи
+// ЗАДАЧИ
 function matchesRecurrence(t,dateStr){const r=t.recurrence;if(!r)return t.date===dateStr;const d=new Date(dateStr+'T12:00:00');if(r==='daily')return true;if(r==='weekdays')return d.getDay()>=1&&d.getDay()<=5;if(r==='weekly'){const start=new Date(t.createdAt);return d.getDay()===start.getDay()}return false}
 function isTaskDoneOn(t,dateStr){if(t.recurrence)return!!t.completions[dateStr];return t.done}
 
@@ -1231,49 +1251,48 @@ function openTaskEditor(id){
   const projectsOptions = state.projects.map(p=>`<option value="${p.id}" ${t.projectId===p.id?'selected':''}>${escapeHtml(p.name)}</option>`).join('');
   const selProj = state.projects.find(p=>p.id===t.projectId);
   
-  const pColor = t.priority===1?'var(--td-red)':t.priority===2?'var(--td-orange)':t.priority===3?'var(--td-blue)':'var(--text-sec)';
-  
   openSheet(`
     <div class="todoist-editor">
       <input type="text" id="t-title" class="td-title-input" value="${escapeHtml(t.title)}" placeholder="Название задачи">
       <input type="text" id="t-desc" class="td-desc-input" value="${escapeHtml(t.description||'')}" placeholder="Описание">
       
       <div class="td-chips">
-        <!-- Date Chip -->
-        <div class="td-chip date ${t.date===todayStr()?'today':''}">
-          ${svgIcon('calendar','currentColor',16)}
+        <!-- Date -->
+        <div class="td-chip date ${t.date===todayStr()?'today':''}" onclick="document.getElementById('t-date').showPicker()">
+          ${svgIcon('calendar','currentColor',14)}
           <span id="chip-date-text">${t.date ? formatTaskDate(t.date) : 'Дата'}</span>
           <input type="date" id="t-date" value="${t.date||''}" onchange="updateTaskChipDate(this.value)">
         </div>
         
-        <!-- Priority Chip -->
-        <div class="td-chip prio p${t.priority}" id="chip-prio" onclick="cycleTaskPriority()">
-          ${svgIcon('flag','currentColor',16)}
+        <!-- Priority Popover -->
+        <div class="td-chip prio p${t.priority}" id="chip-prio" onclick="togglePriorityMenu(event)">
+          ${svgIcon('flag','currentColor',14)}
           <span id="chip-prio-text">P${t.priority}</span>
+          <div class="prio-menu" id="prio-menu">
+            <div class="prio-menu-item" onclick="setTaskPriority(1);event.stopPropagation()"><div class="flag-icon" style="background:var(--td-red)"></div>P1</div>
+            <div class="prio-menu-item" onclick="setTaskPriority(2);event.stopPropagation()"><div class="flag-icon" style="background:var(--td-orange)"></div>P2</div>
+            <div class="prio-menu-item" onclick="setTaskPriority(3);event.stopPropagation()"><div class="flag-icon" style="background:var(--td-blue)"></div>P3</div>
+            <div class="prio-menu-item" onclick="setTaskPriority(4);event.stopPropagation()"><div class="flag-icon" style="border:1px solid var(--text-sec)"></div>P4</div>
+          </div>
         </div>
         <input type="hidden" id="t-priority" value="${t.priority}">
         
-        <!-- Project Chip -->
+        <!-- Project -->
         <div class="td-chip project">
-          ${svgIcon('folder','currentColor',16)}
+          ${svgIcon('folder','currentColor',14)}
           <select id="t-project" style="border:none;background:transparent;font-family:inherit;font-size:13px;font-weight:500;color:inherit;outline:none;appearance:none;cursor:pointer;">
             <option value="">Проект</option>${projectsOptions}
           </select>
         </div>
         
-        <!-- Duration Chip -->
+        <!-- Duration & Time -->
         <div class="td-chip" style="padding: 0;">
-          <div style="padding: 6px 12px; display:flex; align-items:center; gap: 6px;">
-            ${svgIcon('clock','currentColor',16)}
-            <input type="number" id="t-duration" min="0" max="1440" step="5" value="${t.duration||''}" placeholder="0" style="width:40px;border:none;background:transparent;font-family:inherit;font-size:13px;font-weight:500;color:inherit;outline:none;text-align:right;">
+          <div style="padding: 6px 10px; display:flex; align-items:center; gap: 6px;">
+            ${svgIcon('clock','currentColor',14)}
+            <input type="number" id="t-duration" min="0" max="1440" step="5" value="${t.duration||''}" placeholder="0">
             <span style="font-size:12px;">мин</span>
-          </div>
-        </div>
-        
-        <!-- Time Chip -->
-        <div class="td-chip" style="padding: 0;">
-          <div style="padding: 6px 12px; display:flex; align-items:center; gap: 6px;">
-            <input type="time" id="t-time" value="${t.startTime||''}" style="border:none;background:transparent;font-family:inherit;font-size:13px;font-weight:500;color:inherit;outline:none;width:70px;">
+            <div style="width:1px;height:14px;background:var(--separator-med);margin:0 4px;"></div>
+            <input type="time" id="t-time" value="${t.startTime||''}" style="border:none;background:transparent;font-family:inherit;font-size:13px;font-weight:500;color:inherit;outline:none;width:60px;">
           </div>
         </div>
       </div>
@@ -1284,15 +1303,29 @@ function openTaskEditor(id){
     </div>
   `);
 }
-function cycleTaskPriority() {
-  const inp = document.getElementById('t-priority');
-  let p = parseInt(inp.value);
-  p = p === 1 ? 4 : p - 1; // 4 -> 3 -> 2 -> 1 -> 4
-  inp.value = p;
-  
+function togglePriorityMenu(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('prio-menu');
+  menu.classList.toggle('open');
+  // Закрываем при клике вне меню
+  if (menu.classList.contains('open')) {
+    setTimeout(() => {
+      const closeMenu = (ev) => {
+        if (!menu.contains(ev.target)) {
+          menu.classList.remove('open');
+          document.removeEventListener('click', closeMenu);
+        }
+      };
+      document.addEventListener('click', closeMenu);
+    }, 0);
+  }
+}
+function setTaskPriority(p) {
+  document.getElementById('t-priority').value = p;
   const chip = document.getElementById('chip-prio');
   chip.className = `td-chip prio p${p}`;
   document.getElementById('chip-prio-text').textContent = `P${p}`;
+  document.getElementById('prio-menu').classList.remove('open');
 }
 function updateTaskChipDate(val) {
   const chipText = document.getElementById('chip-date-text');
@@ -1348,7 +1381,6 @@ function renderTasks(){
   else if(state.taskFilter==='week')tasks=state.tasks.filter(t=>t.recurrence?matchesRecurrence(t,today):(t.date&&t.date>=today&&t.date<=weekEndStr));
   else tasks=state.tasks.filter(t=>!t.recurrence&&!t.date);
   
-  // Сортируем: сначала невыполненные, по приоритету, затем по времени
   tasks.sort((a,b)=>{
     const aDone = isTaskDoneOn(a,today)?1:0;
     const bDone = isTaskDoneOn(b,today)?1:0;
@@ -1464,6 +1496,7 @@ function saveDailySurvey() {
   const s = state.surveys[dateStr];
   
   s.evening = true;
+  s.eveningTime = new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'});
   s.mental = s.mental || {};
   s.mental.productivity = +document.getElementById('d-prod').value;
   
@@ -1500,8 +1533,20 @@ function updateRings(){
   const t=currentDate;const sPct=getSurveyProgress(t);const sched=habitsScheduledForDate(t);const hPct=sched.length?sched.filter(h=>isHabitDoneForDate(h,t)).length/sched.length:0;const tToday=state.tasks.filter(x=>x.recurrence?matchesRecurrence(x,t):x.date===t);const tPct=tToday.length?tToday.filter(x=>isTaskDoneOn(x,t)).length/tToday.length:0;
   setRing('ring-survey',52,sPct);setRing('ring-habits',38,hPct);setRing('ring-tasks',24,tPct);
   document.getElementById('pct-survey').textContent=Math.round(sPct*100)+'%';document.getElementById('pct-habits').textContent=Math.round(hPct*100)+'%';document.getElementById('pct-tasks').textContent=Math.round(tPct*100)+'%';
+  
   const btn=document.getElementById('survey-btn');
-  if(getDailySurveyProgress(t)){btn.classList.add('done');btn.innerHTML='✅ Вечерний опрос пройден'}else{btn.classList.remove('done');btn.innerHTML='📝 Вечерний опрос (1-2 мин)'}
+  const btnContent=document.getElementById('survey-btn-content');
+  const btnTime=document.getElementById('survey-btn-time');
+  
+  if(getDailySurveyProgress(t)){
+    btn.classList.add('done');
+    btnContent.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg> <span>Опрос пройден</span>`;
+    btnTime.textContent = state.surveys[t].eveningTime || 'Сегодня';
+  }else{
+    btn.classList.remove('done');
+    btnContent.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> <span>Пройти опрос</span>`;
+    btnTime.textContent = '';
+  }
 }
 
 function renderAll(){ updateDateNav(); updateTopbar(); updateRings(); renderQuickMoodUI(); renderFocusOfDay(); renderHabitsToday(); renderTasksTodayMini(); renderTasks(); renderNotes(); renderCalendar(); renderStats(); }
@@ -1679,7 +1724,6 @@ function renderYearInPixels() {
 function renderStats() {
   const d14 = lastNDates(14);
   
-  // Сводка
   const daysWithData = Object.keys(state.surveys).filter(d => state.surveys[d] && (state.surveys[d].evening || (state.surveys[d].emotions && state.surveys[d].emotions.joy))).length;
   const summaryEl = document.getElementById('stats-summary');
   if (daysWithData === 0) {
@@ -1712,7 +1756,7 @@ function closeNoteEditor(){saveCurrentNote();currentNoteId=null;document.getElem
 function deleteCurrentNote(){if(!currentNoteId||!confirm('Удалить?'))return;state.notes=state.notes.filter(n=>n.id!==currentNoteId);save();currentNoteId=null;document.getElementById('notes-list-view').style.display='block';document.getElementById('note-edit-view').style.display='none';renderNotes()}
 
 let calDate=new Date();
-function renderCalendar(){const y=calDate.getFullYear(),m=calDate.getMonth();const first=new Date(y,m,1);const startWeekday=(first.getDay()+6)%7;const daysInMonth=new Date(y,m+1,0).getDate();const today=todayStr();document.getElementById('cal-title').textContent=calDate.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});const cells=[];for(let i=0;i<startWeekday;i++)cells.push('<div class="cal-day empty"></div>');for(let d=1;d<=daysInMonth;d++){const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const sDone=!!state.surveys[dateStr];const hDone=state.habits.some(h=>!h.archived&&isHabitDoneForDate(h,dateStr));const tDone=state.tasks.some(t=>t.recurrence?(matchesRecurrence(t,dateStr)&&isTaskDoneOn(t,dateStr)):(t.date===dateStr&&t.done));cells.push(`<div class="cal-day ${dateStr===today?'today':''}" style="aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;background:var(--input-bg);gap:2px;cursor:pointer;color:var(--text);${dateStr===today?'outline:2px solid var(--td-red);':''}" onclick="openDayDetail('${dateStr}')"><div>${d}</div><div style="display:flex;gap:2px;"><span style="width:4px;height:4px;border-radius:50%;background:${sDone?'var(--pink)':'var(--text-tert)'}"></span><span style="width:4px;height:4px;border-radius:50%;background:${hDone?'var(--green)':'var(--text-tert)'}"></span><span style="width:4px;height:4px;border-radius:50%;background:${tDone?'var(--blue)':'var(--text-tert)'}"></span></div></div>`)}document.getElementById('cal-grid').innerHTML=cells.join('')}
+function renderCalendar(){const y=calDate.getFullYear(),m=calDate.getMonth();const first=new Date(y,m,1);const startWeekday=(first.getDay()+6)%7;const daysInMonth=new Date(y,m+1,0).getDate();const today=todayStr();document.getElementById('cal-title').textContent=calDate.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});const cells=[];for(let i=0;i<startWeekday;i++)cells.push('<div class="cal-day empty"></div>');for(let d=1;d<=daysInMonth;d++){const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const sDone=!!state.surveys[dateStr];const hDone=state.habits.some(h=>!h.archived&&isHabitDoneForDate(h,dateStr));const tDone=state.tasks.some(t=>t.recurrence?(matchesRecurrence(t,dateStr)&&isTaskDoneOn(t,dateStr)):(t.date===dateStr&&t.done));cells.push(`<div class="cal-day ${dateStr===today?'today':''}" style="aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;background:var(--input-bg);gap:2px;cursor:pointer;color:var(--text);${dateStr===today?'outline:2px solid var(--td-red);':''}" onclick="openDayDetail('${dateStr}')"><div>${d}</div><div style="display:flex;gap:2px;"><span style="width:4px;height:4px;border-radius:50%;background:${sDone?'var(--pink)':'var(--text-tert)'}"></span><span style="width:4px;height:4px;border-radius:50%;background:${hDone?'var(--green)':'var(--text-tert)'}"></span><span style="width:4px;height:4px;border-radius:50%;background:${tDone?'var(--td-blue)':'var(--text-tert)'}"></span></div></div>`)}document.getElementById('cal-grid').innerHTML=cells.join('')}
 function openDayDetail(dateStr){const s=state.surveys[dateStr];const habitsDone=state.habits.filter(h=>!h.archived&&isHabitDoneForDate(h,dateStr));const tasksOnDay=state.tasks.filter(t=>t.recurrence?matchesRecurrence(t,dateStr):t.date===dateStr);const tasksDone=tasksOnDay.filter(t=>isTaskDoneOn(t,dateStr));const isToday=dateStr===todayStr();openSheet(`<h2>${formatDateHuman(dateStr)}</h2>${isToday?'<div style="display:inline-block;padding:2px 8px;background:var(--chip-bg);border-radius:6px;font-size:11px;color:var(--text-sec);margin-bottom:8px;">Сегодня</div>':''}<div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Опрос</div>${s?`<div class="insight"><b>Радость:</b> ${s.emotions?.joy??'—'}/10 · <b>Продуктивность:</b> ${s.mental?.productivity??'—'}/10</div>`:`<div class="empty-hint">Опрос не заполнен</div>`}<div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Привычки (${habitsDone.length}/${state.habits.filter(h=>!h.archived).length})</div>${habitsDone.length?habitsDone.map(h=>`<div class="insight">${svgIcon(h.icon,h.color,14)} ${escapeHtml(h.name)}</div>`).join(''):'<div class="empty-hint">Ни одна не выполнена</div>'}<div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Задачи (${tasksDone.length}/${tasksOnDay.length})</div>${tasksOnDay.length?tasksOnDay.map(t=>`<div class="insight">${isTaskDoneOn(t,dateStr)?'✅':'○'} ${escapeHtml(t.title)}</div>`).join(''):'<div class="empty-hint">Задач не было</div>'}<div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Закрыть</button><button class="btn-primary" onclick="closeSheet();goToDate('${dateStr}')">Открыть →</button></div>`)}
 function goToDate(dateStr){currentDate=dateStr;switchTab('today')}
 function prevMonth(){calDate.setMonth(calDate.getMonth()-1);haptic();renderCalendar()}
@@ -1737,8 +1781,7 @@ function importData(e){const file=e.target.files[0];if(!file)return;const reader
 try {
   initQuote(); 
   renderAll();
-  // Скрываем FAB на старте для тех вкладок, где их не должно быть
-  document.querySelectorAll('.fab').forEach(f => f.style.display = 'none');
+  document.querySelectorAll('.fab').forEach(f => f.classList.remove('visible'));
 } catch(e) {
   console.error("Ошибка при рендере:", e);
 }
