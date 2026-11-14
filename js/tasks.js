@@ -75,12 +75,14 @@ export function toggleTask(id, dateStr = window.currentDate, el) {
   if (el) { el.classList.add('checking'); setTimeout(() => el.classList.remove('checking'), 400); }
   save(); window.renderAll();
 }
+window.toggleTask = toggleTask;
 
 export function removeTask(id) {
   if (!confirm('Удалить задачу?')) return;
   state.tasks = state.tasks.filter(t => t.id !== id);
   haptic(); save(); window.renderAll();
 }
+window.removeTask = removeTask;
 
 export function openTaskEditor(id) {
   const editingTaskId = id || null;
@@ -132,6 +134,117 @@ export function openTaskEditor(id) {
   window.updateTaskChipDate(t.date || '');
   setTimeout(() => { const el = document.getElementById('t-title'); if (el) el.focus(); }, 100);
 }
+window.openTaskEditor = openTaskEditor;
+
+// --- Вспомогательные функции редактора ---
+window.updateTaskChipDate = function(val) {
+  const chipText = document.getElementById('chip-date-text');
+  const chip = document.getElementById('chip-date');
+  if (!chipText || !chip) return;
+  chip.classList.remove('today', 'overdue', 'future');
+  if (!val) { chipText.textContent = 'Дата'; return; }
+  chipText.textContent = formatTaskDate(val);
+  if (val === todayStr()) chip.classList.add('today');
+  else if (val < todayStr()) chip.classList.add('overdue');
+  else chip.classList.add('future');
+};
+
+window.openRecurrencePicker = function() {
+  const cur = document.getElementById('t-recurrence').value;
+  const content = document.getElementById('popover-content');
+  content.innerHTML = `
+    <h4 style="padding: 4px 12px 8px; font-size: 11px; color: var(--text-sec); font-weight: 700; text-transform: uppercase;">Повторение</h4>
+    ${[{val:'',label:'Не повторять'},{val:'daily',label:'Каждый день'},{val:'weekdays',label:'По будням'},{val:'weekly',label:'Раз в неделю'}].map(o => `
+      <div class="popover-item ${cur===o.val?'active':''}" onclick="window.pickRecurrence('${o.val}')">
+        <span>${o.label}</span>
+        ${cur===o.val?'<span style="margin-left:auto;color:var(--td-green);font-weight:700;">✓</span>':''}
+      </div>
+    `).join('')}
+  `;
+  document.getElementById('popover-overlay').classList.add('open');
+};
+
+window.pickRecurrence = function(val) {
+  document.getElementById('t-recurrence').value = val;
+  const text = document.getElementById('chip-recur-text');
+  text.textContent = val ? ({daily:'Каждый день', weekdays:'Будни', weekly:'Раз в неделю'}[val]) : 'Повтор';
+  window.closePopover();
+};
+
+window.openPriorityPicker = function() {
+  const cur = +document.getElementById('t-priority').value;
+  const content = document.getElementById('popover-content');
+  content.innerHTML = `
+    <h4 style="padding: 4px 12px 8px; font-size: 11px; color: var(--text-sec); font-weight: 700; text-transform: uppercase;">Приоритет</h4>
+    ${[1, 2, 3, 4].map(p => `
+      <div class="popover-item ${cur === p ? 'active' : ''}" onclick="window.pickPriority(${p})">
+        <div class="flag-icon" style="background:${p === 1 ? 'var(--td-red)' : p === 2 ? 'var(--td-orange)' : p === 3 ? 'var(--td-blue)' : 'transparent'};${p === 4 ? 'border:1px solid var(--text-sec)' : ''}"></div>
+        <span>P${p} — ${p === 1 ? 'Срочный' : p === 2 ? 'Высокий' : p === 3 ? 'Средний' : 'Без приоритета'}</span>
+        ${cur === p ? '<span style="margin-left:auto;color:var(--td-green);font-weight:700;">✓</span>' : ''}
+      </div>
+    `).join('')}
+  `;
+  document.getElementById('popover-overlay').classList.add('open');
+};
+
+window.pickPriority = function(p) {
+  document.getElementById('t-priority').value = p;
+  const chip = document.getElementById('chip-prio');
+  const text = document.getElementById('chip-prio-text');
+  chip.className = 'td-btn prio-btn' + (p < 4 ? ' p' + p : '');
+  text.textContent = p < 4 ? 'P' + p : 'Приоритет';
+  window.closePopover();
+};
+
+window.openProjectPicker = function() {
+  const cur = document.getElementById('t-project').value;
+  const content = document.getElementById('popover-content');
+  content.innerHTML = `
+    <h4 style="padding: 4px 12px 8px; font-size: 11px; color: var(--text-sec); font-weight: 700; text-transform: uppercase;">Проект</h4>
+    <div class="popover-item ${!cur ? 'active' : ''}" onclick="window.pickProject('')">
+      <span class="project-dot" style="background:var(--text-tert)"></span><span>Без проекта</span>
+      ${!cur ? '<span style="margin-left:auto;color:var(--td-green);font-weight:700;">✓</span>' : ''}
+    </div>
+    ${state.projects.map(p => `
+      <div class="popover-item ${+cur === p.id ? 'active' : ''}" onclick="window.pickProject('${p.id}')">
+        <span class="project-dot" style="background:${p.color}"></span><span>${escapeHtml(p.name)}</span>
+        ${+cur === p.id ? '<span style="margin-left:auto;color:var(--td-green);font-weight:700;">✓</span>' : ''}
+      </div>
+    `).join('')}
+  `;
+  document.getElementById('popover-overlay').classList.add('open');
+};
+
+window.pickProject = function(id) {
+  document.getElementById('t-project').value = id;
+  const dot = document.getElementById('chip-project-dot');
+  const text = document.getElementById('chip-project-text');
+  if (!id) { dot.style.background = 'var(--text-tert)'; text.textContent = 'Проект'; }
+  else { const p = state.projects.find(x => x.id === +id); if (p) { dot.style.background = p.color; text.textContent = p.name; } }
+  window.closePopover();
+};
+
+window.saveTask = function() {
+  const editingTaskId = document.getElementById('t-editing-id').value;
+  const title = document.getElementById('t-title').value.trim();
+  if (!title) { alert('Введите название'); return; }
+  const description = document.getElementById('t-desc').value.trim();
+  const date = document.getElementById('t-date').value || null;
+  const startTime = document.getElementById('t-time').value || null;
+  const duration = parseInt(document.getElementById('t-duration').value) || null;
+  const priority = parseInt(document.getElementById('t-priority').value) || 4;
+  const projVal = document.getElementById('t-project').value;
+  const projectId = projVal ? parseInt(projVal) : null;
+  const recurrence = document.getElementById('t-recurrence').value || null;
+  
+  if (editingTaskId) {
+    const t = state.tasks.find(x => x.id == editingTaskId);
+    Object.assign(t, { title, description, date, startTime, duration, priority, projectId, recurrence });
+  } else {
+    state.tasks.push({ id: uid(), title, description, done: false, date, startTime, duration, priority, projectId, recurrence, subtasks: [], tags: [], completions: {}, createdAt: Date.now() });
+  }
+  haptic('success'); playSound('success'); save(); window.closeSheet(); window.renderAll();
+};
 
 export function renderTasks() {
   const filtersEl = document.getElementById('task-filters');
@@ -256,3 +369,17 @@ export function renderFocusOfDay() {
   document.getElementById('focus-title').innerHTML = escapeHtml(top.title);
   document.getElementById('focus-meta').innerText = top.priority === 1 ? "Высокий приоритет · Нажмите, чтобы найти" : "Следующая задача · Нажмите, чтобы найти";
 }
+
+window.focusTaskClick = function() {
+  const id = document.getElementById('focus-card').dataset.taskId;
+  if (!id) return;
+  haptic();
+  if (!document.getElementById('screen-today').classList.contains('active')) window.switchTab('today');
+  setTimeout(() => {
+    const el = document.querySelector(`.task-row[data-task-id="${id}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => { el.classList.add('highlight-pulse'); setTimeout(() => el.classList.remove('highlight-pulse'), 2100); }, 200);
+    }
+  }, 200);
+};
