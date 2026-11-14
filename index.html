@@ -18,16 +18,34 @@
 html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;height:100dvh;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
 .app{width:100%;height:100%;display:flex;background:var(--bg);overflow:hidden}
+
+/* ЗАСТАВКА (SPLASH SCREEN) */
+#splash{position:fixed;inset:0;background:#3E1728;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s ease-out, visibility .5s}
+#splash.hidden{opacity:0;visibility:hidden}
+.splash-logo{width:100px;height:100px;margin-bottom:20px;animation:scaleIn .8s cubic-bezier(.2,.9,.3,1)}
+.splash-title{color:#F2A0C0;font-size:24px;font-weight:700;letter-spacing:1px;opacity:0;animation:fadeIn .8s .3s forwards}
+@keyframes scaleIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes fadeIn{to{opacity:1}}
+
 .main-area{flex:1;display:flex;flex-direction:column;min-width:0;position:relative;overflow:hidden}
 @keyframes screenIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes checkPop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
-.topbar{padding:calc(env(safe-area-inset-top,0px) + 4px) 20px 10px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-shrink:0}
+@keyframes spin{100%{transform:rotate(360deg)}}
+
+.topbar{padding:calc(env(safe-area-inset-top,0px) + 4px) 20px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
 .topbar-info{flex:1;min-width:0}
 .topbar h1{font-size:26px;font-weight:700;letter-spacing:-.6px;line-height:1.1}
 .topbar-meta{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-sec);margin-top:4px;font-weight:500}
 .topbar-meta .time-mono{font-variant-numeric:tabular-nums;color:var(--text);font-weight:600}
-.topbar .icon-btn{background:none;border:none;color:var(--accent);cursor:pointer;padding:6px 4px;font-size:20px;line-height:1;flex-shrink:0;transition:transform .15s}
+
+/* Индикатор сохранения */
+.save-indicator { font-size: 12px; color: var(--green); font-weight: 600; margin-left: 8px; opacity: 0; transition: opacity 0.3s; display: flex; align-items: center; gap: 4px; }
+.save-indicator.show { opacity: 1; }
+
+.topbar .icon-btn{background:none;border:none;color:var(--accent);cursor:pointer;padding:6px;font-size:20px;line-height:1;flex-shrink:0;transition:transform .15s;display:flex;align-items:center;justify-content:center}
 .topbar .icon-btn:active{transform:scale(.9)}
+.sync-icon.spinning{animation:spin 1s linear infinite}
+
 main{flex:1;overflow-y:auto;padding-bottom:24px;-webkit-overflow-scrolling:touch}
 .screen{display:none;padding:4px 16px 24px}
 .screen.active{display:block;animation:screenIn .32s cubic-bezier(.2,.9,.3,1)}
@@ -39,6 +57,7 @@ main{flex:1;overflow-y:auto;padding-bottom:24px;-webkit-overflow-scrolling:touch
 .section-title .actions button{background:none;border:none;font-size:18px;cursor:pointer;color:var(--accent);padding:2px 6px;line-height:1;font-family:inherit;transition:transform .15s}
 .section-title .actions button:active{transform:scale(.85)}
 .section-title .link{color:var(--accent);text-transform:none;font-weight:600;font-size:13px;cursor:pointer}
+
 .rings-card{display:flex;align-items:center;gap:20px;padding:20px 16px}
 .rings{width:130px;height:130px;flex-shrink:0}
 #ring-survey,#ring-habits,#ring-tasks{transition:stroke-dasharray 1s cubic-bezier(.32,.72,0,1)}
@@ -47,35 +66,49 @@ main{flex:1;overflow-y:auto;padding-bottom:24px;-webkit-overflow-scrolling:touch
 .rings-legend b{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:700}
 .rings-legend b.complete{color:var(--green)}
 .dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0}
+
 .focus-card{background:linear-gradient(135deg, var(--accent-soft), var(--card));border:1px solid var(--accent-soft);position:relative;overflow:hidden}
 .focus-label{font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
 .focus-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px}
 .focus-meta{font-size:12px;color:var(--text-sec)}
+
 .quote-card{background:var(--card);text-align:center;padding:20px 16px;font-style:italic;color:var(--text-sec);font-size:14px;line-height:1.5}
 .quote-text{margin-bottom:8px}
 .quote-author{font-size:12px;font-weight:600;font-style:normal;color:var(--text-tert)}
-.settings-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:.5px solid var(--separator);font-size:15px;font-weight:500}
+
+/* iOS Settings Style */
+.settings-group{background:var(--card);border-radius:16px;margin-bottom:20px;overflow:hidden}
+.settings-header{font-size:12px;font-weight:600;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;padding:0 16px 8px;margin-top:8px}
+.settings-row{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:.5px solid var(--separator);font-size:16px;font-weight:500}
 .settings-row:last-child{border-bottom:none}
-.switch{position:relative;display:inline-block;width:44px;height:24px}
+.settings-row .icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;margin-right:12px}
+.settings-row .left{display:flex;align-items:center;}
+.profile-header{display:flex;flex-direction:column;align-items:center;padding:20px;background:var(--card);border-radius:16px;margin-bottom:20px;text-align:center}
+.profile-avatar{width:64px;height:64px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:24px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+
+.switch{position:relative;display:inline-block;width:50px;height:30px}
 .switch input{opacity:0;width:0;height:0}
-.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:var(--text-tert);transition:.4s;border-radius:24px}
-.slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background-color:white;transition:.4s;border-radius:50%}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:var(--text-tert);transition:.4s;border-radius:30px}
+.slider:before{position:absolute;content:"";height:26px;width:26px;left:2px;bottom:2px;background-color:white;transition:.4s;border-radius:50%}
 input:checked + .slider{background-color:var(--green)}
 input:checked + .slider:before{transform:translateX(20px)}
+
 .year-grid{display:grid;grid-template-columns:repeat(26, 1fr);gap:2px;margin-top:8px}
 .year-cell{aspect-ratio:1;border-radius:2px;background:var(--hm-empty)}
 .year-cell.level-1{background:rgba(52,199,89,.25)}
 .year-cell.level-2{background:rgba(52,199,89,.5)}
 .year-cell.level-3{background:rgba(52,199,89,.75)}
 .year-cell.level-4{background:var(--green)}
+
 .confetti-piece { position: fixed; width: 8px; height: 8px; background: var(--accent); z-index: 9999; border-radius: 50%; pointer-events: none; animation: confettiFall linear forwards; }
 @keyframes confettiFall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
 .btn-primary{background:var(--accent);color:#fff;border:none;border-radius:14px;padding:14px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;transition:transform .15s,background .2s}
 .btn-primary:active{transform:scale(.97)}
-.btn-primary.done{background:var(--green-soft);color:var(--green-text)}
 .btn-cancel{background:var(--input-bg);color:var(--accent);border:none;border-radius:14px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;margin-top:8px;transition:transform .15s}
 .btn-cancel:active{transform:scale(.97)}
 .btn-danger{background:var(--red);color:#fff;border:none;border-radius:14px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;margin-top:8px;transition:transform .15s}
+
 .habit-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:.5px solid var(--separator)}
 .habit-row:last-child{border-bottom:none}
 .habit-row.skipped{opacity:.5}
@@ -91,6 +124,7 @@ input:checked + .slider:before{transform:translateX(20px)}
 .habit-name{font-size:16px;font-weight:500}
 .habit-name.done{color:var(--text-sec);text-decoration:line-through}
 .habit-sub{font-size:12px;color:var(--text-sec);margin-top:2px}
+
 .task-row{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:.5px solid var(--separator)}
 .task-row:last-child{border-bottom:none}
 .task-body{flex:1;cursor:pointer}
@@ -100,42 +134,46 @@ input:checked + .slider:before{transform:translateX(20px)}
 .priority-flag{width:8px;height:8px;border-radius:2px;flex-shrink:0}
 .p1{background:var(--red)}.p2{background:var(--orange)}.p3{background:var(--accent)}.p4{background:transparent;border:1px solid var(--text-tert)}
 .del-x{background:none;border:none;color:var(--text-tert);font-size:22px;cursor:pointer;padding:0 4px}
+
 .date-nav{display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:12px;padding:8px 12px;margin-bottom:12px}
 .nav-arrow{background:none;border:none;font-size:24px;color:var(--accent);cursor:pointer;padding:0 12px}
 .date-nav-center{font-size:15px;font-weight:600;text-align:center;flex:1;display:flex;align-items:center;justify-content:center;gap:8px}
 .back-today{font-size:12px;color:var(--accent);font-weight:500;cursor:pointer;background:var(--accent-soft);padding:4px 8px;border-radius:6px}
+
 .quick-mood-card{padding:14px 16px}
 .quick-mood-label{font-size:12px;font-weight:600;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px}
 .quick-mood{display:flex;gap:8px;justify-content:space-between}
 .quick-mood button{flex:1;aspect-ratio:1;max-width:56px;border-radius:50%;background:var(--input-bg);border:2px solid transparent;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:all .25s cubic-bezier(.2,.9,.3,1)}
 .quick-mood button.selected{background:var(--accent-soft);border-color:var(--accent);transform:scale(1.08);box-shadow:0 0 0 4px rgba(10,132,255,.12)}
+
 .tabbar{position:relative;flex-shrink:0;width:100%;background:var(--tabbar);backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--separator-med);display:flex;padding:8px 0 calc(env(safe-area-inset-bottom,0px) + 14px);z-index:10}
 .tab{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text-sec);cursor:pointer;font-size:10px;font-weight:500;padding:2px 0;font-family:inherit}
 .tab.active{color:var(--accent)}
 .tab svg{width:24px;height:24px;transition:transform .2s}
 .tab.active svg{transform:scale(1.08)}
+
 .backdrop{position:absolute;inset:0;background:var(--overlay);opacity:0;pointer-events:none;transition:opacity .3s;z-index:99}
 .backdrop.open{opacity:1;pointer-events:auto}
-.sheet{position:absolute;bottom:0;left:0;right:0;background:var(--card);color:var(--text);border-radius:20px 20px 0 0;padding:12px 20px calc(env(safe-area-inset-bottom,0px) + 28px);max-height:90vh;overflow-y:auto;transform:translateY(100%);transition:transform .4s cubic-bezier(.32,.72,0,1);z-index:100}
+.sheet{position:absolute;bottom:0;left:0;right:0;background:var(--bg);color:var(--text);border-radius:20px 20px 0 0;padding:12px 20px calc(env(safe-area-inset-bottom,0px) + 28px);max-height:90vh;overflow-y:auto;transform:translateY(100%);transition:transform .4s cubic-bezier(.32,.72,0,1);z-index:100}
 .sheet.open{transform:translateY(0)}
 .sheet-handle{width:40px;height:5px;background:var(--text-tert);border-radius:3px;margin:0 auto 14px}
-.sheet h2{font-size:22px;font-weight:700;margin-bottom:16px}
+.sheet h2{font-size:22px;font-weight:700;margin-bottom:16px;padding:0 4px}
+
 .field{margin-bottom:14px}
 .field label{display:block;font-size:13px;font-weight:600;color:var(--text-sec);margin-bottom:6px}
 .field input[type=range]{width:100%;accent-color:var(--accent)}
-.field input[type=text],.field input[type=number],.field input[type=date],.field input[type=time],.field input[type=email],.field input[type=password],.field textarea,.field select{width:100%;padding:10px 12px;border:1px solid var(--separator-med);border-radius:10px;font-size:15px;font-family:inherit;background:var(--input-bg);outline:none;color:var(--text)}
-.sheet-actions{display:flex;gap:10px;margin-top:16px}
-.sheet-actions button{flex:1;padding:14px;border-radius:12px;border:none;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit}
+.field input[type=text],.field input[type=number],.field input[type=date],.field input[type=time],.field input[type=email],.field input[type=password],.field textarea,.field select{width:100%;padding:10px 12px;border:1px solid var(--separator-med);border-radius:10px;font-size:15px;font-family:inherit;background:var(--card);outline:none;color:var(--text)}
+
 .sidebar{display:none;flex-direction:column;background:var(--sidebar);border-right:1px solid var(--sidebar-border);width:260px;flex-shrink:0;padding:20px 12px}
 .sidebar-brand{padding:6px 14px 24px;font-size:22px;font-weight:800;color:var(--text)}
 .sidebar-nav{display:flex;flex-direction:column;gap:4px;flex:1}
 .sidebar-nav button{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;background:none;border:none;color:var(--text-sec);cursor:pointer;font-family:inherit;font-size:15px;font-weight:500;text-align:left}
 .sidebar-nav button.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
 .sidebar-nav svg{width:20px;height:20px}
-.sidebar-footer{border-top:1px solid var(--sidebar-border);padding-top:12px}
-.sidebar-footer button{display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;border-radius:10px;background:none;border:none;color:var(--text-sec);cursor:pointer;font-family:inherit;font-size:13px;font-weight:500;text-align:left}
+
 .toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-20px);background:rgba(0,0,0,.85);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:200;pointer-events:none;opacity:0;transition:opacity .3s,transform .3s cubic-bezier(.2,.9,.3,1);backdrop-filter:blur(10px)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
 .chart-svg{width:100%;height:auto;display:block;overflow:visible}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .stat-card{background:var(--card);border-radius:16px;padding:14px}
@@ -144,21 +182,30 @@ input:checked + .slider:before{transform:translateX(20px)}
 .insight{padding:10px 0;border-bottom:.5px solid var(--separator);font-size:14px;line-height:1.45}
 .insight:last-child{border-bottom:none}
 .insight b{color:var(--text)}
-.corr-grid{display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:4px;font-size:11px;margin-top:8px}
-.corr-cell{padding:8px 4px;text-align:center;border-radius:6px;background:var(--input-bg);font-weight:600}
-.corr-cell.header{background:transparent;color:var(--text-sec);font-weight:600}
-.corr-cell.pos-strong{background:var(--green);color:#fff}
-.corr-cell.pos-med{background:rgba(52,199,89,.6);color:var(--text)}
-.corr-cell.pos-weak{background:var(--green-soft);color:var(--text)}
-.corr-cell.neg-strong{background:var(--red);color:#fff}
-.corr-cell.neg-med{background:rgba(255,59,48,.4);color:var(--text)}
-.corr-cell.neg-weak{background:var(--pink-soft);color:var(--text)}
-.corr-cell.diag{background:var(--text);color:var(--card)}
-.corr-row-label{text-align:left;padding-left:8px;color:var(--text-sec);font-weight:600;background:transparent}
-@media (min-width: 900px) { .sidebar{display:flex} .tabbar{display:none} .screen{max-width:960px;margin:0 auto;padding:4px 24px 24px} .topbar{padding:24px 32px 8px} .sheet{left:auto;right:24px;bottom:24px;max-width:460px;border-radius:20px;max-height:calc(100vh - 48px)} .backdrop{background:rgba(0,0,0,.2)} }
+
+@media (min-width: 900px) { 
+  .sidebar{display:flex} 
+  .tabbar{display:none} 
+  .screen{max-width:960px;margin:0 auto;padding:4px 24px 24px} 
+  .topbar{padding:24px 32px 8px} 
+  .sheet{left:50%;transform:translateX(-50%) translateY(100%);bottom:0;max-width:500px;border-radius:20px 20px 0 0;max-height:90vh;} 
+  .sheet.open{transform:translateX(-50%) translateY(0)} 
+  .backdrop{background:rgba(0,0,0,.2)} 
+}
 </style>
 </head>
 <body>
+
+<!-- ЗАСТАВКА -->
+<div id="splash">
+  <svg class="splash-logo" viewBox="0 0 512 512">
+    <rect width="512" height="512" rx="115" fill="#3E1728"/>
+    <circle cx="256" cy="150" r="42" fill="#F2A0C0"/>
+    <path d="M 75 320 C 130 210, 180 210, 230 280 S 310 400, 370 350 S 420 280, 430 260" fill="none" stroke="#F2A0C0" stroke-width="32" stroke-linecap="round"/>
+  </svg>
+  <div class="splash-title">Cantilena</div>
+</div>
+
 <div class="app">
   <aside class="sidebar">
     <div class="sidebar-brand">Cantilena<span>трекер жизни</span></div>
@@ -169,20 +216,19 @@ input:checked + .slider:before{transform:translateX(20px)}
       <button data-tab="calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke-linecap="round"/></svg><span>Календарь</span></button>
       <button data-tab="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2" stroke-linecap="round"/></svg><span>Статистика</span></button>
     </nav>
-    <div class="sync-status" id="sidebar-sync" style="padding:0 14px 8px;font-size:11px;color:var(--text-sec);"></div>
-    <div class="sidebar-footer">
-      <button onclick="openSyncSettings()">☁️ Синхронизация</button>
-      <button onclick="openSettings()">⚙️ Настройки</button>
-    </div>
   </aside>
 
   <div class="main-area">
     <div class="topbar">
       <div class="topbar-info">
-        <h1 id="topbar-title">Доброе утро</h1>
+        <div style="display:flex; align-items:center;">
+          <h1 id="topbar-title">Доброе утро</h1>
+          <div class="save-indicator" id="save-indicator">✓ Сохранено</div>
+        </div>
         <div class="topbar-meta"><span class="time-mono" id="clock">--:--</span><span>·</span><span id="datestr">—</span></div>
       </div>
-      <button class="icon-btn" onclick="openSettings()">⚙️</button>
+      <button class="icon-btn" onclick="manualSyncWithUI(this)" title="Синхронизировать"><span class="sync-icon" style="font-size:22px;">🔄</span></button>
+      <button class="icon-btn" onclick="openSettings()" title="Настройки"><span style="font-size:22px;">⚙️</span></button>
     </div>
 
     <main>
@@ -225,8 +271,15 @@ input:checked + .slider:before{transform:translateX(20px)}
             <button data-val="10" onclick="quickMood(10)">😍</button>
           </div>
         </div>
+        
         <button class="btn-primary" id="survey-btn" onclick="openSurvey()" style="margin-bottom:4px;">📝 Пройти полный опрос</button>
         
+        <div class="section-title">Быстрое добавление задачи</div>
+        <div class="add-row" style="display:flex;gap:8px;margin-bottom:12px;">
+          <input id="quick-task" placeholder="Новая задача..." style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--separator-med);background:var(--card);color:var(--text);outline:none;" onkeydown="if(event.key==='Enter')quickAddTask()">
+          <button onclick="quickAddTask()" style="padding:0 18px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:20px;font-weight:600;">+</button>
+        </div>
+
         <div class="section-title">Задачи на сегодня <span class="link" onclick="switchTab('tasks')">Все →</span></div>
         <div class="card tight" id="tasks-today-mini"></div>
         
@@ -341,20 +394,30 @@ function loadState(){let raw=null;for(const key of [STORAGE,'cantilena_v6','cant
 function seedDefaults(s){if(localStorage.getItem(SEED_KEY))return;const existing=new Set(s.habits.map(h=>h.name));let order=s.habits.length;DEFAULT_HABITS.forEach(d=>{if(!existing.has(d.name)){const clone=JSON.parse(JSON.stringify(d));s.habits.push({...clone,id:uid(),checks:{},skips:{},archived:false,order:order++,createdAt:Date.now()})}});localStorage.setItem(SEED_KEY,'1')}
 function migrateState(s){s.surveys=s.surveys||{};s.weeklySurveys=s.weeklySurveys||{};s.theme=s.theme||'auto';s.notifications=s.notifications||{enabled:false,morning:true,evening:true};s.supabase=s.supabase||{url:'',key:'',email:'',lastSync:null};s.habits=(s.habits||[]).map((h,i)=>({id:h.id||uid(),name:h.name||'Привычка',icon:h.icon||'sparkle',color:h.color||PALETTE[i%PALETTE.length],target:h.target||1,schedule:h.schedule||{type:'daily'},checks:h.checks||{},skips:h.skips||{},archived:h.archived||false,order:h.order!=null?h.order:i,createdAt:h.createdAt||Date.now()}));s.tasks=(s.tasks||[]).map(t=>({id:t.id||uid(),title:t.title||'',description:t.description||'',done:t.done||false,date:t.date||null,startTime:t.startTime||null,duration:t.duration||null,priority:t.priority||4,projectId:t.projectId||null,subtasks:t.subtasks||[],tags:t.tags||[],recurrence:t.recurrence||null,completions:t.completions||{},createdAt:t.createdAt||Date.now()}));s.projects=s.projects||[{id:1,name:'Личное',color:'#007AFF'}];s.notes=(s.notes||[]).map(n=>({id:n.id||uid(),title:n.title||'Без названия',body:n.body||'',folderId:n.folderId||null,pinned:n.pinned||false,createdAt:n.createdAt||Date.now(),updatedAt:n.updatedAt||Date.now()}));s.noteFolders=s.noteFolders||[{id:'default',name:'Заметки',icon:'📝'}];s.taskFilter=s.taskFilter||'today';s.selectedFolder=s.selectedFolder||'all';return s}
 let state=loadState();
-const save=()=>{ if(!state.supabase)state.supabase={}; state.supabase.lastSync=Date.now(); localStorage.setItem(STORAGE,JSON.stringify(state)); scheduleSync(); };
+
+let saveIndicatorTimer;
+const save=()=>{ 
+  if(!state.supabase)state.supabase={}; 
+  state.supabase.lastSync=Date.now(); 
+  localStorage.setItem(STORAGE,JSON.stringify(state)); 
+  scheduleSync(); 
+  
+  // Показываем индикатор
+  const ind = document.getElementById('save-indicator');
+  if (ind) {
+    ind.classList.add('show');
+    clearTimeout(saveIndicatorTimer);
+    saveIndicatorTimer = setTimeout(() => { ind.classList.remove('show'); }, 2000);
+  }
+};
 
 // ============ Синхронизация (Supabase) ============
 let supabaseClient=null, syncTimer=null, currentUser=null, pollInterval=null;
-let lastCloudUpdate = 0; // Время последнего известного обновления в облаке
-let isPushing = false;   // Защита от отправки и получения одновременно
+let lastCloudUpdate = 0; let isPushing = false;
 
 async function initSupabase(){
-  if(!state.supabase.url || !state.supabase.key || !window.supabase){
-    updateSyncStatus('offline','Не настроено');
-    return;
-  }
+  if(!state.supabase.url || !state.supabase.key || !window.supabase){ updateSyncStatus('offline','Не настроено'); return; }
   if (supabaseClient) return;
-
   try{
     supabaseClient=window.supabase.createClient(state.supabase.url,state.supabase.key);
     const {data:{session}}=await supabaseClient.auth.getSession();
@@ -362,8 +425,8 @@ async function initSupabase(){
     if(session){
       currentUser=session.user;
       updateSyncStatus('online','Вошли как '+(session.user.email||'???'));
-      await pullFromCloud(true); // Принудительно скачиваем при старте
-      startPolling();            // Запускаем фоновую проверку
+      await pullFromCloud(true);
+      startPolling();
     } else {
       updateSyncStatus('online','Не вошли');
     }
@@ -381,93 +444,67 @@ async function initSupabase(){
         if (pollInterval) clearInterval(pollInterval);
       }
     });
-  } catch(e){
-    updateSyncStatus('offline','Ошибка: '+e.message);
-  }
+  } catch(e){ updateSyncStatus('offline','Ошибка: '+e.message); }
 }
 
-// Проверяем облако каждые 5 секунд
 function startPolling() {
   if (pollInterval) clearInterval(pollInterval);
-  
   pollInterval = setInterval(async () => {
     if (!currentUser || !supabaseClient || isPushing) return;
-    
-    // Если пользователь сейчас что-то печатает (в заметке или задаче), не обновляем экран!
-    if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable)) {
-        return; 
-    }
-
+    const active = document.activeElement;
+    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable) && active.value && active.value.length > 0) return;
     try {
-      // Сначала просто спрашиваем время последнего обновления
       const {data, error} = await supabaseClient.from('cantilena_data').select('updated_at').eq('user_id', currentUser.id).maybeSingle();
       if (error || !data) return;
-
       const cloudTime = new Date(data.updated_at).getTime();
-      
-      // Если в облаке время новее, чем у нас — значит, кто-то другой внес изменения
-      if (cloudTime > lastCloudUpdate) {
-        await pullFromCloud();
-      }
-    } catch(e) { console.error("Poll error", e); }
+      if (cloudTime > lastCloudUpdate) { await pullFromCloud(); }
+    } catch(e) {}
   }, 5000);
 }
 
-// Скачиваем данные из облака
 async function pullFromCloud(force = false) {
   if (!currentUser || !supabaseClient) return;
   try {
     const {data, error} = await supabaseClient.from('cantilena_data').select('*').eq('user_id', currentUser.id).maybeSingle();
     if (error) throw error;
-
     if (data && data.data && data.data.habits) {
       const cloudTime = new Date(data.updated_at).getTime();
-      
-      // Обновляем, если это принудительно (при старте) или если данные новее
       if (force || cloudTime > lastCloudUpdate) {
         state = migrateState(data.data);
         lastCloudUpdate = cloudTime;
         localStorage.setItem(STORAGE, JSON.stringify(state));
         applyTheme();
         renderAll();
-        if (!force) showToast('🔄 Обновлено с другого устройства');
+        if (!force) showToast('🔄 Обновлено');
       }
-    } else {
-      // Если в облаке пусто, отправляем туда локальные данные
-      await pushToCloud();
-    }
-  } catch(e) { console.error("Pull error", e); }
+    } else { await pushToCloud(); }
+  } catch(e) {}
 }
 
-// Отправляем данные в облако
 async function pushToCloud(){
   if(!currentUser || !supabaseClient) return;
   isPushing = true;
   try{
     const nowISO = new Date().toISOString();
-    const {error} = await supabaseClient.from('cantilena_data').upsert({
-      user_id: currentUser.id,
-      data: state,
-      updated_at: nowISO
-    },{onConflict:'user_id'});
-    
+    const {error} = await supabaseClient.from('cantilena_data').upsert({ user_id: currentUser.id, data: state, updated_at: nowISO },{onConflict:'user_id'});
     if(error) throw error;
-    lastCloudUpdate = new Date(nowISO).getTime(); // Запоминаем время успешной отправки
-  } catch(e) {
-    console.error('Sync push failed', e);
-  } finally {
-    // Блокируем проверку на 2 секунды, чтобы не скачать свои же старые данные
-    setTimeout(() => { isPushing = false; }, 2000);
-  }
+    lastCloudUpdate = new Date(nowISO).getTime();
+  } catch(e) { console.error('Sync push failed', e); } 
+  finally { setTimeout(() => { isPushing = false; }, 2000); }
 }
 
-function scheduleSync() {
-  if(!currentUser || !supabaseClient) return;
-  clearTimeout(syncTimer);
-  syncTimer = setTimeout(pushToCloud, 1500); // Ждем 1.5 сек после клика и отправляем
+function scheduleSync() { if(!currentUser || !supabaseClient) return; clearTimeout(syncTimer); syncTimer = setTimeout(pushToCloud, 1500); }
+
+// Ручная синхронизация с анимацией
+async function manualSyncWithUI(btn) {
+  const icon = btn.querySelector('.sync-icon');
+  if (icon) icon.classList.add('spinning');
+  await pullFromCloud(true);
+  await pushToCloud();
+  if (icon) icon.classList.remove('spinning');
+  showToast('🔄 Данные обновлены');
 }
 
-// Функции для окна синхронизации (оставляем как были)
 function updateSyncStatus(status,text){
   const el=document.getElementById('sidebar-sync');
   if(!el)return;
@@ -478,42 +515,100 @@ function updateSyncStatus(status,text){
   }
 }
 
-function openSyncSettings(){
+// ============ Настройки (iOS Style) ============
+function openSettings() {
   const sb=state.supabase;
   const loggedIn=!!currentUser;
   const email=currentUser?.email||sb.email||'';
 
   openSheet(`
-    <h2>☁️ Синхронизация</h2>
-    <p style="font-size:13px;color:var(--text-sec);margin-bottom:12px;line-height:1.5;">Включите синхронизацию, чтобы данные сохранялись в облаке.</p>
-
-    <div class="field"><label>Supabase URL</label><input type="text" id="sb-url" value="${escapeHtml(sb.url)}" placeholder="https://xxx.supabase.co"></div>
-    <div class="field"><label>Anon key</label><input type="password" id="sb-key" value="${escapeHtml(sb.key)}" placeholder="eyJhbGciOi..."></div>
-
+    <h2>Настройки</h2>
+    
     ${loggedIn ? `
-      <div style="padding:20px;background:var(--green-soft);border-radius:14px;font-size:15px;color:var(--green-text);margin-bottom:20px;text-align:center;font-weight:700;">
-        🟢 Вы в аккаунте<br>
-        <span style="font-weight:500;font-size:13px;opacity:0.8;">${escapeHtml(email)}</span>
+      <div class="profile-header">
+        <div class="profile-avatar">${email.charAt(0).toUpperCase()}</div>
+        <div style="font-size:18px;font-weight:700;">${escapeHtml(email)}</div>
+        <div style="font-size:13px;color:var(--green-text);margin-top:4px;">✅ Синхронизация включена</div>
       </div>
-      <p style="font-size:13px;color:var(--text-sec);text-align:center;margin-bottom:20px;">Все изменения автоматически сохраняются в облако.</p>
-      
-      <button class="btn-primary" onclick="manualSync()" style="margin-bottom:8px;">🔄 Синхронизировать сейчас</button>
-      <button class="btn-cancel" onclick="closeSheet()" style="margin-bottom:8px;">Закрыть</button>
-      <button class="btn-danger" onclick="signOut()">Выйти из аккаунта</button>
     ` : `
-      <div style="padding:20px;background:var(--pink-soft);border-radius:14px;font-size:15px;color:var(--pink);margin-bottom:20px;text-align:center;font-weight:700;">
-        🔴 Вы не авторизованы
-      </div>
-      
-      <div class="field"><label>Ваш Email</label><input type="email" id="sb-email" value="${escapeHtml(email)}" placeholder="you@mail.com"></div>
-      <div class="field"><label>Пароль (мин. 6 символов)</label><input type="password" id="sb-password" placeholder="••••••••"></div>
-      
-      <div class="sheet-actions" style="flex-wrap:wrap; margin-top:16px;">
-        <button class="btn-cancel" onclick="loginWithPassword()" style="background:var(--accent-soft);color:var(--accent);">Войти</button>
-        <button class="btn-primary" onclick="registerWithPassword()">Регистрация</button>
+      <div class="profile-header" style="background:var(--pink-soft);">
+        <div class="profile-avatar" style="background:var(--red);color:#fff;">!</div>
+        <div style="font-size:16px;font-weight:600;color:var(--red);">Вы не авторизованы</div>
+        <div style="font-size:13px;color:var(--text-sec);margin-top:4px;">Данные не сохраняются в облако</div>
       </div>
     `}
+
+    <div class="settings-header">Синхронизация</div>
+    <div class="settings-group">
+      <div class="settings-row">
+        <div class="left"><div class="icon" style="background:var(--accent);">☁️</div>Supabase URL</div>
+      </div>
+      <div style="padding:0 16px 12px;"><input type="text" id="sb-url" value="${escapeHtml(sb.url)}" placeholder="https://xxx.supabase.co" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--bg);color:var(--text);outline:none;"></div>
+      
+      <div class="settings-row">
+        <div class="left"><div class="icon" style="background:var(--accent);">🔑</div>Anon Key</div>
+      </div>
+      <div style="padding:0 16px 12px;"><input type="password" id="sb-key" value="${escapeHtml(sb.key)}" placeholder="eyJhbGciOi..." style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--bg);color:var(--text);outline:none;"></div>
+
+      ${!loggedIn ? `
+        <div class="settings-row">
+          <div class="left"><div class="icon" style="background:var(--green);">✉️</div>Ваш Email</div>
+        </div>
+        <div style="padding:0 16px 12px;"><input type="email" id="sb-email" placeholder="you@mail.com" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--bg);color:var(--text);outline:none;"></div>
+        
+        <div class="settings-row">
+          <div class="left"><div class="icon" style="background:var(--green);">🔒</div>Пароль</div>
+        </div>
+        <div style="padding:0 16px 12px;"><input type="password" id="sb-password" placeholder="••••••••" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--bg);color:var(--text);outline:none;"></div>
+        
+        <div style="padding:12px 16px;display:flex;gap:8px;">
+          <button onclick="loginWithPassword()" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--accent-soft);color:var(--accent);font-weight:600;">Войти</button>
+          <button onclick="registerWithPassword()" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:600;">Регистрация</button>
+        </div>
+      ` : `
+        <div class="settings-row" onclick="manualSync()" style="cursor:pointer;">
+          <div class="left"><div class="icon" style="background:var(--green);">🔄</div>Синхронизировать сейчас</div>
+          <div style="color:var(--text-tert);">›</div>
+        </div>
+        <div class="settings-row" onclick="signOut()" style="cursor:pointer;">
+          <div class="left"><div class="icon" style="background:var(--red);">🚪</div>Выйти</div>
+        </div>
+      `}
+    </div>
+
+    <div class="settings-header">Внешний вид</div>
+    <div class="settings-group">
+      <div class="settings-row">
+        <div class="left"><div class="icon" style="background:var(--indigo);">🌓</div>Тема</div>
+        <select onchange="state.theme=this.value; save(); applyTheme();" style="background:var(--bg);color:var(--text);border:none;font-size:16px;outline:none;">
+          <option value="auto" ${state.theme==='auto'?'selected':''}>Авто</option>
+          <option value="light" ${state.theme==='light'?'selected':''}>Светлая</option>
+          <option value="dark" ${state.theme==='dark'?'selected':''}>Тёмная</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="settings-header">Уведомления</div>
+    <div class="settings-group">
+      <div class="settings-row">
+        <div class="left"><div class="icon" style="background:var(--orange);">🔔</div>Напоминания</div>
+        <label class="switch"><input type="checkbox" id="notify-toggle" ${state.notifications?.enabled?'checked':''} onchange="toggleNotifications(this.checked)"><span class="slider"></span></label>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <button class="btn-cancel" onclick="closeSheet()">Закрыть</button>
+    </div>
   `);
+}
+
+function saveSyncSettings(){
+  const url=document.getElementById('sb-url').value.trim();
+  const key=document.getElementById('sb-key').value.trim();
+  if(!url || !key) return;
+  state.supabase.url=url; state.supabase.key=key;
+  localStorage.setItem(STORAGE,JSON.stringify(state));
+  initSupabase();
 }
 
 async function loginWithPassword(){
@@ -521,22 +616,18 @@ async function loginWithPassword(){
   const password=document.getElementById('sb-password').value;
   const url=document.getElementById('sb-url').value.trim();
   const key=document.getElementById('sb-key').value.trim();
-  
   if(!email||!password||!url||!key){alert('Заполните все поля');return}
-  
   state.supabase.url=url; state.supabase.key=key; state.supabase.email=email;
   localStorage.setItem(STORAGE,JSON.stringify(state));
-  
   try{
     if(!supabaseClient) supabaseClient=window.supabase.createClient(url,key);
     const {data, error}=await supabaseClient.auth.signInWithPassword({ email, password });
     if(error)throw error;
-    
     currentUser = data.user;
     updateSyncStatus('online', 'Вошли: ' + email);
     showToast('✅ Вход выполнен!');
     closeSheet();
-    setTimeout(() => { openSyncSettings(); }, 300);
+    await pullFromCloud(true);
     startPolling();
   }catch(e){alert('Ошибка входа: ' + e.message)}
 }
@@ -546,40 +637,20 @@ async function registerWithPassword(){
   const password=document.getElementById('sb-password').value;
   const url=document.getElementById('sb-url').value.trim();
   const key=document.getElementById('sb-key').value.trim();
-  
   if(!email||!password||!url||!key){alert('Заполните все поля');return}
-  if(password.length < 6){alert('Пароль должен быть не менее 6 символов');return}
-  
+  if(password.length < 6){alert('Пароль минимум 6 символов');return}
   state.supabase.url=url; state.supabase.key=key; state.supabase.email=email;
   localStorage.setItem(STORAGE,JSON.stringify(state));
-  
   try{
     if(!supabaseClient) supabaseClient=window.supabase.createClient(url,key);
     const {data, error}=await supabaseClient.auth.signUp({ email, password });
     if(error)throw error;
-    
     currentUser = data.user;
     updateSyncStatus('online', 'Вошли: ' + email);
     showToast('✅ Аккаунт создан!');
     closeSheet();
-    setTimeout(() => { openSyncSettings(); }, 300);
     startPolling();
   }catch(e){alert('Ошибка регистрации: ' + e.message)}
-}
-
-function saveSyncSettings(){
-  const url=document.getElementById('sb-url').value.trim();
-  const key=document.getElementById('sb-key').value.trim();
-  state.supabase.url=url;
-  state.supabase.key=key;
-  localStorage.setItem(STORAGE,JSON.stringify(state));
-  closeSheet();
-  if(url&&key){
-    initSupabase();
-    showToast('✓ Ключи сохранены');
-  } else {
-    showToast('Синхронизация отключена');
-  }
 }
 
 async function signOut(){
@@ -594,57 +665,17 @@ async function signOut(){
 async function manualSync(){
   await pullFromCloud(true);
   await pushToCloud();
-  showToast('🔄 Данные синхронизированы');
+  showToast('🔄 Синхронизировано');
   closeSheet();
 }
 
-// ============ Настройки, PWA, CSV ============
-if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(e => console.log('SW reg failed', e)); }); }
-function openSettings() {
-  openSheet(`
-    <h2>Настройки</h2>
-    <div class="settings-row">
-      <span>Напоминания</span>
-      <label class="switch"><input type="checkbox" id="notify-toggle" ${state.notifications.enabled?'checked':''} onchange="toggleNotifications(this.checked)"><span class="slider"></span></label>
-    </div>
-    <p style="font-size:12px;color:var(--text-sec);margin-top:8px;line-height:1.4;">Уведомления работают, если приложение добавлено на экран «Домой».</p>
-    <div style="margin-top:16px;">
-      <button class="btn-cancel" onclick="openSyncSettings()">☁️ Синхронизация</button>
-      <button class="btn-cancel" onclick="cycleTheme()">🌓 Сменить тему</button>
-      <button class="btn-cancel" onclick="closeSheet()">Закрыть</button>
-    </div>
-  `);
-}
 async function toggleNotifications(enabled) {
   if (enabled) {
-    if (!("Notification" in window)) { alert("Ваш браузер не поддерживает уведомления"); return; }
+    if (!("Notification" in window)) { alert("Нет поддержки"); return; }
     const permission = await Notification.requestPermission();
-    if (permission === "granted") { state.notifications.enabled = true; save(); showToast("🔔 Уведомления включены"); } 
-    else { document.getElementById('notify-toggle').checked = false; state.notifications.enabled = false; save(); alert("Вы отклонили разрешение на уведомления."); }
+    if (permission === "granted") { state.notifications.enabled = true; save(); showToast("🔔 Включено"); } 
+    else { document.getElementById('notify-toggle').checked = false; state.notifications.enabled = false; save(); }
   } else { state.notifications.enabled = false; save(); }
-}
-setInterval(() => {
-  if (!state.notifications || !state.notifications.enabled) return;
-  const now = new Date(); const h = now.getHours(), m = now.getMinutes(); const today = todayStr(); const lastNotified = localStorage.getItem('lastNotified_' + today);
-  if (h === 8 && m === 0 && state.notifications.morning && lastNotified !== 'morning') { new Notification("Доброе утро! ☀️", { body: "Не забудьте отметить настроение и заглянуть в фокус дня." }); localStorage.setItem('lastNotified_' + today, 'morning'); }
-  if (h === 21 && m === 0 && state.notifications.evening && lastNotified !== 'evening') { new Notification("Как прошел день? 🌙", { body: "Пора заполнить дневник и закрыть кольца активности." }); localStorage.setItem('lastNotified_' + today, 'evening'); }
-}, 60000);
-
-function exportCSV() {
-  let csv = "Дата,Настроение,Продуктивность,Тревога,Энергия,Сон (ч),Экран (ч)\n";
-  Object.keys(state.surveys).sort().forEach(d => {
-    const s = state.surveys[d];
-    csv += `${d},${s.emotions?.joy||''},${s.mental?.productivity||''},${s.emotions?.anxiety||''},${s.physical?.energy||''},${s.physical?.sleepHours||''},${s.screen?.totalHours||''}\n`;
-  });
-  const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `cantilena-data-${todayStr()}.csv`; a.click();
-}
-
-function fireConfetti() {
-  const colors = ['#FF3B30', '#FF9500', '#34C759', '#007AFF', '#AF52DE', '#FF2D55'];
-  for (let i = 0; i < 50; i++) {
-    const piece = document.createElement('div'); piece.className = 'confetti-piece'; piece.style.left = Math.random() * 100 + 'vw'; piece.style.top = -10 + 'px'; piece.style.background = colors[Math.floor(Math.random() * colors.length)]; piece.style.animationDuration = (Math.random() * 2 + 2) + 's'; piece.style.animationDelay = (Math.random() * 0.5) + 's';
-    document.body.appendChild(piece); setTimeout(() => piece.remove(), 4000);
-  }
 }
 
 // ============ Логика приложения ============
@@ -733,7 +764,7 @@ function renderHabitEditor(){
         <button class="schedule-pill ${sch.type==='weekly'?'active':''}" style="padding:8px 12px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:${sch.type==='weekly'?'var(--accent)':'var(--input-bg)'};color:${sch.type==='weekly'?'#fff':'var(--text)'};" onclick="setScheduleType('weekly')">N раз в неделю</button>
       </div>
       ${sch.type==='weekdays'?`<div style="display:flex;gap:6px;justify-content:space-between;">${[1,2,3,4,5,6,0].map(d=>`<button style="width:36px;height:36px;border-radius:50%;border:none;font-size:13px;font-weight:600;background:${(sch.days||[]).includes(d)?'var(--accent)':'var(--input-bg)'};color:${(sch.days||[]).includes(d)?'#fff':'var(--text)'};" onclick="toggleWeekday(${d})">${WEEKDAYS_SHORT[d]}</button>`).join('')}</div>`:''}
-      ${sch.type==='weekly'?`<p style="font-size:13px;color:var(--text-sec);">Отмечайте в любой день недели, пока не наберёте цель.</p>`:''}
+      ${sch.type==='weekly'?`<p style="font-size:13px;color:var(--text-sec);">Отмечайте в любой день недели.</p>`:''}
     </div>
     <div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Отмена</button><button class="btn-primary" onclick="saveHabit()">Сохранить</button></div>
   `);
@@ -756,6 +787,16 @@ function formatTaskDate(d){const today=todayStr();const tom=new Date();tom.setDa
 function toggleTask(id,dateStr=currentDate,el){const t=state.tasks.find(x=>x.id===id);if(!t)return;const wasDone=isTaskDoneOn(t,dateStr);if(t.recurrence)t.completions[dateStr]=!t.completions[dateStr];else t.done=!t.done;const nowDone=isTaskDoneOn(t,dateStr);if(nowDone&&!wasDone){haptic('success');if(el){el.classList.add('pop');setTimeout(()=>el.classList.remove('pop'),400)}}save();renderAll()}
 function removeTask(id){state.tasks=state.tasks.filter(t=>t.id!==id);haptic();save();renderAll()}
 function addTaskQuick(){const inp=document.getElementById('new-task');const title=inp.value.trim();if(!title)return;state.tasks.push({id:uid(),title,done:false,date:currentDate,priority:4,projectId:null,subtasks:[],tags:[],recurrence:null,completions:{},createdAt:Date.now()});inp.value='';haptic();save();renderAll()}
+
+// Быстрое добавление с главной
+function quickAddTask(){
+  const inp = document.getElementById('quick-task');
+  const title = inp.value.trim();
+  if(!title) return;
+  state.tasks.push({id:uid(),title,done:false,date:currentDate,priority:4,projectId:null,subtasks:[],tags:[],recurrence:null,completions:{},createdAt:Date.now()});
+  inp.value = '';
+  haptic('success'); save(); renderAll();
+}
 
 let editingTaskId=null;
 function openTaskEditor(id){
@@ -860,7 +901,11 @@ function saveWeeklySurvey(wk){wk=wk||isoWeek();const val=id=>+document.getElemen
 function initQuote() { const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000); const q = QUOTES[dayOfYear % QUOTES.length]; document.getElementById('quote-text').innerText = `«${q.t}»`; document.getElementById('quote-author').innerText = `— ${q.a}`; }
 
 function renderAll(){ updateDateNav(); updateTopbar(); updateRings(); updateQuickMoodUI(); renderFocusOfDay(); renderHabitsToday(); renderTasksTodayMini(); renderTasks(); renderNotes(); renderCalendar(); renderStats(); }
-initQuote(); renderAll();
+
+// Запуск
+initQuote(); 
+renderAll();
+setTimeout(() => { document.getElementById('splash').classList.add('hidden'); }, 1500);
 window.addEventListener('load',()=>{setTimeout(initSupabase,500)});
 window.addEventListener('beforeunload',()=>{if(currentNoteId)saveCurrentNote()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&currentNoteId)saveCurrentNote()});
