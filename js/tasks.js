@@ -38,15 +38,16 @@ export function taskRowHTML(t, dateStr = window.currentDate, opts = {}) {
   const timeLabel = t.startTime ? '⏰ ' + t.startTime : '';
   const durLabel = t.duration ? '⏱ ' + formatDuration(t.duration) : '';
   const recurLabel = t.recurrence ? '🔁 ' + ({ daily: 'каждый день', weekdays: 'будни', weekly: 'еженед.' }[t.recurrence]) : '';
+  
   let dateClass = '';
   if (t.date) { if (t.date < todayStr()) dateClass = 'overdue'; else if (t.date === todayStr()) dateClass = 'today'; else dateClass = 'future'; }
   
   return `
     <div class="task-row" data-task-id="${t.id}">
-      <div class="check-circle ${done ? 'done' : ''} p${t.priority}" onclick="event.stopPropagation();toggleTask(${t.id},'${dateStr}',this)">
+      <div class="check-circle ${done ? 'done' : ''} p${t.priority}" onclick="event.stopPropagation();window.toggleTask(${t.id},'${dateStr}',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
-      <div class="task-body" onclick="openTaskEditor(${t.id})">
+      <div class="task-body" onclick="window.openTaskEditor(${t.id})">
         <div class="task-title ${done ? 'done' : ''}">${escapeHtml(t.title)}</div>
         <div class="task-meta">
           ${dateLabel ? `<span class="date-tag ${dateClass}">${svgIcon('calendar', 'currentColor', 12)} ${dateLabel}</span>` : ''}
@@ -56,7 +57,7 @@ export function taskRowHTML(t, dateStr = window.currentDate, opts = {}) {
           ${recurLabel ? `<span style="color:var(--text-sec);font-size:11px;">${recurLabel}</span>` : ''}
         </div>
       </div>
-      <button class="del-x" onclick="event.stopPropagation();removeTask(${t.id})">${svgIcon('x', 'currentColor', 18)}</button>
+      <button class="del-x" onclick="event.stopPropagation();window.removeTask(${t.id})">${svgIcon('x', 'currentColor', 18)}</button>
     </div>
   `;
 }
@@ -74,14 +75,12 @@ export function toggleTask(id, dateStr = window.currentDate, el) {
   if (el) { el.classList.add('checking'); setTimeout(() => el.classList.remove('checking'), 400); }
   save(); window.renderAll();
 }
-window.toggleTask = toggleTask;
 
 export function removeTask(id) {
   if (!confirm('Удалить задачу?')) return;
   state.tasks = state.tasks.filter(t => t.id !== id);
   haptic(); save(); window.renderAll();
 }
-window.removeTask = removeTask;
 
 export function openTaskEditor(id) {
   const editingTaskId = id || null;
@@ -102,7 +101,7 @@ export function openTaskEditor(id) {
           <input type="date" id="t-date" value="${t.date || ''}" onchange="window.updateTaskChipDate(this.value)">
         </button>
         
-        <button type="button" class="td-btn" id="chip-recur" onclick="openRecurrencePicker()">
+        <button type="button" class="td-btn" id="chip-recur" onclick="window.openRecurrencePicker()">
           ${svgIcon('refresh', 'currentColor', 14)}
           <span id="chip-recur-text">${recurLabel}</span>
         </button>
@@ -133,65 +132,6 @@ export function openTaskEditor(id) {
   window.updateTaskChipDate(t.date || '');
   setTimeout(() => { const el = document.getElementById('t-title'); if (el) el.focus(); }, 100);
 }
-window.openTaskEditor = openTaskEditor;
-
-window.updateTaskChipDate = function(val) {
-  const chipText = document.getElementById('chip-date-text');
-  const chip = document.getElementById('chip-date');
-  if (!chipText || !chip) return;
-  chip.classList.remove('today', 'overdue', 'future');
-  if (!val) { chipText.textContent = 'Дата'; return; }
-  chipText.textContent = formatTaskDate(val);
-  if (val === todayStr()) chip.classList.add('today');
-  else if (val < todayStr()) chip.classList.add('overdue');
-  else chip.classList.add('future');
-};
-
-window.openRecurrencePicker = function() {
-  const cur = document.getElementById('t-recurrence').value;
-  const content = document.getElementById('popover-content');
-  content.innerHTML = `
-    <h4 style="padding: 4px 12px 8px; font-size: 11px; color: var(--text-sec); font-weight: 700; text-transform: uppercase;">Повторение</h4>
-    ${[{val:'',label:'Не повторять'},{val:'daily',label:'Каждый день'},{val:'weekdays',label:'По будням'},{val:'weekly',label:'Раз в неделю'}].map(o => `
-      <div class="popover-item ${cur===o.val?'active':''}" onclick="window.pickRecurrence('${o.val}')">
-        <span>${o.label}</span>
-        ${cur===o.val?'<span style="margin-left:auto;color:var(--td-green);font-weight:700;">✓</span>':''}
-      </div>
-    `).join('')}
-  `;
-  document.getElementById('popover-overlay').classList.add('open');
-};
-
-window.pickRecurrence = function(val) {
-  document.getElementById('t-recurrence').value = val;
-  const text = document.getElementById('chip-recur-text');
-  text.textContent = val ? ({daily:'Каждый день', weekdays:'Будни', weekly:'Раз в неделю'}[val]) : 'Повтор';
-  window.closePopover();
-};
-
-window.saveTask = function() {
-  const editingTaskId = document.getElementById('t-editing-id').value;
-  const title = document.getElementById('t-title').value.trim();
-  if (!title) { alert('Введите название'); return; }
-  const description = document.getElementById('t-desc').value.trim();
-  const date = document.getElementById('t-date').value || null;
-  const startTime = document.getElementById('t-time').value || null;
-  const duration = parseInt(document.getElementById('t-duration').value) || null;
-  const priority = parseInt(document.getElementById('t-priority').value) || 4;
-  const projVal = document.getElementById('t-project').value;
-  const projectId = projVal ? parseInt(projVal) : null;
-  const recurrence = document.getElementById('t-recurrence').value || null;
-  
-  if (editingTaskId) {
-    const t = state.tasks.find(x => x.id == editingTaskId);
-    Object.assign(t, { title, description, date, startTime, duration, priority, projectId, recurrence });
-  } else {
-    state.tasks.push({ id: uid(), title, description, done: false, date, startTime, duration, priority, projectId, recurrence, subtasks: [], tags: [], completions: {}, createdAt: Date.now() });
-  }
-  haptic('success'); playSound('success'); save(); window.closeSheet(); window.renderAll();
-};
-
-let taskWeekOffset = 0;
 
 export function renderTasks() {
   const filtersEl = document.getElementById('task-filters');
@@ -210,7 +150,7 @@ export function renderTasks() {
   ];
   
   filtersEl.innerHTML = filters.map(f => `
-    <button class="filter-pill ${state.taskFilter === f.id ? 'active' : ''}" onclick="setTaskFilter('${f.id}')">
+    <button class="filter-pill ${state.taskFilter === f.id ? 'active' : ''}" onclick="window.setTaskFilter('${f.id}')">
       ${f.label}${f.count !== null ? ` <span class="count">${f.count}</span>` : ''}
     </button>
   `).join('');
@@ -220,7 +160,7 @@ export function renderTasks() {
     state.projects.forEach(p => {
       const c = state.tasks.filter(t => t.projectId === p.id && !isTaskDoneOn(t, realToday)).length;
       projHtml += `
-        <div class="card flat" style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="openProject(${p.id})">
+        <div class="card flat" style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="window.openProject(${p.id})">
           <span style="width:12px;height:12px;border-radius:3px;background:${p.color};"></span>
           <div style="flex:1;font-weight:600;">${escapeHtml(p.name)}</div>
           <span style="color:var(--text-sec);font-size:13px;">${c}</span>
@@ -280,10 +220,10 @@ function renderWeekView() {
   const realToday = todayStr();
   const monday = new Date(); monday.setHours(0, 0, 0, 0);
   const dow = monday.getDay() || 7;
-  monday.setDate(monday.getDate() - dow + 1 + taskWeekOffset * 7);
+  monday.setDate(monday.getDate() - dow + 1 + window.taskWeekOffset * 7);
   const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
   
-  let label = taskWeekOffset === 0 ? 'Текущая неделя' : (taskWeekOffset === 1 ? 'Следующая неделя' : 'Прошлая неделя');
+  let label = window.taskWeekOffset === 0 ? 'Текущая неделя' : (window.taskWeekOffset === 1 ? 'Следующая неделя' : 'Прошлая неделя');
   let html = `<div class="week-nav"><button class="week-nav-btn" onclick="window.changeTaskWeek(-1)">‹</button><div class="week-nav-label">${label}</div><button class="week-nav-btn" onclick="window.changeTaskWeek(1)">›</button></div>`;
   const monthsShort = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
   
@@ -304,38 +244,7 @@ function renderWeekView() {
   return { html };
 }
 
-window.changeTaskWeek = (dir) => { taskWeekOffset += dir; haptic(); renderTasks(); };
-window.setTaskFilter = (f) => { state.taskFilter = f; haptic(); save(); renderTasks(); };
-window.setAllFilter = (f) => { state.taskAllFilter = f; haptic(); save(); renderTasks(); };
-
-window.openProject = function(id) {
-  const p = state.projects.find(x => x.id === id);
-  const tasks = state.tasks.filter(t => t.projectId === id);
-  let tasksHtml = tasks.length ? tasks.map(t => taskRowHTML(t, t.date || todayStr())).join('') : '<div class="empty-hint">Задач нет</div>';
-  window.openSheet(`
-    <h2>${escapeHtml(p.name)}</h2>
-    <div class="card tight" style="margin-bottom:12px;">${tasksHtml}</div>
-    <div class="sheet-actions"><button class="btn-cancel" onclick="window.closeSheet()">Закрыть</button><button class="btn-danger" onclick="window.deleteProject(${id})">Удалить</button></div>
-  `);
-};
-
-window.addProject = function() {
-  const inp = document.getElementById('new-project');
-  const name = inp.value.trim();
-  if (!name) return;
-  state.projects.push({ id: uid(), name, color: PALETTE[state.projects.length % PALETTE.length] });
-  inp.value = '';
-  save(); renderTasks();
-};
-
-window.deleteProject = function(id) {
-  if (!confirm('Удалить проект?')) return;
-  state.projects = state.projects.filter(p => p.id !== id);
-  state.tasks.forEach(t => { if (t.projectId === id) t.projectId = null; });
-  save(); window.closeSheet(); renderTasks();
-};
-
-window.renderFocusOfDay = function() {
+export function renderFocusOfDay() {
   const t = window.currentDate;
   const tasks = state.tasks.filter(x => x.recurrence ? (matchesRecurrence(x, t) && !isTaskDoneOn(x, t)) : (x.date === t && !x.done));
   const focusCard = document.getElementById('focus-card');
@@ -346,18 +255,4 @@ window.renderFocusOfDay = function() {
   focusCard.dataset.taskId = top.id;
   document.getElementById('focus-title').innerHTML = escapeHtml(top.title);
   document.getElementById('focus-meta').innerText = top.priority === 1 ? "Высокий приоритет · Нажмите, чтобы найти" : "Следующая задача · Нажмите, чтобы найти";
-};
-
-window.focusTaskClick = function() {
-  const id = document.getElementById('focus-card').dataset.taskId;
-  if (!id) return;
-  haptic();
-  if (!document.getElementById('screen-today').classList.contains('active')) window.switchTab('today');
-  setTimeout(() => {
-    const el = document.querySelector(`.task-row[data-task-id="${id}"]`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => { el.classList.add('highlight-pulse'); setTimeout(() => el.classList.remove('highlight-pulse'), 2100); }, 200);
-    }
-  }, 200);
-};
+}
