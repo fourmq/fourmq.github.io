@@ -1,6 +1,6 @@
 import { uid, ICONS, PALETTE, todayStr } from './utils.js';
 
-export const SEED_KEY = 'cantilena_seed_v4', STORAGE = 'cantilena_v20';
+export const SEED_KEY = 'cantilena_seed_v4', STORAGE = 'cantilena_v21'; // Обновил версию хранилища
 
 export function migrateState(s) {
   s.surveys = s.surveys || {};
@@ -11,7 +11,8 @@ export function migrateState(s) {
   if (s.settings.sounds === undefined) s.settings.sounds = true;
   s.reminders = s.reminders || [];
   s.moods = s.moods || {};
-  s.focusSessions = s.focusSessions || []; // История фокуса
+  s.focusSessions = s.focusSessions || []; 
+  s.focusSettings = s.focusSettings || { autoBreak: false, autoComplete: true, customMins: 25 };
   
   s.supabase = s.supabase || { url: '', key: '', email: '', lastSync: null };
   s.habits = (s.habits || []).map((h, i) => {
@@ -35,7 +36,7 @@ export function migrateState(s) {
 
 export function loadState() {
   let raw = null;
-  for (const key of [STORAGE, 'cantilena_v19', 'cantilena_v18']) {
+  for (const key of [STORAGE, 'cantilena_v20', 'cantilena_v19']) {
     try { const s = JSON.parse(localStorage.getItem(key)); if (s && Array.isArray(s.habits)) { raw = s; break; } } catch (e) {}
   }
   const s = migrateState(raw || {});
