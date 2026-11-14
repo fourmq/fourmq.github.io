@@ -10,7 +10,6 @@ window.haptic = haptic;
 window.playSound = playSound;
 window.showToast = showToast;
 
-// Привязываем задачи (теперь HTML их увидит)
 window.openTaskEditor = Tasks.openTaskEditor;
 window.toggleTask = Tasks.toggleTask;
 window.removeTask = Tasks.removeTask;
@@ -19,9 +18,15 @@ window.changeTaskWeek = (dir) => { window.taskWeekOffset += dir; haptic(); Tasks
 window.setTaskFilter = (f) => { state.taskFilter = f; haptic(); save(); Tasks.renderTasks(); };
 window.setAllFilter = (f) => { state.taskAllFilter = f; haptic(); save(); Tasks.renderTasks(); };
 
-// Привязываем опросы
 window.openDailySurvey = Surveys.openDailySurvey;
 window.openChangelog = Surveys.openChangelog;
+window.openWeeklySurvey = Surveys.openWeeklySurvey;
+window.openDreamEditor = Surveys.openDreamEditor;
+window.openMonthlyReview = Surveys.openMonthlyReview;
+window.addMarker = Surveys.addMarker;
+window.removeMarker = Surveys.removeMarker;
+window.saveDream = Surveys.saveDream;
+window.saveMonthlyReview = Surveys.saveMonthlyReview;
 
 // ============ 2. БАЗОВЫЕ UI ФУНКЦИИ ============
 window.openSheet = (html) => { document.getElementById('sheet-content').innerHTML = html; document.getElementById('sheet').classList.add('open'); document.getElementById('backdrop').classList.add('open'); };
@@ -51,7 +56,7 @@ window.updateTopbar = function() {
   const active = document.querySelector('.screen.active');
   const id = active ? active.id.replace('screen-', '') : 'today';
   const titleEl = document.getElementById('topbar-title');
-  const TITLES = { today: 'Сегодня', tasks: 'Задачи', notes: 'Заметки', calendar: 'Календарь', stats: 'Статистика' };
+  const TITLES = { today: 'Сегодня', tasks: 'Задачи', focus: 'Фокус', notes: 'Заметки', stats: 'Статистика' };
   if (id === 'today') titleEl.textContent = window.getDynamicTitle();
   else titleEl.textContent = TITLES[id];
 };
@@ -83,7 +88,72 @@ window.updateDateNav = function() {
   }
 };
 
-// ============ 5. ПРИВЫЧКИ (полный код) ============
+// ============ 5. ТЕМА И НАСТРОЙКИ ============
+window.applyTheme = function() {
+  const sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const dark = state.theme === 'dark' || (state.theme === 'auto' && sysDark);
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+};
+window.applyTheme();
+
+window.openSettings = function() {
+  const sb = state.supabase;
+  const loggedIn = !!currentUser;
+  const email = currentUser?.email || sb.email || '';
+  
+  window.openSheet(`
+    <h2>Настройки</h2>
+    ${loggedIn ? `
+      <div class="profile-header"><div class="profile-avatar">${email.charAt(0).toUpperCase()}</div><div style="font-size:18px;font-weight:700;">${escapeHtml(email)}</div><div style="font-size:13px;color:var(--green-text);margin-top:4px;">✅ Синхронизация включена</div></div>
+    ` : `
+      <div class="profile-header" style="background:var(--pink-soft);"><div class="profile-avatar" style="background:var(--red);color:#fff;">!</div><div style="font-size:16px;font-weight:600;color:var(--red);">Вы не авторизованы</div><div style="font-size:13px;color:var(--text-sec);margin-top:4px;">Данные не сохраняются в облако</div></div>
+    `}
+
+    <div class="settings-header">Синхронизация</div>
+    <div class="settings-group">
+      <div class="settings-row"><div class="left"><div class="icon" style="background:var(--accent);">${svgIcon('cloud', '#fff', 16)}</div>Supabase URL</div></div>
+      <div style="padding:0 16px 12px;"><input type="text" id="sb-url" value="${escapeHtml(sb.url)}" placeholder="https://xxx.supabase.co" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--input-bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
+      <div class="settings-row"><div class="left"><div class="icon" style="background:var(--accent);">${svgIcon('key', '#fff', 16)}</div>Anon Key</div></div>
+      <div style="padding:0 16px 12px;"><input type="password" id="sb-key" value="${escapeHtml(sb.key)}" placeholder="eyJhbGciOi..." style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--input-bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
+
+      ${!loggedIn ? `
+        <div class="settings-row"><div class="left"><div class="icon" style="background:var(--green);">${svgIcon('mail', '#fff', 16)}</div>Ваш Email</div></div>
+        <div style="padding:0 16px 12px;"><input type="email" id="sb-email" placeholder="you@mail.com" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--input-bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
+        <div class="settings-row"><div class="left"><div class="icon" style="background:var(--green);">${svgIcon('lock', '#fff', 16)}</div>Пароль</div></div>
+        <div style="padding:0 16px 12px;"><input type="password" id="sb-password" placeholder="••••••••" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--input-bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
+        <div style="padding:12px 16px;display:flex;gap:8px;">
+          <button onclick="window.loginWithPassword()" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--accent-soft);color:var(--accent);font-weight:600;cursor:pointer;font-family:inherit;">Войти</button>
+          <button onclick="window.registerWithPassword()" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;font-family:inherit;">Регистрация</button>
+        </div>
+      ` : `
+        <div class="settings-row" onclick="window.manualSync()" style="cursor:pointer;"><div class="left"><div class="icon" style="background:var(--green);">${svgIcon('refresh', '#fff', 16)}</div>Синхронизировать сейчас</div><div style="color:var(--text-tert);">›</div></div>
+        <div class="settings-row" onclick="window.signOut()" style="cursor:pointer;"><div class="left"><div class="icon" style="background:var(--red);">${svgIcon('logout', '#fff', 16)}</div>Выйти</div></div>
+      `}
+    </div>
+
+    <div class="settings-header">Внешний вид</div>
+    <div class="settings-group">
+      <div class="settings-row"><div class="left"><div class="icon" style="background:var(--teal);">${svgIcon('theme', '#fff', 16)}</div>Тема</div>
+        <select onchange="window.state.theme=this.value; window.save(); window.applyTheme();" style="background:var(--bg);color:var(--text);border:none;font-size:16px;outline:none;">
+          <option value="auto" ${state.theme === 'auto' ? 'selected' : ''}>Авто</option>
+          <option value="light" ${state.theme === 'light' ? 'selected' : ''}>Светлая</option>
+          <option value="dark" ${state.theme === 'dark' ? 'selected' : ''}>Тёмная</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="settings-header">О приложении</div>
+    <div class="settings-group">
+      <div class="settings-row" onclick="window.openChangelog()" style="cursor:pointer;">
+        <div class="left"><div class="icon" style="background:var(--text-tert);">${svgIcon('info', '#fff', 16)}</div><span>Версия ${APP_VERSION}</span></div>
+        <div style="color:var(--accent);font-size:14px;font-weight:600;">Что нового? →</div>
+      </div>
+    </div>
+    <div style="margin-top:20px;"><button class="btn-cancel" onclick="window.closeSheet()">Закрыть</button></div>
+  `);
+};
+
+// ============ 6. ПРИВЫЧКИ ============
 window.isScheduledOn = function(h, dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
   const sch = h.schedule || { type: 'daily' };
@@ -236,6 +306,7 @@ window.moveHabit = function(id, dir) {
   [sorted[idx], sorted[newIdx]] = [sorted[newIdx], sorted[idx]]; sorted.forEach((h, i) => h.order = i);
   haptic(); save(); window.openHabitSettings();
 };
+
 window.deleteHabit = function(id) { if (!confirm('Удалить привычку?')) return; state.habits = state.habits.filter(h => h.id !== id); save(); window.openHabitSettings(); window.renderAll(); };
 
 let editingHabitId = null, habitDraft = null;
@@ -280,7 +351,7 @@ window.saveHabit = function() {
   haptic('success'); playSound('success'); save(); window.closeSheet(); window.renderAll();
 };
 
-// ============ 6. ПУЛЬС ДНЯ ============
+// ============ 7. ПУЛЬС ДНЯ ============
 let moodTimerInterval = null;
 window.quickMood = function(value) {
   const t = window.currentDate; if (!state.moods[t]) state.moods[t] = [];
@@ -313,7 +384,7 @@ window.renderQuickMoodUI = function() {
   }
 };
 
-// ============ 7. ЗАМЕТКИ ============
+// ============ 8. ЗАМЕТКИ ============
 let currentNoteId = null, noteSaveTimer = null;
 window.scheduleNoteSave = function() { clearTimeout(noteSaveTimer); noteSaveTimer = setTimeout(window.saveCurrentNote, 1500); };
 window.saveCurrentNote = function() {
@@ -358,30 +429,7 @@ window.togglePinNote = function() { const n = state.notes.find(x => x.id === cur
 window.closeNoteEditor = function() { window.saveCurrentNote(); currentNoteId = null; document.getElementById('notes-list-view').style.display = 'block'; document.getElementById('note-edit-view').style.display = 'none'; window.renderNotes(); };
 window.deleteCurrentNote = function() { if (!currentNoteId || !confirm('Удалить?')) return; state.notes = state.notes.filter(n => n.id !== currentNoteId); save(); currentNoteId = null; document.getElementById('notes-list-view').style.display = 'block'; document.getElementById('note-edit-view').style.display = 'none'; window.renderNotes(); };
 
-// ============ 8. КАЛЕНДАРЬ ============
-let calDate = new Date();
-window.renderCalendar = function() {
-  const y = calDate.getFullYear(), m = calDate.getMonth();
-  const startWeekday = (new Date(y, m, 1).getDay() + 6) % 7; const daysInMonth = new Date(y, m + 1, 0).getDate(); const today = todayStr();
-  document.getElementById('cal-title').textContent = calDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
-  const cells = []; for (let i = 0; i < startWeekday; i++) cells.push('<div class="cal-day empty"></div>');
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`; const sDone = !!state.surveys[dateStr]; const hDone = state.habits.some(h => !h.archived && window.isHabitDoneForDate(h, dateStr)); const tDone = state.tasks.some(t => t.recurrence ? (Tasks.matchesRecurrence(t, dateStr) && Tasks.isTaskDoneOn(t, dateStr)) : (t.date === dateStr && t.done));
-    cells.push(`<div class="cal-day ${dateStr === today ? 'today' : ''}" style="aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;background:var(--input-bg);gap:2px;cursor:pointer;color:var(--text);${dateStr === today ? 'outline:2px solid var(--td-red);' : ''}" onclick="window.openDayDetail('${dateStr}')"><div>${d}</div><div style="display:flex;gap:2px;"><span style="width:4px;height:4px;border-radius:50%;background:${sDone ? 'var(--pink)' : 'var(--text-tert)'}"></span><span style="width:4px;height:4px;border-radius:50%;background:${hDone ? 'var(--green)' : 'var(--text-tert)'}"></span><span style="width:4px;height:4px;border-radius:50%;background:${tDone ? 'var(--td-blue)' : 'var(--text-tert)'}"></span></div></div>`);
-  }
-  document.getElementById('cal-grid').innerHTML = cells.join('');
-};
-window.openDayDetail = function(dateStr) {
-  const s = state.surveys[dateStr]; const habitsDone = state.habits.filter(h => !h.archived && window.isHabitDoneForDate(h, dateStr)); const tasksOnDay = state.tasks.filter(t => t.recurrence ? Tasks.matchesRecurrence(t, dateStr) : t.date === dateStr); const tasksDone = tasksOnDay.filter(t => Tasks.isTaskDoneOn(t, dateStr)); const isToday = dateStr === todayStr();
-  let habitsHtml = habitsDone.length ? habitsDone.map(h => `<div class="insight">${svgIcon(h.icon, h.color, 14)} ${escapeHtml(h.name)}</div>`).join('') : '<div class="empty-hint">Ни одна не выполнена</div>';
-  let tasksHtml = tasksOnDay.length ? tasksOnDay.map(t => `<div class="insight">${Tasks.isTaskDoneOn(t, dateStr) ? '✅' : '○'} ${escapeHtml(t.title)}</div>`).join('') : '<div class="empty-hint">Задач не было</div>';
-  window.openSheet(`<h2>${formatDateHuman(dateStr)}</h2>${isToday ? '<div style="display:inline-block;padding:2px 8px;background:var(--chip-bg);border-radius:6px;font-size:11px;color:var(--text-sec);margin-bottom:8px;">Сегодня</div>' : ''}<div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Опрос</div>${s ? `<div class="insight"><b>Настроение:</b> ${s.emotions?.joy ?? '—'}/10 · <b>Продуктивность:</b> ${s.mental?.productivity ?? '—'}/10 · <b>Смысл:</b> ${s.mental?.meaning ?? '—'}/10</div>` : `<div class="empty-hint">Опрос не заполнен</div>`}<div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Привычки (${habitsDone.length}/${state.habits.filter(h => !h.archived).length})</div>${habitsHtml}<div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Задачи (${tasksDone.length}/${tasksOnDay.length})</div>${tasksHtml}<div class="sheet-actions"><button class="btn-cancel" onclick="window.closeSheet()">Закрыть</button><button class="btn-primary" onclick="window.closeSheet();window.goToDate('${dateStr}')">Открыть →</button></div>`);
-};
-window.goToDate = function(dateStr) { window.currentDate = dateStr; window.switchTab('today'); };
-window.prevMonth = function() { calDate.setMonth(calDate.getMonth() - 1); haptic(); window.renderCalendar(); };
-window.nextMonth = function() { calDate.setMonth(calDate.getMonth() + 1); haptic(); window.renderCalendar(); };
-
-// ============ 9. СТАТИСТИКА И МЕЧТА ============
+// ============ 9. СТАТИСТИКА И ГРАФИКИ ============
 function lastNDates(n){const a=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);a.push(d.toISOString().slice(0,10))}return a}
 function avgOf(a){const v=a.filter(x=>x!=null&&!isNaN(x));return v.length?v.reduce((x,y)=>x+y,0)/v.length:null}
 function corr(xs,ys){const p=xs.map((x,i)=>[x,ys[i]]).filter(([x,y])=>x!=null&&y!=null&&!isNaN(x)&&!isNaN(y));const n=p.length;if(n<3)return null;const mx=p.reduce((a,q)=>a+q[0],0)/n,my=p.reduce((a,q)=>a+q[1],0)/n;let num=0,dx=0,dy=0;for(const[x,y]of p){num+=(x-mx)*(y-my);dx+=(x-mx)**2;dy+=(y-my)**2}const den=Math.sqrt(dx*dy);return den?num/den:null}
@@ -462,7 +510,7 @@ function renderTrends4W() {
 
 function renderDreamProgress() {
   const el = document.getElementById('dream-progress'); if (!el) return;
-  if (!window.hasDream()) { el.innerHTML = `<div class="empty-hint">🌱 Определи мечту — и здесь появятся маркеры прогресса и ревизии месяцев.</div><button class="btn-primary" style="margin-top:8px;" onclick="window.openDreamEditor()">Определить мечту</button>`; return; }
+  if (!Surveys.hasDream()) { el.innerHTML = `<div class="empty-hint">🌱 Определи мечту — и здесь появятся маркеры прогресса и ревизии месяцев.</div><button class="btn-primary" style="margin-top:8px;" onclick="window.openDreamEditor()">Определить мечту</button>`; return; }
   const dream = state.dream; const reviews = Object.entries(dream.reviews || {}).sort((a, b) => a[0].localeCompare(b[0])).slice(-6); const lastReview = reviews.length ? reviews[reviews.length - 1][1] : null;
   let markersHtml = ''; if (dream.markers.filter(Boolean).length) { markersHtml = `<div style="margin-bottom:12px;">${dream.markers.filter(Boolean).map(m => `<div class="insight" style="font-size:13px;">◦ ${escapeHtml(m)}</div>`).join('')}</div>`; }
   let reviewsHtml = ''; if (reviews.length) { reviewsHtml = `<div style="font-size:11px;font-weight:700;color:var(--text-sec);text-transform:uppercase;margin-top:12px;margin-bottom:6px;">Ревизии месяцев</div>${reviews.map(([key, r]) => `<div class="insight" style="display:flex;justify-content:space-between;align-items:center;"><div><b>${key}</b>${r.note ? `<div style="font-size:12px;color:var(--text-sec);margin-top:2px;">${escapeHtml(r.note)}</div>` : ''}</div><b style="color:${r.score >= 7 ? 'var(--green)' : r.score >= 4 ? 'var(--orange)' : 'var(--red)'};">${r.score}/10</b></div>`).join('')}`; }
@@ -495,118 +543,22 @@ function renderYearInPixels() {
   el.innerHTML = days.map(d => { const sPct = state.surveys[d]?.evening ? 1 : 0; const sched = window.habitsScheduledForDate(d); const hPct = sched.length ? sched.filter(h => window.isHabitDoneForDate(h, d)).length / sched.length : 0; const tToday = state.tasks.filter(x => x.recurrence ? Tasks.matchesRecurrence(x, d) : x.date === d); const tPct = tToday.length ? tToday.filter(x => Tasks.isTaskDoneOn(x, d)).length / tToday.length : 0; const score = (sPct + hPct + tPct) / 3; let cls = ''; if (score > 0.75) cls = 'level-4'; else if (score > 0.5) cls = 'level-3'; else if (score > 0.25) cls = 'level-2'; else if (score > 0) cls = 'level-1'; return `<div class="year-cell ${cls}" title="${d}"></div>`; }).join('');
 }
 
-// ==== Мечта ====
-window.hasDream = function() { return state.dream && (state.dream.vision || (state.dream.markers && state.dream.markers.length)); };
-window.openDreamEditor = function() {
-  const dream = state.dream || { vision: '', markers: [], reviews: {} }; const markers = dream.markers.length ? dream.markers : [''];
-  let markersHtml = ''; markers.forEach((m, i) => { markersHtml += `<div class="marker-item"><input type="text" class="marker-input" value="${escapeHtml(m)}" placeholder="Маркер ${i + 1}">${markers.length > 1 ? `<button class="marker-del" onclick="window.removeMarker(this)">×</button>` : ''}</div>`; });
-  window.openSheet(`<h2>Моя мечта</h2><p style="font-size:13px;color:var(--text-sec);margin-bottom:16px;">Куда ты идёшь? Одно предложение о будущем и 3-5 маркеров.</p><div class="field"><label>Через год я хочу быть...</label><textarea id="dream-vision" placeholder="Например: человеком, который..." style="min-height:100px;">${escapeHtml(dream.vision)}</textarea></div><div class="field"><label>Маркеры прогресса</label><div id="markers-container">${markersHtml}</div><button class="btn-cancel" style="width:auto;margin-top:8px;padding:8px 14px;font-size:13px;" onclick="window.addMarker()">+ Добавить маркер</button></div><div class="sheet-actions" style="margin-top:20px;"><button class="btn-cancel" onclick="window.closeSheet()">Отмена</button><button class="btn-primary" onclick="window.saveDream()">Сохранить</button></div>`);
-};
-window.addMarker = function() { const container = document.getElementById('markers-container'); const count = container.querySelectorAll('.marker-item').length; if (count >= 5) { window.showToast('Максимум 5 маркеров'); return; } const div = document.createElement('div'); div.className = 'marker-item'; div.innerHTML = `<input type="text" class="marker-input" placeholder="Маркер ${count + 1}"><button class="marker-del" onclick="window.removeMarker(this)">×</button>`; container.appendChild(div); };
-window.removeMarker = function(btn) { const container = document.getElementById('markers-container'); if (container.querySelectorAll('.marker-item').length <= 1) return; btn.closest('.marker-item').remove(); };
-window.saveDream = function() { const vision = document.getElementById('dream-vision').value.trim(); const markers = [...document.querySelectorAll('.marker-input')].map(i => i.value.trim()).filter(Boolean); if (!state.dream) state.dream = { vision: '', markers: [], reviews: {} }; state.dream.vision = vision; state.dream.markers = markers; state.dream.updatedAt = Date.now(); if (!state.dream.createdAt) state.dream.createdAt = Date.now(); haptic('success'); playSound('success'); save(); window.closeSheet(); window.renderAll(); };
-window.openMonthlyReview = function() {
-  const now = new Date(); const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`; const prev = state.dream.reviews[key] || {};
-  window.openSheet(`<h2>Ревизия месяца</h2><p style="font-size:13px;color:var(--text-sec);margin-bottom:16px;">${now.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</p><div class="field"><label>Насколько приблизился к мечте (1-10) <span style="float:right;color:var(--accent);font-weight:700;" id="v-rev-score">${prev.score || 5}</span></label><input type="range" id="rev-score" min="1" max="10" value="${prev.score || 5}" oninput="document.getElementById('v-rev-score').textContent=this.value"></div><div class="field"><label>Что изменилось?</label><textarea id="rev-note" placeholder="Что стало по-другому?">${escapeHtml(prev.note || '')}</textarea></div><div class="sheet-actions"><button class="btn-cancel" onclick="window.closeSheet()">Отмена</button><button class="btn-primary" onclick="window.saveMonthlyReview('${key}')">Сохранить</button></div>`);
-};
-window.saveMonthlyReview = function(key) { const score = +document.getElementById('rev-score').value; const note = document.getElementById('rev-note').value.trim(); if (!state.dream.reviews) state.dream.reviews = {}; state.dream.reviews[key] = { score, note, ts: Date.now() }; haptic('success'); save(); window.closeSheet(); window.renderAll(); };
-
-// ==== Компас ====
 window.renderDreamCard = function() {
   const container = document.getElementById('dream-card-container'); if (!container) return;
-  if (!window.hasDream()) { container.innerHTML = `<div class="card dream-card" onclick="window.openDreamEditor()"><div class="dream-label">${svgIcon('compass', 'currentColor', 14)} Моя мечта</div><div class="dream-empty">Определи мечту →</div><div class="dream-meta">Одно предложение о будущем + 3-5 маркеров.</div></div>`; return; }
+  if (!Surveys.hasDream()) { container.innerHTML = `<div class="card dream-card" onclick="window.openDreamEditor()"><div class="dream-label">${svgIcon('compass', 'currentColor', 14)} Моя мечта</div><div class="dream-empty">Определи мечту →</div><div class="dream-meta">Одно предложение о будущем + 3-5 маркеров.</div></div>`; return; }
   const dream = state.dream; const markersCount = dream.markers.filter(Boolean).length; const now = new Date(); const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`; const hasReview = !!dream.reviews[monthKey];
   container.innerHTML = `<div class="card dream-card" onclick="window.openDreamEditor()"><div class="dream-label">${svgIcon('compass', 'currentColor', 14)} Моя мечта</div><div class="dream-title">${escapeHtml(dream.vision || 'Определи мечту')}</div><div class="dream-meta">${markersCount} маркеров · ${hasReview ? '✅ ревизия месяца сделана' : '⏳ пора сделать ревизию'}</div></div>${!hasReview ? `<button class="btn-primary" style="margin-bottom:10px;background:var(--indigo);" onclick="window.openMonthlyReview()">Сделать ревизию месяца</button>` : ''}`;
 };
+
 window.renderWeeklyCard = function() {
   const container = document.getElementById('weekly-survey-container'); if (!container) return; const wk = window.isoWeek(); const s = state.weeklySurveys[wk]; const passed = s && s.ts;
   let cardContent = ''; if (passed) { cardContent = `<div class="compass-goal">${escapeHtml(s.goal || 'Цель не указана')}</div><div class="compass-meta">Прогресс: ${s.progress}/10 · Шаг к мечте: ${s.dreamStep ? '✓' : '—'}</div><div class="compass-status passed">✅ Опрос пройден</div>`; } else { cardContent = `<div class="compass-goal">Определи цель недели →</div><div class="compass-meta">10 вопросов. Фокус, шаг к мечте, рефлексия.</div>`; }
   container.innerHTML = `<div class="card compass-card" onclick="window.openWeeklySurvey('${wk}')" style="cursor:pointer;"><div class="compass-label">${svgIcon('target', 'currentColor', 14)} Компас недели</div>${cardContent}</div>`;
 };
+
 window.isoWeek = function(d = new Date()) { const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const dayNum = dt.getUTCDay() || 7; dt.setUTCDate(dt.getUTCDate() + 4 - dayNum); const yearStart = new Date(Date.UTC(dt.getUTCFullYear(), 0, 1)); const weekNo = Math.ceil((((dt - yearStart) / 86400000) + 1) / 7); return `${dt.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`; };
-window.openWeeklySurvey = function(wk) {
-  wk = wk || window.isoWeek(); const s = state.weeklySurveys[wk] || {}; const passed = !!s.ts; const get = (k, d) => s[k] ?? d;
-  window.openSheet(`<h2>Компас недели</h2><p style="font-size:13px;color:var(--text-sec);margin-bottom:12px;">Неделя ${wk} ${passed ? '· <span style="color:var(--green);font-weight:700;">✅ Пройден</span>' : ''}</p><div class="survey-section">1. Цель недели</div><div class="field"><label>Одна главная цель</label><input type="text" id="w-goal" value="${escapeHtml(get('goal', ''))}"></div><div class="field"><label>Прогресс (1-10) <span style="float:right;color:var(--accent);font-weight:700;" id="v-w-progress">${get('progress', 5)}</span></label><input type="range" id="s-w-progress" min="1" max="10" value="${get('progress', 5)}" oninput="document.getElementById('v-w-progress').textContent=this.value"></div><div class="survey-section">2. Шаг к мечте</div><div class="field"><label>Какой шаг сделал?</label><textarea id="w-dreamStep">${escapeHtml(get('dreamStep', ''))}</textarea></div><div class="survey-section">3. Рефлексия</div><div class="field"><label>Что понял о себе?</label><textarea id="w-lesson">${escapeHtml(get('lesson', ''))}</textarea></div><div class="sheet-actions"><button class="btn-cancel" onclick="window.closeSheet()">Отмена</button><button class="btn-primary" onclick="window.saveWeeklySurvey('${wk}')">Сохранить</button></div>`);
-};
-window.saveWeeklySurvey = function(wk) {
-  wk = wk || window.isoWeek(); const goal = document.getElementById('w-goal').value.trim(); const progress = +document.getElementById('s-w-progress').value; const dreamStep = document.getElementById('w-dreamStep').value.trim(); const lesson = document.getElementById('w-lesson').value.trim();
-  state.weeklySurveys[wk] = { goal, progress, dreamStep, lesson, ts: Date.now() }; haptic('success'); playSound('success'); save(); window.closeSheet(); window.renderAll();
-};
 
-// ============ 10. НАСТРОЙКИ И СИНХРОНИЗАЦИЯ ============
-window.manualSyncWithUI = async function(btn) { const icon = btn.querySelector('.sync-icon'); if (icon) icon.classList.add('spinning'); await pullFromCloud(false, false); await pushToCloud(); if (icon) icon.classList.remove('spinning'); window.showToast('🔄 Обновлено'); };
-
-window.openSettings = function() {
-  const sb = state.supabase;
-  const loggedIn = !!currentUser;
-  const email = currentUser?.email || sb.email || '';
-  const notifPermission = (typeof Notification !== 'undefined') ? Notification.permission : 'unsupported';
-
-  window.openSheet(`
-    <h2>Настройки</h2>
-    ${loggedIn ? `
-      <div class="profile-header">
-        <div class="profile-avatar">${email.charAt(0).toUpperCase()}</div>
-        <div style="font-size:18px;font-weight:700;">${escapeHtml(email)}</div>
-        <div style="font-size:13px;color:var(--green-text);margin-top:4px;">✅ Синхронизация включена</div>
-      </div>
-    ` : `
-      <div class="profile-header" style="background:var(--pink-soft);">
-        <div class="profile-avatar" style="background:var(--red);color:#fff;">!</div>
-        <div style="font-size:16px;font-weight:600;color:var(--red);">Вы не авторизованы</div>
-        <div style="font-size:13px;color:var(--text-sec);margin-top:4px;">Данные не сохраняются в облако</div>
-      </div>
-    `}
-
-    <div class="settings-header">Синхронизация</div>
-    <div class="settings-group">
-      <div class="settings-row"><div class="left"><div class="icon" style="background:var(--accent);">${svgIcon('cloud', '#fff', 16)}</div>Supabase URL</div></div>
-      <div style="padding:0 16px 12px;"><input type="text" id="sb-url" value="${escapeHtml(sb.url)}" placeholder="https://xxx.supabase.co" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--input-bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
-      <div class="settings-row"><div class="left"><div class="icon" style="background:var(--accent);">${svgIcon('key', '#fff', 16)}</div>Anon Key</div></div>
-      <div style="padding:0 16px 12px;"><input type="password" id="sb-key" value="${escapeHtml(sb.key)}" placeholder="eyJhbGciOi..." style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--input-bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
-
-      ${!loggedIn ? `
-        <div class="settings-row"><div class="left"><div class="icon" style="background:var(--green);">${svgIcon('mail', '#fff', 16)}</div>Ваш Email</div></div>
-        <div style="padding:0 16px 12px;"><input type="email" id="sb-email" placeholder="you@mail.com" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--input-bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
-        <div class="settings-row"><div class="left"><div class="icon" style="background:var(--green);">${svgIcon('lock', '#fff', 16)}</div>Пароль</div></div>
-        <div style="padding:0 16px 12px;"><input type="password" id="sb-password" placeholder="••••••••" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--input-bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
-        <div style="padding:12px 16px;display:flex;gap:8px;">
-          <button onclick="window.loginWithPassword()" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--accent-soft);color:var(--accent);font-weight:600;cursor:pointer;font-family:inherit;">Войти</button>
-          <button onclick="window.registerWithPassword()" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;font-family:inherit;">Регистрация</button>
-        </div>
-      ` : `
-        <div class="settings-row" onclick="window.manualSync()" style="cursor:pointer;"><div class="left"><div class="icon" style="background:var(--green);">${svgIcon('refresh', '#fff', 16)}</div>Синхронизировать сейчас</div><div style="color:var(--text-tert);">›</div></div>
-        <div class="settings-row" onclick="window.signOut()" style="cursor:pointer;"><div class="left"><div class="icon" style="background:var(--red);">${svgIcon('logout', '#fff', 16)}</div>Выйти</div></div>
-      `}
-    </div>
-
-    <div class="settings-header">О приложении</div>
-    <div class="settings-group">
-      <div class="settings-row" onclick="window.openChangelog()" style="cursor:pointer;">
-        <div class="left"><div class="icon" style="background:var(--text-tert);">${svgIcon('info', '#fff', 16)}</div><span>Версия ${APP_VERSION}</span></div>
-        <div style="color:var(--accent);font-size:14px;font-weight:600;">Что нового? →</div>
-      </div>
-    </div>
-    <div style="margin-top:20px;"><button class="btn-cancel" onclick="window.closeSheet()">Закрыть</button></div>
-  `);
-};
-window.manualSync = async function() { await pullFromCloud(false, false); await pushToCloud(); window.showToast('🔄 Синхронизировано'); window.closeSheet(); };
-window.signOut = async function() { if (window.supabaseClient) await window.supabaseClient.auth.signOut(); window.currentUser = null; window.updateSyncStatus('online', 'Не вошли'); window.closeSheet(); window.showToast('Вы вышли из аккаунта'); };
-
-// ============ 11. ЭКСПОРТ / ИМПОРТ ============
-window.exportData = function() { const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `cantilena-backup-${todayStr()}.json`; a.click(); URL.revokeObjectURL(url); };
-window.exportCSV = function() { let csv = "Дата,Настроение,Продуктивность,Тревога,Энергия,Смысл,Сон_ч\n"; Object.keys(state.surveys).sort().forEach(d => { const s = state.surveys[d]; const avg = (state.moods[d] || []).length ? Math.round(state.moods[d].reduce((sum, m) => sum + m.val, 0) / state.moods[d].length) : ''; csv += `${d},${avg},${s.mental?.productivity || ''},${s.emotions?.anxiety || ''},${s.physical?.energy || ''},${s.mental?.meaning || ''},${s.physical?.sleepHours || ''}\n`; }); const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `cantilena-data-${todayStr()}.csv`; a.click(); };
-window.importData = function(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = ev => { try { const data = JSON.parse(ev.target.result); if (!data || !Array.isArray(data.habits)) throw new Error('Неверный формат'); if (!confirm('Заменить данные?')) return; const newState = migrateState(data); Object.keys(state).forEach(k => delete state[k]); Object.assign(state, newState); save(); window.renderAll(); alert('Импорт успешно!'); } catch (err) { alert('Ошибка: ' + err.message); } }; reader.readAsText(file); e.target.value = ''; };
-
-// ============ 12. ПОМОДОРО ============
-let pomoTimer = null, pomoTimeLeft = 25 * 60, pomoRunning = false;
-window.togglePomodoro = function() {
-  const btn = document.getElementById('pomo-btn'); const display = document.getElementById('pomo-time');
-  if (pomoRunning) { clearInterval(pomoTimer); pomoRunning = false; btn.textContent = 'Старт'; btn.style.background = 'var(--accent)'; }
-  else { pomoRunning = true; btn.textContent = 'Стоп'; btn.style.background = 'var(--red)'; pomoTimer = setInterval(() => { pomoTimeLeft--; const m = Math.floor(pomoTimeLeft / 60), s = pomoTimeLeft % 60; display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; if (pomoTimeLeft <= 0) { clearInterval(pomoTimer); pomoRunning = false; display.textContent = '25:00'; btn.textContent = 'Старт'; btn.style.background = 'var(--accent)'; playSound('success'); window.showToast('🍅 Время вышло!'); } }, 1000); }
-};
-
-// ============ 13. НАВИГАЦИЯ И РЕНДЕР ============
+// ============ 10. НАВИГАЦИЯ И РЕНДЕР ============
 window.switchTab = function(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.querySelectorAll('.sidebar-nav button').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
@@ -614,15 +566,30 @@ window.switchTab = function(name) {
   document.querySelector('main').scrollTop = 0;
   document.getElementById('fab-tasks').classList.toggle('visible', name === 'tasks');
   document.getElementById('fab-notes').classList.toggle('visible', name === 'notes');
+  
+  if (name === 'focus') {
+    window.populateFocusTasks();
+    document.getElementById('floating-timer').classList.remove('active');
+  } else if (focusRunning) {
+    document.getElementById('floating-timer').classList.add('active');
+  }
+  
   window.renderAll();
 };
 document.querySelectorAll('.tab, .sidebar-nav button').forEach(tab => tab.onclick = () => window.switchTab(tab.dataset.tab));
 
 window.renderAll = function() {
-  window.updateDateNav(); window.renderHabitsToday(); window.renderQuickMoodUI();
-  Tasks.renderTasksTodayMini(); Tasks.renderTasks(); Tasks.renderFocusOfDay();
-  window.renderNotes(); window.renderCalendar(); window.updateRings();
-  window.renderStats(); window.renderDreamCard(); window.renderWeeklyCard();
+  window.updateDateNav(); 
+  window.renderHabitsToday(); 
+  window.renderQuickMoodUI();
+  Tasks.renderTasksTodayMini(); 
+  Tasks.renderTasks(); 
+  Tasks.renderFocusOfDay();
+  window.renderNotes(); 
+  window.updateRings();
+  window.renderStats(); 
+  window.renderDreamCard(); 
+  window.renderWeeklyCard();
 };
 
 window.updateRings = function() {
@@ -635,7 +602,51 @@ window.updateRings = function() {
   else { btn.classList.remove('done'); btnContent.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> <span>Пройти опрос</span>`; btnTime.textContent = ''; }
 };
 
-// ============ 14. СТАРТ ============
+// ============ 11. ЭКСПОРТ / ИМПОРТ ============
+window.exportData = function() { const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `cantilena-backup-${todayStr()}.json`; a.click(); URL.revokeObjectURL(url); };
+window.exportCSV = function() { let csv = "Дата,Настроение,Продуктивность,Тревога,Энергия,Смысл,Сон_ч\n"; Object.keys(state.surveys).sort().forEach(d => { const s = state.surveys[d]; const avg = (state.moods[d] || []).length ? Math.round(state.moods[d].reduce((sum, m) => sum + m.val, 0) / state.moods[d].length) : ''; csv += `${d},${avg},${s.mental?.productivity || ''},${s.emotions?.anxiety || ''},${s.physical?.energy || ''},${s.mental?.meaning || ''},${s.physical?.sleepHours || ''}\n`; }); const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `cantilena-data-${todayStr()}.csv`; a.click(); };
+window.importData = function(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = ev => { try { const data = JSON.parse(ev.target.result); if (!data || !Array.isArray(data.habits)) throw new Error('Неверный формат'); if (!confirm('Заменить данные?')) return; const newState = migrateState(data); Object.keys(state).forEach(k => delete state[k]); Object.assign(state, newState); save(); window.renderAll(); alert('Импорт успешно!'); } catch (err) { alert('Ошибка: ' + err.message); } }; reader.readAsText(file); e.target.value = ''; };
+
+// ============ 12. ФОКУС-ТАЙМЕР ============
+let focusInterval = null, focusRunning = false, focusTimeLeft = 25 * 60, focusTotalTime = 25 * 60;
+window.setFocusTime = function(mins) { if (focusRunning) return; focusTotalTime = mins * 60; focusTimeLeft = focusTotalTime; updateFocusDisplay(); };
+function updateFocusDisplay() { const m = Math.floor(focusTimeLeft / 60); const s = focusTimeLeft % 60; const timeStr = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; const display = document.getElementById('focus-display'); if (display) display.textContent = timeStr; const floatTime = document.getElementById('float-time'); if (floatTime) floatTime.textContent = timeStr; const status = document.getElementById('focus-status'); if (status && focusRunning) status.textContent = 'В процессе...'; else if (status && !focusRunning && focusTimeLeft < focusTotalTime) status.textContent = 'На паузе'; }
+window.toggleFocusTimer = function() {
+  const btn = document.getElementById('focus-main-btn'); const floatBtn = document.getElementById('float-play-icon');
+  if (focusRunning) { clearInterval(focusInterval); focusRunning = false; if (btn) btn.textContent = 'Продолжить'; if (floatBtn) floatBtn.innerHTML = `<path d="m5 3 14 9-14 9V3z"/>`; updateFocusDisplay(); }
+  else {
+    if (focusTimeLeft <= 0) focusTimeLeft = focusTotalTime;
+    const taskSelect = document.getElementById('focus-task-select'); let taskName = 'Фокус';
+    if (taskSelect && taskSelect.value) { const t = state.tasks.find(x => x.id == taskSelect.value); if (t) taskName = t.title; }
+    const floatTask = document.getElementById('float-task'); if (floatTask) floatTask.textContent = taskName;
+    focusRunning = true; if (btn) btn.textContent = 'Пауза'; if (floatBtn) floatBtn.innerHTML = `<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>`;
+    document.getElementById('floating-timer').classList.add('active'); document.getElementById('focus-status').textContent = 'В процессе...';
+    focusInterval = setInterval(() => { focusTimeLeft--; updateFocusDisplay(); if (focusTimeLeft <= 0) completeFocusSession(); }, 1000);
+  }
+};
+window.stopFocusTimer = function() { clearInterval(focusInterval); focusRunning = false; focusTimeLeft = focusTotalTime; updateFocusDisplay(); document.getElementById('floating-timer').classList.remove('active'); const btn = document.getElementById('focus-main-btn'); if (btn) btn.textContent = 'Начать фокус'; const status = document.getElementById('focus-status'); if (status) status.textContent = 'Готов к работе'; };
+function completeFocusSession() {
+  clearInterval(focusInterval); focusRunning = false; document.getElementById('floating-timer').classList.remove('active'); document.getElementById('focus-status').textContent = 'Сессия завершена! 🎉'; const btn = document.getElementById('focus-main-btn'); if (btn) btn.textContent = 'Начать снова';
+  const soundSel = document.getElementById('focus-sound-select'); const soundType = soundSel ? soundSel.value : 'chime'; playFocusSound(soundType);
+  if (!state.focusSessions) state.focusSessions = []; const taskSelect = document.getElementById('focus-task-select'); const taskId = taskSelect && taskSelect.value ? taskSelect.value : null;
+  state.focusSessions.push({ date: todayStr(), duration: focusTotalTime / 60, taskId: taskId, ts: Date.now() }); save(); showToast('🔥 Отличная работа! Сессия записана.'); focusTimeLeft = focusTotalTime; updateFocusDisplay();
+}
+function playFocusSound(type) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)(); const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.connect(gain); gain.connect(ctx.destination);
+    if (type === 'beep') { osc.type = 'square'; osc.frequency.setValueAtTime(800, ctx.currentTime); gain.gain.setValueAtTime(0.1, ctx.currentTime); setTimeout(() => { osc.frequency.setValueAtTime(1000, ctx.currentTime); }, 200); setTimeout(() => { osc.frequency.setValueAtTime(800, ctx.currentTime); }, 400); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1); osc.start(); osc.stop(ctx.currentTime + 1); }
+    else if (type === 'ping') { osc.type = 'sine'; osc.frequency.setValueAtTime(1200, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(2000, ctx.currentTime + 0.5); gain.gain.setValueAtTime(0.2, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5); osc.start(); osc.stop(ctx.currentTime + 1.5); }
+    else { osc.type = 'sine'; osc.frequency.setValueAtTime(880, ctx.currentTime); gain.gain.setValueAtTime(0.2, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 2); osc.start(); osc.stop(ctx.currentTime + 2); }
+  } catch(e) {}
+}
+window.populateFocusTasks = function() { const sel = document.getElementById('focus-task-select'); if (!sel) return; sel.innerHTML = '<option value="">Без задачи</option>'; const activeTasks = state.tasks.filter(t => !t.done && (t.date === todayStr() || !t.date)); activeTasks.forEach(t => { const opt = document.createElement('option'); opt.value = t.id; opt.textContent = t.title; sel.appendChild(opt); }); };
+
+window.loginWithPassword = async function() { const email = document.getElementById('sb-email').value.trim(); const password = document.getElementById('sb-password').value; const url = document.getElementById('sb-url').value.trim(); const key = document.getElementById('sb-key').value.trim(); if (!email || !password || !url || !key) { alert('Заполните все поля'); return; } state.supabase.url = url; state.supabase.key = key; state.supabase.email = email; save(); try { if (!supabaseClient) supabaseClient = window.supabase.createClient(url, key); const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password }); if (error) throw error; currentUser = data.user; window.closeSheet(); window.renderAll(); } catch (e) { alert('Ошибка: ' + e.message); } };
+window.registerWithPassword = async function() { const email = document.getElementById('sb-email').value.trim(); const password = document.getElementById('sb-password').value; const url = document.getElementById('sb-url').value.trim(); const key = document.getElementById('sb-key').value.trim(); if (!email || !password || !url || !key) { alert('Заполните все поля'); return; } state.supabase.url = url; state.supabase.key = key; state.supabase.email = email; save(); try { if (!supabaseClient) supabaseClient = window.supabase.createClient(url, key); const { data, error } = await supabaseClient.auth.signUp({ email, password }); if (error) throw error; currentUser = data.user; window.closeSheet(); window.renderAll(); } catch (e) { alert('Ошибка: ' + e.message); } };
+window.manualSync = async function() { await pullFromCloud(false, false); await pushToCloud(); window.showToast('🔄 Синхронизировано'); window.closeSheet(); };
+window.signOut = async function() { if (window.supabaseClient) await window.supabaseClient.auth.signOut(); window.currentUser = null; window.updateSyncStatus('online', 'Не вошли'); window.closeSheet(); window.showToast('Вы вышли из аккаунта'); };
+window.manualSyncWithUI = async function(btn) { const icon = btn.querySelector('.sync-icon'); if (icon) icon.classList.add('spinning'); await pullFromCloud(false, false); await pushToCloud(); if (icon) icon.classList.remove('spinning'); window.showToast('🔄 Обновлено'); };
+
 document.addEventListener('DOMContentLoaded', () => {
   window.renderAll();
   initSupabase();
