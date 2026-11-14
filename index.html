@@ -12,12 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <style>
 :root{
-  --td-red: #db4c3f;
-  --td-orange: #eb8909;
-  --td-blue: #246fe0;
-  --td-green: #058527;
-  --td-grey: #808080;
-  
+  --td-red: #db4c3f; --td-orange: #eb8909; --td-blue: #246fe0; --td-green: #058527; --td-grey: #808080;
   --bg:#F2F2F7;--card:#fff;--input-bg:#F2F2F7;--text:#1D1D1F;--text-sec:#8E8E93;--text-tert:#C7C7CC;
   --separator:rgba(60,60,67,.1);--separator-med:rgba(60,60,67,.15);
   --accent:var(--td-red);--accent-soft:rgba(219,76,63,.1);
@@ -26,8 +21,7 @@
   --orange:var(--td-orange);--purple:#AF52DE;--indigo:#5856D6;--yellow:#FFCC00;--teal:#5AC8FA;
   --tabbar:rgba(255,255,255,.88);--overlay:rgba(0,0,0,.4);--shadow:rgba(0,0,0,.05);
   --hm-empty:#EBEBF0;--chart-grid:#F2F2F7;--chip-bg:rgba(118,118,128,.12);--chip-bg-strong:rgba(118,118,128,.25);
-  --sidebar:#FFFFFF;--sidebar-border:rgba(60,60,67,.15);
-  --fab-bg: var(--td-red);
+  --sidebar:#FFFFFF;--sidebar-border:rgba(60,60,67,.15);--fab-bg: var(--td-red);
 }
 [data-theme=dark]{
   --bg:#1e1e1e;--card:#252525;--input-bg:#2C2C2E;--text:#e0e0e0;--text-sec:#999999;--text-tert:#555555;
@@ -44,7 +38,6 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;height:100dvh;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
 .app{width:100%;height:100%;display:flex;background:var(--bg);overflow:hidden;position:relative;}
 
-/* ЗАСТАВКА */
 #splash{position:fixed;inset:0;background:#3E1728;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s ease-out, visibility .6s;cursor:pointer}
 #splash.hidden{opacity:0;visibility:hidden}
 .splash-svg{width:200px;height:200px;margin-bottom:20px;overflow:visible}
@@ -80,7 +73,6 @@ main{flex:1;overflow-y:auto;padding-bottom:100px;-webkit-overflow-scrolling:touc
 .section-title .actions button:active{transform:scale(.85)}
 .section-title .link{color:var(--text-sec);text-transform:none;font-weight:600;font-size:13px;cursor:pointer}
 
-/* КОМПАКТНЫЕ КОЛЬЦА */
 .rings-card{display:flex;align-items:center;gap:16px;padding:14px 16px}
 .rings{width:100px;height:100px;flex-shrink:0}
 #ring-survey,#ring-habits,#ring-tasks{transition:stroke-dasharray 1s cubic-bezier(.32,.72,0,1)}
@@ -90,27 +82,23 @@ main{flex:1;overflow-y:auto;padding-bottom:100px;-webkit-overflow-scrolling:touc
 .rings-legend b.complete{color:var(--green)}
 .dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
 
-/* КОМПАКТНЫЙ ФОКУС */
 .focus-card{background:linear-gradient(135deg, var(--accent-soft), var(--card));border:1px solid rgba(219,76,63,0.2);position:relative;overflow:hidden;cursor:pointer;transition:transform .15s}
 .focus-card:active{transform:scale(.985)}
 .focus-label{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:flex;align-items:center;gap:6px}
 .focus-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:2px}
 .focus-meta{font-size:12px;color:var(--text-sec)}
 
-/* КОМПАКТНЫЙ ПУЛЬС */
 .quick-mood-card{padding:12px 16px}
 .quick-mood-label{font-size:11px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
 .quick-mood{display:flex;gap:6px;justify-content:space-between}
 .quick-mood button{flex:1;aspect-ratio:1;max-width:48px;border-radius:50%;background:var(--input-bg);border:2px solid transparent;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:all .25s cubic-bezier(.2,.9,.3,1)}
 .quick-mood button:active{transform:scale(0.9);}
 
-/* КОМПАКТНЫЙ ОПРОС */
 .survey-btn{width:100%;padding:12px;border-radius:12px;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;align-items:center;justify-content:space-between;background:var(--card);color:var(--text);border:1px solid var(--separator);margin-bottom:10px;}
 .survey-btn.done{background:var(--green-soft);border-color:rgba(5,133,39,0.2);color:var(--green-text);}
 .survey-btn .left{display:flex;align-items:center;gap:8px;}
 .survey-btn .right{font-size:12px;opacity:0.8;font-weight:500;}
 
-/* НАСТРОЙКИ */
 .settings-group{background:var(--card);border-radius:12px;margin-bottom:16px;overflow:hidden}
 .settings-header{font-size:11px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;padding:0 16px 6px;margin-top:6px}
 .settings-row{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:.5px solid var(--separator);font-size:15px;font-weight:500}
@@ -127,7 +115,6 @@ main{flex:1;overflow-y:auto;padding-bottom:100px;-webkit-overflow-scrolling:touc
 input:checked + .slider{background-color:var(--green)}
 input:checked + .slider:before{transform:translateX(18px)}
 
-/* СТАТИСТИКА */
 .chart-svg{width:100%;height:auto;display:block;overflow:visible}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .stat-card{background:var(--card);border-radius:12px;padding:12px}
@@ -142,6 +129,7 @@ input:checked + .slider:before{transform:translateX(18px)}
 .expert-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
 .badge-psy{background:var(--pink-soft);color:var(--pink)}
 .badge-ped{background:var(--green-soft);color:var(--green-text)}
+.badge-dream{background:rgba(88,86,214,.12);color:var(--indigo)}
 .corr-grid{display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:4px;font-size:11px;margin-top:8px}
 .corr-cell{padding:6px 4px;text-align:center;border-radius:6px;background:var(--input-bg);font-weight:600}
 .corr-cell.header{background:transparent;color:var(--text-sec);font-weight:600}
@@ -170,7 +158,6 @@ input:checked + .slider:before{transform:translateX(18px)}
 .btn-cancel:active{transform:scale(.97)}
 .btn-danger{background:var(--red);color:#fff;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;margin-top:8px;transition:transform .15s}
 
-/* СПИСКИ И ЧЕКБОКСЫ */
 .habit-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:.5px solid var(--separator);transition:background .3s}
 .habit-row:last-child{border-bottom:none}
 .habit-row.skipped{opacity:.5}
@@ -212,9 +199,10 @@ input:checked + .slider:before{transform:translateX(18px)}
 .task-row.highlight-pulse, .habit-row.highlight-pulse {
   animation: highlightPulse 2s ease;
   border-radius: 8px;
+  margin-left: -10px; margin-right: -10px;
+  padding-left: 10px; padding-right: 10px;
 }
 
-/* ПРИОРИТЕТЫ */
 .check-circle.p1 { border-color: var(--td-red); color: var(--td-red); }
 .check-circle.p1.done { background: var(--td-red); color: #fff; }
 .check-circle.p2 { border-color: var(--td-orange); color: var(--td-orange); }
@@ -224,40 +212,34 @@ input:checked + .slider:before{transform:translateX(18px)}
 .check-circle.p4 { border-color: var(--text-tert); color: var(--text-tert); }
 .check-circle.p4.done { background: var(--text-tert); color: #fff; }
 
-/* ДАТЫ */
 .date-tag { display: inline-flex; align-items: center; gap: 4px; }
 .date-tag.today { color: var(--td-green); font-weight: 600; }
 .date-tag.overdue { color: var(--td-red); font-weight: 600; }
 .date-tag.tomorrow { color: var(--td-orange); }
 .date-tag.future { color: var(--text-sec); }
 
-/* ПРОЕКТ НА ЗАДАЧЕ */
 .project-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-sec); }
 .project-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
 
 .del-x{background:none;border:none;color:var(--text-tert);font-size:20px;cursor:pointer;padding:0 4px;line-height:1;}
 .del-x svg{width:16px;height:16px;}
 
-/* Навигация по дням */
 .date-nav{display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:10px;padding:6px 12px;margin-bottom:10px}
 .nav-arrow{background:none;border:none;font-size:20px;color:var(--text-sec);cursor:pointer;padding:0 8px}
 .date-nav-center{font-size:14px;font-weight:600;text-align:center;flex:1;display:flex;align-items:center;justify-content:center;gap:8px}
 .back-today{font-size:11px;color:var(--text-sec);font-weight:600;cursor:pointer;background:var(--chip-bg);padding:4px 8px;border-radius:6px}
 
-/* Табы и FAB */
 .tabbar{position:absolute;bottom:0;left:0;right:0;background:var(--tabbar);backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--separator-med);display:flex;padding:8px 0 calc(env(safe-area-inset-bottom,0px) + 10px);z-index:10}
 .tab{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text-sec);cursor:pointer;font-size:10px;font-weight:500;padding:2px 0;font-family:inherit}
 .tab.active{color:var(--td-red)}
 .tab svg{width:22px;height:22px;transition:transform .2s}
 .tab.active svg{transform:scale(1.08)}
 
-/* FAB */
 .fab { position: absolute; bottom: calc(env(safe-area-inset-bottom,0px) + 75px); right: 16px; width: 52px; height: 52px; border-radius: 50%; background: var(--td-red); color: #fff; border: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(219,76,63,0.4); cursor: pointer; z-index: 50; transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.25s; transform: scale(0); opacity: 0; pointer-events: none; }
 .fab.visible { transform: scale(1); opacity: 1; pointer-events: auto; }
 .fab:active { transform: scale(0.85); }
 .fab svg { width: 24px; height: 24px; }
 
-/* Шторка и свайп */
 .backdrop{position:absolute;inset:0;background:var(--overlay);opacity:0;pointer-events:none;transition:opacity .3s;z-index:99}
 .backdrop.open{opacity:1;pointer-events:auto}
 .sheet{position:absolute;bottom:0;left:0;right:0;background:var(--card);color:var(--text);border-radius:16px 16px 0 0;padding:0 16px calc(env(safe-area-inset-bottom,0px) + 20px);max-height:92vh;overflow-y:auto;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);z-index:100;will-change:transform}
@@ -271,7 +253,9 @@ input:checked + .slider:before{transform:translateX(18px)}
 .field input[type=range]{width:100%;accent-color:var(--accent)}
 .field input[type=text],.field input[type=number],.field input[type=date],.field input[type=time],.field input[type=email],.field input[type=password],.field textarea,.field select{width:100%;padding:10px;border:1px solid var(--separator-med);border-radius:8px;font-size:15px;font-family:inherit;background:var(--input-bg);outline:none;color:var(--text);display:block;}
 
-/* НОВЫЙ РЕДАКТОР ЗАДАЧ (Todoist-style) */
+.survey-section{font-size:11px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;padding-top:10px;border-top:.5px solid var(--separator)}
+.survey-section:first-of-type{border-top:none;padding-top:0;margin-top:0}
+
 .td-editor { display: flex; flex-direction: column; gap: 10px; padding-bottom: 8px; }
 .td-title-input { width: 100%; font-size: 20px; font-weight: 700; border: none; outline: none; background: transparent; color: var(--text); padding: 6px 0; font-family: inherit; }
 .td-desc-input { width: 100%; font-size: 14px; border: none; outline: none; background: transparent; color: var(--text-sec); padding: 2px 0 12px; font-family: inherit; border-bottom: 1px solid var(--separator); }
@@ -314,7 +298,6 @@ input:checked + .slider:before{transform:translateX(18px)}
 .td-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
 .btn-save-task { background: var(--td-red); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; font-family: inherit; }
 
-/* Popover поверх sheet */
 .td-popover-overlay { position: fixed; inset: 0; z-index: 300; display: none; }
 .td-popover-overlay.open { display: block; }
 .td-popover-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.4); animation: fadeInSimple .2s ease; }
@@ -327,6 +310,7 @@ input:checked + .slider:before{transform:translateX(18px)}
   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
   animation: popIn 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+@keyframes popIn { from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
 .popover-item {
   padding: 10px 12px; border-radius: 8px;
   display: flex; align-items: center; gap: 12px;
@@ -337,7 +321,6 @@ input:checked + .slider:before{transform:translateX(18px)}
 .popover-item.active { background: var(--accent-soft); }
 .popover-item .flag-icon { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
 
-/* Фильтры задач */
 .filter-pill {
   padding: 8px 14px; border-radius: 18px; border: none;
   font-weight: 600; font-size: 13px;
@@ -348,11 +331,7 @@ input:checked + .slider:before{transform:translateX(18px)}
 .filter-pill.active { background: var(--td-red); color: #fff; }
 .filter-pill .count { opacity: 0.7; margin-left: 4px; }
 
-/* Subfilters (Все) */
-.all-subfilters {
-  display: flex; gap: 6px; overflow-x: auto;
-  padding: 0 0 10px; scrollbar-width: none;
-}
+.all-subfilters { display: flex; gap: 6px; overflow-x: auto; padding: 0 0 10px; scrollbar-width: none; }
 .all-subfilters::-webkit-scrollbar { display: none; }
 .subfilter-chip {
   padding: 6px 12px; border-radius: 14px; border: 1px solid var(--separator-med);
@@ -362,47 +341,22 @@ input:checked + .slider:before{transform:translateX(18px)}
 }
 .subfilter-chip.active { background: var(--text); color: var(--card); border-color: var(--text); }
 
-/* Week view (Upcoming) */
-.week-nav {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 12px; background: var(--card); border-radius: 10px;
-  margin-bottom: 12px;
-}
-.week-nav-btn {
-  background: none; border: none; font-size: 22px;
-  color: var(--text-sec); cursor: pointer; padding: 0 10px;
-}
+.week-nav { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--card); border-radius: 10px; margin-bottom: 12px; }
+.week-nav-btn { background: none; border: none; font-size: 22px; color: var(--text-sec); cursor: pointer; padding: 0 10px; }
 .week-nav-label { font-size: 14px; font-weight: 700; }
-.week-day {
-  background: var(--card); border-radius: 12px; padding: 10px 14px;
-  margin-bottom: 10px;
-}
-.week-day.today {
-  background: linear-gradient(135deg, var(--accent-soft), var(--card));
-  border: 1px solid rgba(219,76,63,0.2);
-}
+.week-day { background: var(--card); border-radius: 12px; padding: 10px 14px; margin-bottom: 10px; }
+.week-day.today { background: linear-gradient(135deg, var(--accent-soft), var(--card)); border: 1px solid rgba(219,76,63,0.2); }
 .week-day.past { opacity: 0.7; }
-.week-day-header {
-  display: flex; align-items: center; gap: 8px;
-  padding-bottom: 6px; border-bottom: .5px solid var(--separator);
-  margin-bottom: 4px;
-}
+.week-day-header { display: flex; align-items: center; gap: 8px; padding-bottom: 6px; border-bottom: .5px solid var(--separator); margin-bottom: 4px; }
 .week-day-name { font-size: 13px; font-weight: 700; color: var(--text); }
 .week-day-date { font-size: 12px; color: var(--text-sec); font-weight: 500; }
-.week-day-badge {
-  margin-left: auto; font-size: 10px; font-weight: 700;
-  background: var(--td-red); color: #fff;
-  padding: 2px 8px; border-radius: 10px;
-  text-transform: uppercase; letter-spacing: .3px;
-}
+.week-day-badge { margin-left: auto; font-size: 10px; font-weight: 700; background: var(--td-red); color: #fff; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; letter-spacing: .3px; }
 .week-day.today .week-day-name { color: var(--accent); }
 .week-day-tasks { padding-top: 2px; }
 .week-day-empty { font-size: 12px; color: var(--text-tert); padding: 6px 0; font-style: italic; }
 
-/* Всплывающее меню (старое, оставлю для совместимости) */
 .prio-menu { display: none; }
 
-/* Заметки */
 .note-toolbar { position: sticky; top: 0; background: var(--card); z-index: 10; display: flex; gap: 4px; padding: 8px 0; border-bottom: .5px solid var(--separator); margin-bottom: 8px; flex-wrap: wrap; }
 .note-toolbar button { background: var(--chip-bg); border: none; border-radius: 6px; padding: 6px 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; color: var(--text); display:flex; align-items:center; justify-content:center;min-width:32px;min-height:32px;}
 #edit-note-title { width: 100%; font-size: 20px; font-weight: 700; border: none; outline: none; background: transparent; color: var(--text); margin-bottom: 8px; padding: 4px 0; }
@@ -432,6 +386,36 @@ input:checked + .slider:before{transform:translateX(18px)}
   .sheet.open{transform:translateX(-50%) translateY(0)} 
   .backdrop{background:rgba(0,0,0,.2)} 
 }
+
+/* Dream card */
+.dream-card {
+  background: linear-gradient(135deg, rgba(88,86,214,.15), var(--card));
+  border: 1px solid rgba(88,86,214,.25);
+  cursor: pointer; position: relative; overflow: hidden;
+}
+.dream-card:active { transform: scale(.985); }
+.dream-label { font-size: 11px; font-weight: 700; color: var(--indigo); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.dream-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.dream-meta { font-size: 12px; color: var(--text-sec); }
+.dream-empty { font-size: 14px; font-weight: 600; color: var(--indigo); margin-bottom: 4px; }
+
+/* Компас недели */
+.compass-card {
+  background: linear-gradient(135deg, rgba(175,82,222,.12), var(--card));
+  border: 1px solid rgba(175,82,222,.25);
+}
+.compass-label { font-size: 11px; font-weight: 700; color: var(--purple); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.compass-goal { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.compass-meta { font-size: 12px; color: var(--text-sec); }
+.compass-status { font-size: 11px; color: var(--text-sec); padding: 6px 10px; border-radius: 8px; margin-top: 8px; }
+.compass-status.passed { background: var(--green-soft); color: var(--green-text); font-weight: 600; }
+
+/* Dream editor */
+.marker-item { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+.marker-item input { flex: 1; padding: 10px; border: 1px solid var(--separator-med); border-radius: 8px; font-size: 15px; font-family: inherit; background: var(--input-bg); outline: none; color: var(--text); }
+.marker-del { width: 36px; height: 36px; border: none; border-radius: 8px; background: var(--input-bg); color: var(--red); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+.insight-icon { font-size: 18px; margin-right: 6px; }
 </style>
 </head>
 <body>
@@ -486,7 +470,7 @@ input:checked + .slider:before{transform:translateX(18px)}
             Сохранено
           </div>
         </div>
-        <div class="topbar-meta"><span class="time-mono" id="clock">--:--</span><span>·</span><span id="datestr">—</span></div>
+        <div class="topbar-meta"><span class="time-mono" id="clock">--:--:--</span><span>·</span><span id="datestr">—</span></div>
       </div>
       <button class="icon-btn" onclick="manualSyncWithUI(this)" title="Синхронизировать">
         <svg class="sync-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -580,12 +564,9 @@ input:checked + .slider:before{transform:translateX(18px)}
         </div>
         <div class="card tight" id="habits-today"></div>
         
-        <button class="weekly-cta" onclick="openWeeklySurvey()" style="width:100%;display:flex;align-items:center;gap:14px;background:var(--card);border:none;border-radius:12px;padding:14px;margin:10px 0;cursor:pointer;">
-          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--indigo),var(--purple));display:flex;align-items:center;justify-content:center;color:#fff;">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
-          </div>
-          <div style="flex:1;text-align:left;"><div style="font-size:14px;font-weight:600;color:var(--text);">Большой опрос (на неделю)</div><div style="font-size:12px;color:var(--text-sec);margin-top:2px;">Глубокий анализ · 5-10 мин</div></div>
-        </button>
+        <div id="dream-card-container"></div>
+
+        <div id="weekly-survey-container"></div>
 
         <div class="card quote-card" style="padding:16px;text-align:center;font-style:italic;color:var(--text-sec);font-size:13px;line-height:1.5;">
           <div class="quote-text" id="quote-text" style="margin-bottom:4px;"></div>
@@ -649,14 +630,24 @@ input:checked + .slider:before{transform:translateX(18px)}
       <section id="screen-stats" class="screen">
         <div id="stats-summary" class="card" style="padding:12px 16px;text-align:center;color:var(--text-sec);font-size:13px;"></div>
 
+        <div class="section-title">🎯 Инсайты о тебе</div>
+        <div class="card" id="auto-insights"></div>
+
+        <div class="section-title">🌟 Прогресс к мечте</div>
+        <div class="card" id="dream-progress"></div>
+
         <div class="section-title">📊 Аналитика (14 дней)</div>
         <div class="card">
           <div id="chart-mood-prod"></div>
           <div class="chart-legend" style="display:flex;gap:16px;justify-content:center;font-size:12px;color:var(--text-sec);margin-top:6px;flex-wrap:wrap;">
-            <span><span class="dot" style="background:var(--td-orange)"></span>Среднее настроение</span>
+            <span><span class="dot" style="background:var(--td-orange)"></span>Настроение</span>
             <span><span class="dot" style="background:var(--td-blue)"></span>Продуктивность</span>
+            <span><span class="dot" style="background:var(--pink)"></span>Тревога</span>
           </div>
         </div>
+
+        <div class="section-title">📈 Тренды (4 недели)</div>
+        <div class="card" id="trends-4w"></div>
         
         <div class="section-title">Ключевые метрики (7 дней)</div>
         <div class="stat-grid" id="stats-grid"></div>
@@ -732,15 +723,8 @@ input:checked + .slider:before{transform:translateX(18px)}
 <div class="toast" id="toast"></div>
 
 <script>
-// Защита от зависания заставки
-setTimeout(() => { 
-  const splash = document.getElementById('splash');
-  if (splash) splash.classList.add('hidden'); 
-}, 2500);
-
-document.getElementById('splash').addEventListener('click', () => {
-  document.getElementById('splash').classList.add('hidden');
-});
+setTimeout(() => { const splash = document.getElementById('splash'); if (splash) splash.classList.add('hidden'); }, 2500);
+document.getElementById('splash').addEventListener('click', () => { document.getElementById('splash').classList.add('hidden'); });
 
 // ============ Service Worker (PWA) ============
 if ('serviceWorker' in navigator) {
@@ -749,19 +733,17 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// ============ Apple Touch Icon (PNG, iOS-friendly) ============
+// ============ Apple Touch Icon ============
 function generateAppleIcon() {
   try {
     const canvas = document.createElement('canvas');
     canvas.width = 180; canvas.height = 180;
     const ctx = canvas.getContext('2d');
     const s = 180 / 512;
-    // Rounded background
     const r = 115 * s;
     ctx.fillStyle = '#3E1728';
     ctx.beginPath();
-    ctx.moveTo(r, 0);
-    ctx.lineTo(180 - r, 0);
+    ctx.moveTo(r, 0); ctx.lineTo(180 - r, 0);
     ctx.quadraticCurveTo(180, 0, 180, r);
     ctx.lineTo(180, 180 - r);
     ctx.quadraticCurveTo(180, 180, 180 - r, 180);
@@ -769,14 +751,11 @@ function generateAppleIcon() {
     ctx.quadraticCurveTo(0, 180, 0, 180 - r);
     ctx.lineTo(0, r);
     ctx.quadraticCurveTo(0, 0, r, 0);
-    ctx.closePath();
-    ctx.fill();
-    // Head circle
+    ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#F2A0C0';
     ctx.beginPath();
     ctx.arc(256 * s, 150 * s, 42 * s, 0, Math.PI * 2);
     ctx.fill();
-    // Wave
     ctx.strokeStyle = '#F2A0C0';
     ctx.lineWidth = 32 * s;
     ctx.lineCap = 'round';
@@ -813,7 +792,7 @@ function playSound(type) {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
     osc.connect(gain); gain.connect(audioCtx.destination);
-    if (type === 'success') { osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); } 
+    if (type === 'success') { osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); }
     else { osc.type = 'sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime); gain.gain.setValueAtTime(0.05, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); }
     osc.start(); osc.stop(audioCtx.currentTime + 0.3);
   } catch(e){}
@@ -858,7 +837,9 @@ const ICONS={
   flag:'<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>',
   folder:'<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
   clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-  description:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>'
+  description:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>',
+  compass:'<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>',
+  trophy:'<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
 };
 function svgIcon(name,color='currentColor',size=20){const path=ICONS[name]||ICONS.sparkle;return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`}
 const PALETTE=['#FF3B30','#FF9500','#FFCC00','#34C759','#5AC8FA','#007AFF','#5856D6','#AF52DE','#FF2D55'];
@@ -883,7 +864,6 @@ function getDynamicTitle() {
   const today = new Date(); today.setHours(0,0,0,0);
   const target = new Date(currentDate + 'T12:00:00'); target.setHours(0,0,0,0);
   const diffDays = Math.round((target - today) / 86400000);
-  
   if (diffDays === 0) return getGreeting();
   if (diffDays === -1) return 'Вчера';
   if (diffDays === -2) return 'Позавчера';
@@ -891,17 +871,13 @@ function getDynamicTitle() {
   if (diffDays === 1) return 'Завтра';
   if (diffDays === 2) return 'Послезавтра';
   if (diffDays === 3) return 'Через 3 дня';
-  
   const dow = today.getDay() || 7;
   const mondayThisWeek = new Date(today); mondayThisWeek.setDate(today.getDate() - dow + 1);
   const sundayThisWeek = new Date(mondayThisWeek); sundayThisWeek.setDate(mondayThisWeek.getDate() + 6);
-  
   if (target >= mondayThisWeek && target <= sundayThisWeek) return 'На этой неделе';
-  
   const sundayLastWeek = new Date(mondayThisWeek); sundayLastWeek.setDate(mondayThisWeek.getDate() - 1);
   const mondayLastWeek = new Date(sundayLastWeek); mondayLastWeek.setDate(sundayLastWeek.getDate() - 6);
   if (target >= mondayLastWeek && target <= sundayLastWeek) return 'На прошлой неделе';
-  
   if (target.getFullYear() === today.getFullYear()) {
     const mDiff = target.getMonth() - today.getMonth();
     if (mDiff === -1) return 'В прошлом месяце';
@@ -913,12 +889,11 @@ function getDynamicTitle() {
   } else if (target.getFullYear() === today.getFullYear() + 1) {
     return 'В следующем году';
   }
-  
   return target.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-const SEED_KEY='cantilena_seed_v4', STORAGE='cantilena_v15';
-function loadState(){let raw=null;for(const key of [STORAGE,'cantilena_v14','cantilena_v13']){try{const s=JSON.parse(localStorage.getItem(key));if(s&&Array.isArray(s.habits)){raw=s;break}}catch(e){}}const s=migrateState(raw||{});seedDefaults(s);localStorage.setItem(STORAGE,JSON.stringify(s));return s}
+const SEED_KEY='cantilena_seed_v4', STORAGE='cantilena_v16';
+function loadState(){let raw=null;for(const key of [STORAGE,'cantilena_v15','cantilena_v14','cantilena_v13']){try{const s=JSON.parse(localStorage.getItem(key));if(s&&Array.isArray(s.habits)){raw=s;break}}catch(e){}}const s=migrateState(raw||{});seedDefaults(s);localStorage.setItem(STORAGE,JSON.stringify(s));return s}
 function seedDefaults(s){if(localStorage.getItem(SEED_KEY))return;const existing=new Set(s.habits.map(h=>h.name));let order=s.habits.length;DEFAULT_HABITS.forEach(d=>{if(!existing.has(d.name)){const clone=JSON.parse(JSON.stringify(d));s.habits.push({...clone,id:uid(),checks:{},skips:{},archived:false,order:order++,createdAt:Date.now()})}});localStorage.setItem(SEED_KEY,'1')}
 function migrateState(s){
   s.surveys=s.surveys||{};s.weeklySurveys=s.weeklySurveys||{};s.theme=s.theme||'auto';
@@ -929,7 +904,7 @@ function migrateState(s){
     { id: uid(), time: '09:00', text: 'Доброе утро! Время для привычек.', enabled: true },
     { id: uid(), time: '21:00', text: 'Как прошел день? Пора заполнить дневник.', enabled: true }
   ];
-  s.moods = s.moods || {}; 
+  s.moods = s.moods || {};
   s.supabase=s.supabase||{url:'',key:'',email:'',lastSync:null};
   s.habits=(s.habits||[]).map((h,i)=>{
     let icon = h.icon || 'sparkle';
@@ -940,22 +915,25 @@ function migrateState(s){
   s.projects=s.projects||[{id:1,name:'Личное',color:'#007AFF'}];
   s.notes=(s.notes||[]).map(n=>({id:n.id||uid(),title:n.title||'Без названия',body:n.body||'',folderId:n.folderId||null,pinned:n.pinned||false,createdAt:n.createdAt||Date.now(),updatedAt:n.updatedAt||Date.now()}));
   s.noteFolders=s.noteFolders||[{id:'default',name:'Заметки',icon:'📝'}];
-  // Migration: inbox → all
   if (s.taskFilter === 'inbox') s.taskFilter = 'all';
   s.taskFilter=s.taskFilter||'today';
   s.taskAllFilter=s.taskAllFilter||'active';
   s.selectedFolder=s.selectedFolder||'all';
+  // Dream (Мечта)
+  s.dream = s.dream || { vision: '', markers: [], reviews: {}, createdAt: null, updatedAt: null };
+  if (!Array.isArray(s.dream.markers)) s.dream.markers = [];
+  if (!s.dream.reviews) s.dream.reviews = {};
   return s;
 }
 const EMOJI_TO_ICON={'🌅':'sunrise','🏃':'activity','📖':'book','🎵':'music','🌳':'tree','📚':'bookOpen','✝️':'book','☀️':'sun','🌙':'moon','💧':'droplet','❤️':'heart','🎯':'target','✍️':'pencil','☕':'coffee','✨':'sparkle'};
 let state=loadState();
 
 let saveIndicatorTimer;
-const save=()=>{ 
-  if(!state.supabase)state.supabase={}; 
-  state.supabase.lastSync=Date.now(); 
-  localStorage.setItem(STORAGE,JSON.stringify(state)); 
-  scheduleSync(); 
+const save=()=>{
+  if(!state.supabase)state.supabase={};
+  state.supabase.lastSync=Date.now();
+  localStorage.setItem(STORAGE,JSON.stringify(state));
+  scheduleSync();
   const ind = document.getElementById('save-indicator');
   if (ind) { ind.classList.add('show'); clearTimeout(saveIndicatorTimer); saveIndicatorTimer = setTimeout(() => { ind.classList.remove('show'); }, 2000); }
 };
@@ -964,42 +942,14 @@ const save=()=>{
 let startY = 0, currentY = 0, isDragging = false;
 const sheet = document.getElementById('sheet');
 const handleWrap = document.getElementById('sheet-handle-wrap');
-
-handleWrap.addEventListener('touchstart', (e) => {
-    startY = e.touches[0].clientY;
-    currentY = startY;
-    isDragging = true;
-    sheet.classList.add('dragging');
-});
-
-handleWrap.addEventListener('touchmove', (e) => {
-    if (!isDragging) return;
-    currentY = e.touches[0].clientY;
-    const diff = currentY - startY;
-    if (diff > 0) {
-        sheet.style.transform = `translateY(${diff}px)`;
-        e.preventDefault(); 
-    }
-}, { passive: false });
-
-handleWrap.addEventListener('touchend', () => {
-    if (!isDragging) return;
-    isDragging = false;
-    sheet.classList.remove('dragging');
-    const diff = currentY - startY;
-    if (diff > 80) {
-        sheet.style.transform = '';
-        closeSheet();
-    } else {
-        sheet.style.transform = '';
-    }
-    startY = 0;
-    currentY = 0;
-});
+handleWrap.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; currentY = startY; isDragging = true; sheet.classList.add('dragging'); });
+handleWrap.addEventListener('touchmove', (e) => { if (!isDragging) return; currentY = e.touches[0].clientY; const diff = currentY - startY; if (diff > 0) { sheet.style.transform = `translateY(${diff}px)`; e.preventDefault(); } }, { passive: false });
+handleWrap.addEventListener('touchend', () => { if (!isDragging) return; isDragging = false; sheet.classList.remove('dragging'); const diff = currentY - startY; if (diff > 80) { sheet.style.transform = ''; closeSheet(); } else { sheet.style.transform = ''; } startY = 0; currentY = 0; });
 
 // ============ Синхронизация ============
 let supabaseClient=null, syncTimer=null, currentUser=null, pollInterval=null;
 let lastCloudUpdate = 0; let isPushing = false;
+let askedAboutOverwrite = false;   // Спрашиваем 1 раз за сессию
 
 async function initSupabase(){
   if(!state.supabase.url || !state.supabase.key || !window.supabase){ updateSyncStatus('offline','Не настроено'); return; }
@@ -1010,14 +960,14 @@ async function initSupabase(){
     if(session){
       currentUser=session.user;
       updateSyncStatus('online','Вошли как '+(session.user.email||'???'));
-      await pullFromCloud(true, true);
+      await pullFromCloud(true, false);   // Авто — не спрашиваем
       startPolling();
     } else { updateSyncStatus('online','Не вошли'); }
     supabaseClient.auth.onAuthStateChange(async(e,s)=>{
       if(s){
         currentUser=s.user;
         updateSyncStatus('online','Вошли как '+(s.user.email||'???'));
-        await pullFromCloud(true, true);
+        await pullFromCloud(true, false);   // Авто — не спрашиваем
         startPolling();
         renderAll();
       } else {
@@ -1049,17 +999,14 @@ async function pullFromCloud(force = false, askBeforeOverwrite = false) {
   try {
     const {data, error} = await supabaseClient.from('cantilena_data').select('*').eq('user_id', currentUser.id).maybeSingle();
     if (error) throw error;
-    if (!data || !data.data || !data.data.habits) {
-      // Cloud is empty — push local data up
-      await pushToCloud();
-      return;
-    }
+    if (!data || !data.data || !data.data.habits) { await pushToCloud(); return; }
     const cloudTime = new Date(data.updated_at).getTime();
     if (force || cloudTime > lastCloudUpdate) {
-      if (askBeforeOverwrite) {
+      if (askBeforeOverwrite && !askedAboutOverwrite) {
         const localHasData = (state.habits && state.habits.length > 0) || (state.tasks && state.tasks.length > 0);
         if (localHasData) {
           const ok = confirm('В облаке есть сохранённые данные.\n\nЗагрузить их? Локальные изменения будут перезаписаны.');
+          askedAboutOverwrite = true;
           if (!ok) return;
         }
       }
@@ -1081,7 +1028,7 @@ async function pushToCloud(){
     const {error} = await supabaseClient.from('cantilena_data').upsert({ user_id: currentUser.id, data: state, updated_at: nowISO },{onConflict:'user_id'});
     if(error) throw error;
     lastCloudUpdate = new Date(nowISO).getTime();
-  } catch(e) { console.error('Sync push failed', e); } 
+  } catch(e) { console.error('Sync push failed', e); }
   finally { setTimeout(() => { isPushing = false; }, 2000); }
 }
 
@@ -1123,7 +1070,6 @@ function openSettings() {
 
   openSheet(`
     <h2>Настройки</h2>
-    
     ${loggedIn ? `
       <div class="profile-header">
         <div class="profile-avatar">${email.charAt(0).toUpperCase()}</div>
@@ -1140,43 +1086,27 @@ function openSettings() {
 
     <div class="settings-header">Синхронизация</div>
     <div class="settings-group">
-      <div class="settings-row">
-        <div class="left"><div class="icon" style="background:var(--accent);">${svgIcon('cloud','#fff',16)}</div>Supabase URL</div>
-      </div>
+      <div class="settings-row"><div class="left"><div class="icon" style="background:var(--accent);">${svgIcon('cloud','#fff',16)}</div>Supabase URL</div></div>
       <div style="padding:0 16px 12px;"><input type="text" id="sb-url" value="${escapeHtml(sb.url)}" placeholder="https://xxx.supabase.co" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--input-bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
-      
-      <div class="settings-row">
-        <div class="left"><div class="icon" style="background:var(--accent);">${svgIcon('key','#fff',16)}</div>Anon Key</div>
-      </div>
+      <div class="settings-row"><div class="left"><div class="icon" style="background:var(--accent);">${svgIcon('key','#fff',16)}</div>Anon Key</div></div>
       <div style="padding:0 16px 12px;"><input type="password" id="sb-key" value="${escapeHtml(sb.key)}" placeholder="eyJhbGciOi..." style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--input-bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
 
       ${!loggedIn ? `
-        <div class="settings-row">
-          <div class="left"><div class="icon" style="background:var(--green);">${svgIcon('mail','#fff',16)}</div>Ваш Email</div>
-        </div>
+        <div class="settings-row"><div class="left"><div class="icon" style="background:var(--green);">${svgIcon('mail','#fff',16)}</div>Ваш Email</div></div>
         <div style="padding:0 16px 12px;"><input type="email" id="sb-email" placeholder="you@mail.com" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--input-bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
-        
-        <div class="settings-row">
-          <div class="left"><div class="icon" style="background:var(--green);">${svgIcon('lock','#fff',16)}</div>Пароль</div>
-        </div>
+        <div class="settings-row"><div class="left"><div class="icon" style="background:var(--green);">${svgIcon('lock','#fff',16)}</div>Пароль</div></div>
         <div style="padding:0 16px 12px;"><input type="password" id="sb-password" placeholder="••••••••" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--input-bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
-        
         <div style="padding:12px 16px;display:flex;gap:8px;">
           <button onclick="loginWithPassword()" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--accent-soft);color:var(--accent);font-weight:600;cursor:pointer;font-family:inherit;">Войти</button>
           <button onclick="registerWithPassword()" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;font-family:inherit;">Регистрация</button>
         </div>
       ` : `
-        <div class="settings-row" onclick="manualSync()" style="cursor:pointer;">
-          <div class="left"><div class="icon" style="background:var(--green);">${svgIcon('refresh','#fff',16)}</div>Синхронизировать сейчас</div>
-          <div style="color:var(--text-tert);">›</div>
-        </div>
-        <div class="settings-row" onclick="signOut()" style="cursor:pointer;">
-          <div class="left"><div class="icon" style="background:var(--red);">${svgIcon('logout','#fff',16)}</div>Выйти</div>
-        </div>
+        <div class="settings-row" onclick="manualSync()" style="cursor:pointer;"><div class="left"><div class="icon" style="background:var(--green);">${svgIcon('refresh','#fff',16)}</div>Синхронизировать сейчас</div><div style="color:var(--text-tert);">›</div></div>
+        <div class="settings-row" onclick="signOut()" style="cursor:pointer;"><div class="left"><div class="icon" style="background:var(--red);">${svgIcon('logout','#fff',16)}</div>Выйти</div></div>
       `}
     </div>
 
-    ${notifPermission === 'unsupported' ? '' : notifPermission === 'granted' ? '' : `
+    ${notifPermission === 'unsupported' || notifPermission === 'granted' ? '' : `
       <div class="settings-header">Уведомления</div>
       <div class="settings-group">
         <div class="settings-row" onclick="requestNotificationPermission()" style="cursor:pointer;">
@@ -1191,10 +1121,7 @@ function openSettings() {
       ${state.reminders.map(r => `
         <div class="settings-row">
           <div class="left"><div class="icon" style="background:var(--orange);">${svgIcon('bell','#fff',16)}</div>
-            <div style="display:flex;flex-direction:column;">
-              <span style="font-size:15px;">${r.text}</span>
-              <span style="font-size:12px;color:var(--text-sec);">${r.time}</span>
-            </div>
+            <div style="display:flex;flex-direction:column;"><span style="font-size:15px;">${r.text}</span><span style="font-size:12px;color:var(--text-sec);">${r.time}</span></div>
           </div>
           <div style="display:flex;align-items:center;gap:10px;">
             <label class="switch" style="transform:scale(0.8);"><input type="checkbox" ${r.enabled?'checked':''} onchange="toggleReminder('${r.id}', this.checked)"><span class="slider"></span></label>
@@ -1209,20 +1136,17 @@ function openSettings() {
 
     <div class="settings-header">Звуки и тактильность</div>
     <div class="settings-group">
-      <div class="settings-row">
-        <div class="left"><div class="icon" style="background:var(--purple);">${svgIcon('musicNote','#fff',16)}</div>Звуки</div>
+      <div class="settings-row"><div class="left"><div class="icon" style="background:var(--purple);">${svgIcon('musicNote','#fff',16)}</div>Звуки</div>
         <label class="switch"><input type="checkbox" ${state.settings.sounds?'checked':''} onchange="state.settings.sounds=this.checked; save();"><span class="slider"></span></label>
       </div>
-      <div class="settings-row">
-        <div class="left"><div class="icon" style="background:var(--indigo);">${svgIcon('vibrate','#fff',16)}</div>Вибрация</div>
+      <div class="settings-row"><div class="left"><div class="icon" style="background:var(--indigo);">${svgIcon('vibrate','#fff',16)}</div>Вибрация</div>
         <label class="switch"><input type="checkbox" ${state.settings.haptics?'checked':''} onchange="state.settings.haptics=this.checked; save(); haptic('success');"><span class="slider"></span></label>
       </div>
     </div>
 
     <div class="settings-header">Внешний вид</div>
     <div class="settings-group">
-      <div class="settings-row">
-        <div class="left"><div class="icon" style="background:var(--teal);">${svgIcon('theme','#fff',16)}</div>Тема</div>
+      <div class="settings-row"><div class="left"><div class="icon" style="background:var(--teal);">${svgIcon('theme','#fff',16)}</div>Тема</div>
         <select onchange="state.theme=this.value; save(); applyTheme();" style="background:var(--bg);color:var(--text);border:none;font-size:16px;outline:none;">
           <option value="auto" ${state.theme==='auto'?'selected':''}>Авто</option>
           <option value="light" ${state.theme==='light'?'selected':''}>Светлая</option>
@@ -1231,16 +1155,14 @@ function openSettings() {
       </div>
     </div>
 
-    <div style="margin-top:20px;">
-      <button class="btn-cancel" onclick="closeSheet()">Закрыть</button>
-    </div>
+    <div style="margin-top:20px;"><button class="btn-cancel" onclick="closeSheet()">Закрыть</button></div>
   `);
 }
 
 function addReminder() {
   openSheet(`
     <h2>Новое напоминание</h2>
-    <div class="field"><label>Время</label><input type="time" id="rem-time" value="12:00" style="font-size:16px;"></div>
+    <div class="field"><label>Время</label><input type="time" id="rem-time" value="12:00" step="1" style="font-size:16px;"></div>
     <div class="field"><label>Текст</label><input type="text" id="rem-text" placeholder="Что напомнить?" style="font-size:16px;"></div>
     <div class="sheet-actions" style="display:flex;gap:8px;">
       <button class="btn-cancel" style="flex:1;margin:0;" onclick="openSettings()">Отмена</button>
@@ -1252,9 +1174,7 @@ function saveReminder() {
   const time = document.getElementById('rem-time').value;
   const text = document.getElementById('rem-text').value.trim();
   if(!time || !text) return;
-  if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
-    Notification.requestPermission();
-  }
+  if (typeof Notification !== 'undefined' && Notification.permission === 'default') Notification.requestPermission();
   state.reminders.push({ id: uid()+'', time, text, enabled: true });
   save(); openSettings();
 }
@@ -1269,7 +1189,10 @@ async function loginWithPassword(){
     if(!supabaseClient) supabaseClient=window.supabase.createClient(url,key);
     const {data, error}=await supabaseClient.auth.signInWithPassword({ email, password });
     if(error)throw error;
-    currentUser = data.user; updateSyncStatus('online', 'Вошли: ' + email); showToast('✅ Вход выполнен!'); closeSheet(); await pullFromCloud(true, true); startPolling();
+    currentUser = data.user; updateSyncStatus('online', 'Вошли: ' + email); showToast('✅ Вход выполнен!'); closeSheet();
+    askedAboutOverwrite = false;   // при ручном логине — можно спросить
+    await pullFromCloud(true, true);
+    startPolling();
   }catch(e){alert('Ошибка входа: ' + e.message)}
 }
 async function registerWithPassword(){
@@ -1281,18 +1204,24 @@ async function registerWithPassword(){
     if(!supabaseClient) supabaseClient=window.supabase.createClient(url,key);
     const {data, error}=await supabaseClient.auth.signUp({ email, password });
     if(error)throw error;
-    currentUser = data.user; updateSyncStatus('online', 'Вошли: ' + email); showToast('✅ Аккаунт создан!'); closeSheet(); startPolling();
+    currentUser = data.user; updateSyncStatus('online', 'Вошли: ' + email); showToast('✅ Аккаунт создан!'); closeSheet();
+    askedAboutOverwrite = false;
+    startPolling();
   }catch(e){alert('Ошибка регистрации: ' + e.message)}
 }
 async function signOut(){
-  if(supabaseClient) await supabaseClient.auth.signOut(); currentUser=null; if (pollInterval) clearInterval(pollInterval); updateSyncStatus('online','Не вошли'); closeSheet(); showToast('Вы вышли из аккаунта');
+  if(supabaseClient) await supabaseClient.auth.signOut(); currentUser=null;
+  if (pollInterval) clearInterval(pollInterval);
+  askedAboutOverwrite = false;
+  updateSyncStatus('online','Не вошли'); closeSheet(); showToast('Вы вышли из аккаунта');
 }
 async function manualSync(){ await pullFromCloud(false, false); await pushToCloud(); showToast('🔄 Синхронизировано'); closeSheet(); }
 
-// Проверка напоминаний — работает без авторизации (локально)
+// Проверка напоминаний — локально
 setInterval(() => {
   if (!state.reminders) return;
-  const now = new Date(); const h = now.getHours().toString().padStart(2,'0'); const m = now.getMinutes().toString().padStart(2,'0'); const currentTime = `${h}:${m}`;
+  const now = new Date(); const h = now.getHours().toString().padStart(2,'0'); const m = now.getMinutes().toString().padStart(2,'0');
+  const currentTime = `${h}:${m}`;
   const today = todayStr();
   state.reminders.forEach(r => {
     if (r.enabled && r.time === currentTime && localStorage.getItem('rem_' + r.id + '_' + today) !== '1') {
@@ -1304,9 +1233,8 @@ setInterval(() => {
   });
 }, 60000);
 
-// ============ Логика приложения ============
+// ============ Логика ============
 function applyTheme(){const sysDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;const dark=state.theme==='dark'||(state.theme==='auto'&&sysDark);document.documentElement.setAttribute('data-theme',dark?'dark':'light')}
-function cycleTheme(){const order=['auto','light','dark'];state.theme=order[(order.indexOf(state.theme)+1)%3];save();applyTheme();haptic()}
 applyTheme(); if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyTheme);
 function isoWeek(d=new Date()){const dt=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const dayNum=dt.getUTCDay()||7;dt.setUTCDate(dt.getUTCDate()+4-dayNum);const yearStart=new Date(Date.UTC(dt.getUTCFullYear(),0,1));const weekNo=Math.ceil((((dt-yearStart)/86400000)+1)/7);return `${dt.getUTCFullYear()}-W${String(weekNo).padStart(2,'0')}`}
 
@@ -1316,11 +1244,8 @@ function updateTopbar(){
   const active=document.querySelector('.screen.active');
   const id=active?active.id.replace('screen-',''):'today';
   const titleEl=document.getElementById('topbar-title');
-  if(id==='today'){
-    titleEl.textContent = getDynamicTitle();
-  } else {
-    titleEl.textContent = TITLES[id];
-  }
+  if(id==='today'){ titleEl.textContent = getDynamicTitle(); }
+  else { titleEl.textContent = TITLES[id]; }
 }
 function switchTab(name){
   if(currentNoteId)saveCurrentNote();
@@ -1335,23 +1260,21 @@ function switchTab(name){
   renderAll();
 }
 document.querySelectorAll('.tab, .sidebar-nav button').forEach(tab=>tab.onclick=()=>switchTab(tab.dataset.tab));
-function tickClock(){const now=new Date();document.getElementById('clock').textContent=now.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});document.getElementById('datestr').textContent=now.toLocaleDateString('ru-RU',{weekday:'short',day:'numeric',month:'short'});updateTopbar()}
-setInterval(tickClock,30000);tickClock();
+
+// Часы с секундами — обновление каждую секунду
+function tickClock(){
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('ru-RU', {
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
+  document.getElementById('datestr').textContent = now.toLocaleDateString('ru-RU', {weekday:'short',day:'numeric',month:'short'});
+  updateTopbar();
+}
+setInterval(tickClock, 1000); tickClock();
 
 function openSheet(html){document.getElementById('sheet-content').innerHTML=html;document.getElementById('sheet').classList.add('open');document.getElementById('backdrop').classList.add('open');document.getElementById('sheet').scrollTop=0}
-function closeSheet(){
-  closePopover();
-  const s=document.getElementById('sheet');
-  s.classList.remove('open');
-  document.getElementById('backdrop').classList.remove('open');
-  s.style.transform='';
-}
-
-// ============ Popover (всплывающие меню поверх sheet) ============
-function closePopover(){
-  const p = document.getElementById('popover-overlay');
-  if (p) p.classList.remove('open');
-}
+function closeSheet(){ closePopover(); const s=document.getElementById('sheet'); s.classList.remove('open'); document.getElementById('backdrop').classList.remove('open'); s.style.transform=''; }
+function closePopover(){ const p = document.getElementById('popover-overlay'); if (p) p.classList.remove('open'); }
 
 // ============ Привычки ============
 function isScheduledOn(h,dateStr){const d=new Date(dateStr+'T12:00:00');const sch=h.schedule||{type:'daily'};if(sch.type==='daily')return true;if(sch.type==='weekdays')return(sch.days||[]).includes(d.getDay());if(sch.type==='interval'){const start=new Date((sch.startDate||h.createdAt)+'T12:00:00');const diff=Math.floor((d-start)/86400000);return diff>=0&&diff%(sch.interval||2)===0}return true}
@@ -1377,35 +1300,20 @@ function renderHabitsToday(){
 }
 
 function toggleHabit(id,el){
-  const h=state.habits.find(x=>x.id===id);
-  if(!h)return;
+  const h=state.habits.find(x=>x.id===id); if(!h)return;
   const t=currentDate;
   if(h.skips&&h.skips[t]){delete h.skips[t];save();renderAll();return}
   const wasDone=isHabitDoneForDate(h,t);
-  if(h.schedule.type==='weekly'){
-    if((h.checks[t]||0)>0)delete h.checks[t];else h.checks[t]=1
-  }else{
-    const cur=h.checks[t]||0;
-    if(cur>=h.target)delete h.checks[t];else h.checks[t]=cur+1
-  }
+  if(h.schedule.type==='weekly'){ if((h.checks[t]||0)>0)delete h.checks[t];else h.checks[t]=1 }
+  else { const cur=h.checks[t]||0; if(cur>=h.target)delete h.checks[t];else h.checks[t]=cur+1 }
   const nowDone=isHabitDoneForDate(h,t);
-  
   if(nowDone && !wasDone){
-    haptic('success');
-    playSound('success');
-    if(el){
-      el.classList.add('checking');
-      const row = el.closest('.habit-row');
-      if(row) row.classList.add('completing');
-    }
-    save();
-    setTimeout(()=>{ renderAll(); }, 500);
-    return;
+    haptic('success'); playSound('success');
+    if(el){ el.classList.add('checking'); const row = el.closest('.habit-row'); if(row) row.classList.add('completing'); }
+    save(); setTimeout(()=>{ renderAll(); }, 500); return;
   }
-  
   if(el){el.classList.add('checking');setTimeout(()=>el.classList.remove('checking'),400);}
-  save();
-  renderAll();
+  save(); renderAll();
 }
 
 function openHabitDetail(id){
@@ -1476,14 +1384,12 @@ function taskRowHTML(t,dateStr=currentDate,opts={}){
   const timeLabel = t.startTime ? '⏰ '+t.startTime : '';
   const durLabel = t.duration ? '⏱ '+formatDuration(t.duration) : '';
   const recurLabel = t.recurrence ? '🔁 '+({daily:'каждый день',weekdays:'будни',weekly:'еженед.'}[t.recurrence]) : '';
-  
   let dateClass = '';
   if (t.date) {
     if (t.date < todayStr()) dateClass = 'overdue';
     else if (t.date === todayStr()) dateClass = 'today';
     else dateClass = 'future';
   }
-
   return `<div class="task-row" data-task-id="${t.id}">
     <div class="check-circle ${done?'done':''} p${t.priority}" onclick="event.stopPropagation();toggleTask(${t.id},'${dateStr}',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1505,102 +1411,61 @@ function formatDuration(min){if(min<60)return min+' мин';const h=Math.floor(m
 function formatTaskDate(d){const today=todayStr();const tom=new Date();tom.setDate(tom.getDate()+1);if(d===today)return'Сегодня';if(d===tom.toISOString().slice(0,10))return'Завтра';return new Date(d+'T00:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'short'})}
 
 function toggleTask(id,dateStr=currentDate,el){
-  const t=state.tasks.find(x=>x.id===id);
-  if(!t)return;
+  const t=state.tasks.find(x=>x.id===id); if(!t)return;
   const wasDone=isTaskDoneOn(t,dateStr);
   if(t.recurrence)t.completions[dateStr]=!t.completions[dateStr];else t.done=!t.done;
   const nowDone=isTaskDoneOn(t,dateStr);
-  
   if(nowDone && !wasDone){
-    haptic('success');
-    playSound('success');
-    if(el){
-      el.classList.add('checking');
-      const row = el.closest('.task-row');
-      if(row) row.classList.add('completing');
-    }
-    save();
-    setTimeout(()=>{ renderAll(); }, 500);
-    return;
+    haptic('success'); playSound('success');
+    if(el){ el.classList.add('checking'); const row = el.closest('.task-row'); if(row) row.classList.add('completing'); }
+    save(); setTimeout(()=>{ renderAll(); }, 500); return;
   }
-  
   if(el){el.classList.add('checking');setTimeout(()=>el.classList.remove('checking'),400);}
-  save();
-  renderAll();
+  save(); renderAll();
 }
+function removeTask(id){ if(!confirm('Удалить задачу?')) return; state.tasks=state.tasks.filter(t=>t.id!==id); haptic(); save(); renderAll(); }
 
-function removeTask(id){
-  if(!confirm('Удалить задачу?')) return;
-  state.tasks=state.tasks.filter(t=>t.id!==id);
-  haptic();
-  save();
-  renderAll();
-}
-
-// ============ НОВЫЙ РЕДАКТОР ЗАДАЧ ============
 let editingTaskId=null;
-
 function openTaskEditor(id){
   editingTaskId = id || null;
-  const t = id ? state.tasks.find(x => x.id === id) : {
-    title: '', description: '', date: currentDate, startTime: null,
-    duration: null, priority: 4, projectId: null, subtasks: [], tags: [],
-    recurrence: null, completions: {}
-  };
-  
+  const t = id ? state.tasks.find(x => x.id === id) : { title: '', description: '', date: currentDate, startTime: null, duration: null, priority: 4, projectId: null, subtasks: [], tags: [], recurrence: null, completions: {} };
   const project = t.projectId ? state.projects.find(p => p.id === t.projectId) : null;
   const prioLabel = t.priority < 4 ? 'P' + t.priority : 'Приоритет';
   const prioClass = t.priority < 4 ? 'p' + t.priority : '';
-  
   openSheet(`
     <div class="td-editor">
       <input type="text" id="t-title" class="td-title-input" value="${escapeHtml(t.title)}" placeholder="Название задачи" autocomplete="off">
       <input type="text" id="t-desc" class="td-desc-input" value="${escapeHtml(t.description || '')}" placeholder="Описание" autocomplete="off">
-      
       <div class="td-toolbar">
         <button type="button" class="td-btn date-btn" id="chip-date" onclick="document.getElementById('t-date').showPicker && document.getElementById('t-date').showPicker()">
           ${svgIcon('calendar', 'currentColor', 14)}
           <span id="chip-date-text">${t.date ? formatTaskDate(t.date) : 'Дата'}</span>
           <input type="date" id="t-date" value="${t.date||''}" onchange="updateTaskChipDate(this.value)">
         </button>
-        
         <button type="button" class="td-btn prio-btn ${prioClass}" id="chip-prio" onclick="openPriorityPicker()">
           ${svgIcon('flag', 'currentColor', 14)}
           <span id="chip-prio-text">${prioLabel}</span>
         </button>
-        
         <button type="button" class="td-btn project-btn" onclick="openProjectPicker()">
           <span class="project-dot" id="chip-project-dot" style="background:${project?.color || 'var(--text-tert)'}"></span>
           <span id="chip-project-text">${project?.name || 'Проект'}</span>
         </button>
       </div>
-      
       <div class="td-detail-row">
-        <div class="td-detail-item">
-          ${svgIcon('clock','currentColor',14)}
-          <input type="time" id="t-time" value="${t.startTime||''}">
-        </div>
-        <div class="td-detail-item">
-          ${svgIcon('target','currentColor',14)}
-          <input type="number" id="t-duration" min="0" max="1440" step="5" value="${t.duration||''}" placeholder="0">
-          <span>мин</span>
-        </div>
+        <div class="td-detail-item">${svgIcon('clock','currentColor',14)}<input type="time" id="t-time" value="${t.startTime||''}"></div>
+        <div class="td-detail-item">${svgIcon('target','currentColor',14)}<input type="number" id="t-duration" min="0" max="1440" step="5" value="${t.duration||''}" placeholder="0"><span>мин</span></div>
       </div>
-      
       <div class="td-actions">
         <button class="btn-cancel" style="width:auto;margin:0;padding:10px 20px;" onclick="closeSheet()">Отмена</button>
         <button class="btn-save-task" onclick="saveTask()">Сохранить</button>
       </div>
     </div>
-    
     <input type="hidden" id="t-priority" value="${t.priority}">
     <input type="hidden" id="t-project" value="${t.projectId || ''}">
   `);
-  
   updateTaskChipDate(t.date || '');
   setTimeout(() => { const el = document.getElementById('t-title'); if (el) el.focus(); }, 100);
 }
-
 function updateTaskChipDate(val){
   const chipText = document.getElementById('chip-date-text');
   const chip = document.getElementById('chip-date');
@@ -1612,23 +1477,15 @@ function updateTaskChipDate(val){
   else if(val < todayStr()) chip.classList.add('overdue');
   else chip.classList.add('future');
 }
-
 function openPriorityPicker(){
   const cur = +document.getElementById('t-priority').value;
   const content = document.getElementById('popover-content');
   content.innerHTML = `
     <h4 style="padding: 4px 12px 8px; font-size: 11px; color: var(--text-sec); font-weight: 700; text-transform: uppercase; letter-spacing: .5px;">Приоритет</h4>
-    ${[1,2,3,4].map(p => `
-      <div class="popover-item ${cur===p?'active':''}" onclick="pickPriority(${p})">
-        <div class="flag-icon" style="background:${p===1?'var(--td-red)':p===2?'var(--td-orange)':p===3?'var(--td-blue)':'transparent'};${p===4?'border:1px solid var(--text-sec)':''}"></div>
-        <span>P${p} — ${p===1?'Срочный':p===2?'Высокий':p===3?'Средний':'Без приоритета'}</span>
-        ${cur===p?'<span style="margin-left:auto;color:var(--td-green);font-weight:700;">✓</span>':''}
-      </div>
-    `).join('')}
+    ${[1,2,3,4].map(p => `<div class="popover-item ${cur===p?'active':''}" onclick="pickPriority(${p})"><div class="flag-icon" style="background:${p===1?'var(--td-red)':p===2?'var(--td-orange)':p===3?'var(--td-blue)':'transparent'};${p===4?'border:1px solid var(--text-sec)':''}"></div><span>P${p} — ${p===1?'Срочный':p===2?'Высокий':p===3?'Средний':'Без приоритета'}</span>${cur===p?'<span style="margin-left:auto;color:var(--td-green);font-weight:700;">✓</span>':''}</div>`).join('')}
   `;
   document.getElementById('popover-overlay').classList.add('open');
 }
-
 function pickPriority(p){
   document.getElementById('t-priority').value = p;
   const chip = document.getElementById('chip-prio');
@@ -1637,45 +1494,26 @@ function pickPriority(p){
   text.textContent = p < 4 ? 'P' + p : 'Приоритет';
   closePopover();
 }
-
 function openProjectPicker(){
   const cur = document.getElementById('t-project').value;
   const content = document.getElementById('popover-content');
   content.innerHTML = `
     <h4 style="padding: 4px 12px 8px; font-size: 11px; color: var(--text-sec); font-weight: 700; text-transform: uppercase; letter-spacing: .5px;">Проект</h4>
-    <div class="popover-item ${!cur?'active':''}" onclick="pickProject('')">
-      <span class="project-dot" style="background:var(--text-tert)"></span>
-      <span>Без проекта</span>
-      ${!cur?'<span style="margin-left:auto;color:var(--td-green);font-weight:700;">✓</span>':''}
-    </div>
-    ${state.projects.map(p => `
-      <div class="popover-item ${+cur===p.id?'active':''}" onclick="pickProject('${p.id}')">
-        <span class="project-dot" style="background:${p.color}"></span>
-        <span>${escapeHtml(p.name)}</span>
-        ${+cur===p.id?'<span style="margin-left:auto;color:var(--td-green);font-weight:700;">✓</span>':''}
-      </div>
-    `).join('')}
+    <div class="popover-item ${!cur?'active':''}" onclick="pickProject('')"><span class="project-dot" style="background:var(--text-tert)"></span><span>Без проекта</span>${!cur?'<span style="margin-left:auto;color:var(--td-green);font-weight:700;">✓</span>':''}</div>
+    ${state.projects.map(p => `<div class="popover-item ${+cur===p.id?'active':''}" onclick="pickProject('${p.id}')"><span class="project-dot" style="background:${p.color}"></span><span>${escapeHtml(p.name)}</span>${+cur===p.id?'<span style="margin-left:auto;color:var(--td-green);font-weight:700;">✓</span>':''}</div>`).join('')}
   `;
   document.getElementById('popover-overlay').classList.add('open');
 }
-
 function pickProject(id){
   document.getElementById('t-project').value = id;
   const dot = document.getElementById('chip-project-dot');
   const text = document.getElementById('chip-project-text');
-  if(!id){
-    dot.style.background = 'var(--text-tert)';
-    text.textContent = 'Проект';
-  } else {
-    const p = state.projects.find(x => x.id === +id);
-    if(p){ dot.style.background = p.color; text.textContent = p.name; }
-  }
+  if(!id){ dot.style.background = 'var(--text-tert)'; text.textContent = 'Проект'; }
+  else { const p = state.projects.find(x => x.id === +id); if(p){ dot.style.background = p.color; text.textContent = p.name; } }
   closePopover();
 }
-
 function saveTask(){
-  const title=document.getElementById('t-title').value.trim();
-  if(!title){alert('Введите название');return}
+  const title=document.getElementById('t-title').value.trim(); if(!title){alert('Введите название');return}
   const description=document.getElementById('t-desc').value.trim();
   const date=document.getElementById('t-date').value||null;
   const startTime=document.getElementById('t-time').value||null;
@@ -1683,21 +1521,11 @@ function saveTask(){
   const priority=parseInt(document.getElementById('t-priority').value)||4;
   const projVal=document.getElementById('t-project').value;
   const projectId=projVal?parseInt(projVal):null;
-  
-  if(editingTaskId){
-    const t=state.tasks.find(x=>x.id===editingTaskId);
-    Object.assign(t,{title,description,date,startTime,duration,priority,projectId})
-  }else{
-    state.tasks.push({id:uid(),title,description,done:false,date,startTime,duration,priority,projectId,subtasks:[],tags:[],recurrence:null,completions:{},createdAt:Date.now()})
-  }
-  haptic('success');
-  playSound('success');
-  save();
-  closeSheet();
-  renderAll();
+  if(editingTaskId){ const t=state.tasks.find(x=>x.id===editingTaskId); Object.assign(t,{title,description,date,startTime,duration,priority,projectId}) }
+  else { state.tasks.push({id:uid(),title,description,done:false,date,startTime,duration,priority,projectId,subtasks:[],tags:[],recurrence:null,completions:{},createdAt:Date.now()}) }
+  haptic('success'); playSound('success'); save(); closeSheet(); renderAll();
 }
 
-// ============ РЕНДЕР ЗАДАЧ ============
 let taskWeekOffset = 0;
 
 function renderTasks(){
@@ -1705,204 +1533,93 @@ function renderTasks(){
   const content = document.getElementById('tasks-content');
   const today = currentDate;
   const realToday = todayStr();
-  
   const todayTasks = state.tasks.filter(t => t.recurrence ? (matchesRecurrence(t, today) && !isTaskDoneOn(t, today)) : (t.date === today && !t.done));
   const allActive = state.tasks.filter(t => !isTaskDoneOn(t, realToday));
-  
   const filters = [
     {id:'today', label:'Сегодня', count: todayTasks.length},
     {id:'week', label:'Неделя', count: null},
     {id:'all', label:'Все', count: allActive.length},
     {id:'projects', label:'Проекты', count: state.projects.length}
   ];
-  
-  filtersEl.innerHTML = filters.map(f => 
-    `<button class="filter-pill ${state.taskFilter === f.id ? 'active' : ''}" onclick="setTaskFilter('${f.id}')">${f.label}${f.count !== null ? ` <span class="count">${f.count}</span>` : ''}</button>`
-  ).join('');
-  
-  // ===== Проекты =====
+  filtersEl.innerHTML = filters.map(f => `<button class="filter-pill ${state.taskFilter === f.id ? 'active' : ''}" onclick="setTaskFilter('${f.id}')">${f.label}${f.count !== null ? ` <span class="count">${f.count}</span>` : ''}</button>`).join('');
   if (state.taskFilter === 'projects') {
     content.innerHTML = `
       <div style="display:flex;gap:8px;margin-bottom:8px;">
         <input id="new-project" placeholder="Новый проект" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--card);color:var(--text);outline:none;font-size:16px;height:42px;" onkeydown="if(event.key==='Enter')addProject()">
         <button onclick="addProject()" style="padding:10px 18px;background:var(--td-red);color:#fff;border:none;border-radius:10px;font-size:18px;cursor:pointer;">+</button>
       </div>
-      ${state.projects.map(p => {
-        const c = state.tasks.filter(t => t.projectId === p.id && !isTaskDoneOn(t, realToday)).length;
-        return `<div class="card flat" style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="openProject(${p.id})">
-          <span style="width:12px;height:12px;border-radius:3px;background:${p.color};"></span>
-          <div style="flex:1;font-weight:600;">${escapeHtml(p.name)}</div>
-          <span style="color:var(--text-sec);font-size:13px;">${c}</span>
-        </div>`;
-      }).join('')}
+      ${state.projects.map(p => { const c = state.tasks.filter(t => t.projectId === p.id && !isTaskDoneOn(t, realToday)).length; return `<div class="card flat" style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="openProject(${p.id})"><span style="width:12px;height:12px;border-radius:3px;background:${p.color};"></span><div style="flex:1;font-weight:600;">${escapeHtml(p.name)}</div><span style="color:var(--text-sec);font-size:13px;">${c}</span></div>`; }).join('')}
     `;
     return;
   }
-  
-  // ===== Неделя (Upcoming) =====
   if (state.taskFilter === 'week') {
     content.innerHTML = renderWeekView().html;
     return;
   }
-  
-  // ===== Все с подфильтрами =====
   if (state.taskFilter === 'all') {
     const allFilter = state.taskAllFilter || 'active';
-    const subchips = `
-      <div class="all-subfilters">
-        <button class="subfilter-chip ${allFilter === 'active' ? 'active' : ''}" onclick="setAllFilter('active')">Активные</button>
-        <button class="subfilter-chip ${allFilter === 'overdue' ? 'active' : ''}" onclick="setAllFilter('overdue')">Просроченные</button>
-        <button class="subfilter-chip ${allFilter === 'no-date' ? 'active' : ''}" onclick="setAllFilter('no-date')">Без даты</button>
-        <button class="subfilter-chip ${allFilter === 'done' ? 'active' : ''}" onclick="setAllFilter('done')">Выполненные</button>
-      </div>
-    `;
-    
+    const subchips = `<div class="all-subfilters">
+      <button class="subfilter-chip ${allFilter === 'active' ? 'active' : ''}" onclick="setAllFilter('active')">Активные</button>
+      <button class="subfilter-chip ${allFilter === 'overdue' ? 'active' : ''}" onclick="setAllFilter('overdue')">Просроченные</button>
+      <button class="subfilter-chip ${allFilter === 'no-date' ? 'active' : ''}" onclick="setAllFilter('no-date')">Без даты</button>
+      <button class="subfilter-chip ${allFilter === 'done' ? 'active' : ''}" onclick="setAllFilter('done')">Выполненные</button>
+    </div>`;
     let tasks = [];
-    if (allFilter === 'active') {
-      tasks = state.tasks.filter(t => !t.done && !t.recurrence);
-    } else if (allFilter === 'overdue') {
-      tasks = state.tasks.filter(t => !t.done && t.date && t.date < realToday && !t.recurrence);
-    } else if (allFilter === 'no-date') {
-      tasks = state.tasks.filter(t => !t.done && !t.date && !t.recurrence);
-    } else {
-      tasks = state.tasks.filter(t => t.done || (t.recurrence && Object.values(t.completions || {}).some(Boolean)));
-    }
-    
-    tasks.sort((a, b) => {
-      if (a.priority !== b.priority) return a.priority - b.priority;
-      if (a.date && b.date) return a.date.localeCompare(b.date);
-      if (a.date) return -1;
-      if (b.date) return 1;
-      return 0;
-    });
-    
-    content.innerHTML = subchips + (tasks.length 
-      ? `<div class="card tight">${tasks.map(t => taskRowHTML(t, t.date || realToday)).join('')}</div>` 
-      : `<div class="card"><div class="empty-hint">Нет задач в этой категории.</div></div>`);
+    if (allFilter === 'active') tasks = state.tasks.filter(t => !t.done && !t.recurrence);
+    else if (allFilter === 'overdue') tasks = state.tasks.filter(t => !t.done && t.date && t.date < realToday && !t.recurrence);
+    else if (allFilter === 'no-date') tasks = state.tasks.filter(t => !t.done && !t.date && !t.recurrence);
+    else tasks = state.tasks.filter(t => t.done || (t.recurrence && Object.values(t.completions || {}).some(Boolean)));
+    tasks.sort((a, b) => { if (a.priority !== b.priority) return a.priority - b.priority; if (a.date && b.date) return a.date.localeCompare(b.date); if (a.date) return -1; if (b.date) return 1; return 0; });
+    content.innerHTML = subchips + (tasks.length ? `<div class="card tight">${tasks.map(t => taskRowHTML(t, t.date || realToday)).join('')}</div>` : `<div class="card"><div class="empty-hint">Нет задач в этой категории.</div></div>`);
     return;
   }
-  
-  // ===== Сегодня =====
   let tasks = state.tasks.filter(t => t.recurrence ? matchesRecurrence(t, today) : t.date === today);
-  tasks.sort((a, b) => {
-    const aDone = isTaskDoneOn(a, today) ? 1 : 0;
-    const bDone = isTaskDoneOn(b, today) ? 1 : 0;
-    if (aDone !== bDone) return aDone - bDone;
-    if (a.priority !== b.priority) return a.priority - b.priority;
-    if (a.startTime && b.startTime) return a.startTime.localeCompare(b.startTime);
-    return 0;
-  });
-  
-  content.innerHTML = tasks.length
-    ? `<div class="card tight">${tasks.map(t => taskRowHTML(t, today)).join('')}</div>`
-    : `<div class="card"><div class="empty-hint">Задач нет.<br>Нажмите +, чтобы добавить.</div></div>`;
+  tasks.sort((a, b) => { const aDone = isTaskDoneOn(a, today) ? 1 : 0; const bDone = isTaskDoneOn(b, today) ? 1 : 0; if (aDone !== bDone) return aDone - bDone; if (a.priority !== b.priority) return a.priority - b.priority; if (a.startTime && b.startTime) return a.startTime.localeCompare(b.startTime); return 0; });
+  content.innerHTML = tasks.length ? `<div class="card tight">${tasks.map(t => taskRowHTML(t, today)).join('')}</div>` : `<div class="card"><div class="empty-hint">Задач нет.<br>Нажмите +, чтобы добавить.</div></div>`;
 }
 
-// ===== Week view (Upcoming) =====
 function renderWeekView() {
   const realToday = todayStr();
-  const monday = new Date();
-  monday.setHours(0,0,0,0);
+  const monday = new Date(); monday.setHours(0,0,0,0);
   const dow = monday.getDay() || 7;
   monday.setDate(monday.getDate() - dow + 1 + taskWeekOffset * 7);
   const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
-  
   let label;
   if (taskWeekOffset === 0) label = 'Текущая неделя';
   else if (taskWeekOffset === 1) label = 'Следующая неделя';
   else if (taskWeekOffset === -1) label = 'Прошлая неделя';
   else if (taskWeekOffset === 2) label = 'Через неделю';
   else if (taskWeekOffset === -2) label = 'Две недели назад';
-  else {
-    const fmt = d => `${d.getDate()}.${String(d.getMonth()+1).padStart(2,'0')}`;
-    label = `${fmt(monday)} – ${fmt(sunday)}`;
-  }
-  
-  let html = `
-    <div class="week-nav">
-      <button class="week-nav-btn" onclick="changeTaskWeek(-1)">‹</button>
-      <div class="week-nav-label">${label}</div>
-      <button class="week-nav-btn" onclick="changeTaskWeek(1)">›</button>
-    </div>
-  `;
-  
+  else { const fmt = d => `${d.getDate()}.${String(d.getMonth()+1).padStart(2,'0')}`; label = `${fmt(monday)} – ${fmt(sunday)}`; }
+  let html = `<div class="week-nav"><button class="week-nav-btn" onclick="changeTaskWeek(-1)">‹</button><div class="week-nav-label">${label}</div><button class="week-nav-btn" onclick="changeTaskWeek(1)">›</button></div>`;
   const monthsShort = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
-  
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday); d.setDate(monday.getDate() + i);
     const dateStr = d.toISOString().slice(0, 10);
     const isToday = dateStr === realToday;
     const isPast = dateStr < realToday;
-    
-    const dayTasks = state.tasks.filter(t => {
-      if (t.recurrence) return matchesRecurrence(t, dateStr);
-      return t.date === dateStr;
-    });
-    dayTasks.sort((a, b) => {
-      const aDone = isTaskDoneOn(a, dateStr) ? 1 : 0;
-      const bDone = isTaskDoneOn(b, dateStr) ? 1 : 0;
-      if (aDone !== bDone) return aDone - bDone;
-      if (a.priority !== b.priority) return a.priority - b.priority;
-      return 0;
-    });
-    
+    const dayTasks = state.tasks.filter(t => { if (t.recurrence) return matchesRecurrence(t, dateStr); return t.date === dateStr; });
+    dayTasks.sort((a, b) => { const aDone = isTaskDoneOn(a, dateStr) ? 1 : 0; const bDone = isTaskDoneOn(b, dateStr) ? 1 : 0; if (aDone !== bDone) return aDone - bDone; if (a.priority !== b.priority) return a.priority - b.priority; return 0; });
     const dayName = WEEKDAYS_LONG[d.getDay()];
     const dayNum = d.getDate();
     const monthName = monthsShort[d.getMonth()];
-    
     html += `<div class="week-day ${isToday ? 'today' : ''} ${isPast ? 'past' : ''}">
       <div class="week-day-header">
         <span class="week-day-name">${dayName}</span>
         <span class="week-day-date">${dayNum} ${monthName}</span>
         ${isToday ? '<span class="week-day-badge">Сегодня</span>' : ''}
       </div>
-      <div class="week-day-tasks">
-        ${dayTasks.length ? dayTasks.map(t => taskRowHTML(t, dateStr, {hideDate: true})).join('') : '<div class="week-day-empty">Нет задач</div>'}
-      </div>
+      <div class="week-day-tasks">${dayTasks.length ? dayTasks.map(t => taskRowHTML(t, dateStr, {hideDate: true})).join('') : '<div class="week-day-empty">Нет задач</div>'}</div>
     </div>`;
   }
-  
   return { html };
 }
-
-function changeTaskWeek(dir) {
-  taskWeekOffset += dir;
-  haptic();
-  renderTasks();
-}
-
+function changeTaskWeek(dir) { taskWeekOffset += dir; haptic(); renderTasks(); }
 function setTaskFilter(f){state.taskFilter=f;haptic();save();renderTasks()}
 function setAllFilter(f){state.taskAllFilter=f;haptic();save();renderTasks()}
-
-function openProject(id){
-  const p=state.projects.find(x=>x.id===id);
-  const tasks=state.tasks.filter(t=>t.projectId===id);
-  openSheet(`
-    <h2>${escapeHtml(p.name)}</h2>
-    <div class="card tight" style="margin-bottom:12px;">${tasks.length?tasks.map(t=>taskRowHTML(t, t.date || todayStr())).join(''):'<div class="empty-hint">Задач нет</div>'}</div>
-    <div class="sheet-actions">
-      <button class="btn-cancel" onclick="closeSheet()">Закрыть</button>
-      <button class="btn-danger" onclick="deleteProject(${id})">Удалить</button>
-    </div>
-  `);
-}
-function addProject(){
-  const inp=document.getElementById('new-project');
-  const name=inp.value.trim();
-  if(!name)return;
-  state.projects.push({id:uid(),name,color:PALETTE[state.projects.length%PALETTE.length]});
-  inp.value='';
-  save();
-  renderTasks();
-}
-function deleteProject(id){
-  if(!confirm('Удалить проект?'))return;
-  state.projects=state.projects.filter(p=>p.id!==id);
-  state.tasks.forEach(t=>{if(t.projectId===id)t.projectId=null});
-  save();
-  closeSheet();
-  renderTasks();
-}
+function openProject(id){ const p=state.projects.find(x=>x.id===id); const tasks=state.tasks.filter(t=>t.projectId===id); openSheet(`<h2>${escapeHtml(p.name)}</h2><div class="card tight" style="margin-bottom:12px;">${tasks.length?tasks.map(t=>taskRowHTML(t, t.date || todayStr())).join(''):'<div class="empty-hint">Задач нет</div>'}</div><div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Закрыть</button><button class="btn-danger" onclick="deleteProject(${id})">Удалить</button></div>`); }
+function addProject(){ const inp=document.getElementById('new-project'); const name=inp.value.trim(); if(!name)return; state.projects.push({id:uid(),name,color:PALETTE[state.projects.length%PALETTE.length]}); inp.value=''; save(); renderTasks(); }
+function deleteProject(id){ if(!confirm('Удалить проект?'))return; state.projects=state.projects.filter(p=>p.id!==id); state.tasks.forEach(t=>{if(t.projectId===id)t.projectId=null}); save(); closeSheet(); renderTasks(); }
 
 // ============ Фокус дня ============
 function renderFocusOfDay() {
@@ -1917,53 +1634,40 @@ function renderFocusOfDay() {
   document.getElementById('focus-title').innerHTML = escapeHtml(top.title);
   document.getElementById('focus-meta').innerText = top.priority === 1 ? "Высокий приоритет · Нажмите, чтобы найти" : "Следующая задача · Нажмите, чтобы найти";
 }
-
 function focusTaskClick() {
   const id = document.getElementById('focus-card').dataset.taskId;
   if (!id) return;
   haptic();
-  
   const todayScreen = document.getElementById('screen-today');
-  if (!todayScreen.classList.contains('active')) {
-    switchTab('today');
-  }
-  
+  if (!todayScreen.classList.contains('active')) switchTab('today');
   setTimeout(() => {
     const el = document.querySelector(`.task-row[data-task-id="${id}"]`);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => {
-        el.classList.add('highlight-pulse');
-        setTimeout(() => el.classList.remove('highlight-pulse'), 2100);
-      }, 200);
-    } else {
-      showToast('Задача выполнена или перемещена');
-    }
+      setTimeout(() => { el.classList.add('highlight-pulse'); setTimeout(() => el.classList.remove('highlight-pulse'), 2100); }, 200);
+    } else { showToast('Задача выполнена или перемещена'); }
   }, 200);
 }
 
 // ============ ПУЛЬС ДНЯ ============
+let moodTimerInterval = null;
+
 function quickMood(value){
   const t = currentDate;
   if(!state.moods[t]) state.moods[t] = [];
-  
   const now = Date.now();
   const lastMood = state.moods[t][state.moods[t].length - 1];
-  
   if (lastMood && (now - lastMood.ts < 1800000)) {
     const minsLeft = Math.ceil((1800000 - (now - lastMood.ts)) / 60000);
     showToast(`⏳ Следующая отметка через ${minsLeft} мин.`);
     return;
   }
-  
   const timeStr = new Date(now).toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'});
   state.moods[t].push({ time: timeStr, val: value, ts: now });
-  
   if(!state.surveys[t]) state.surveys[t] = {};
   if(!state.surveys[t].emotions) state.surveys[t].emotions = {};
   const avg = Math.round(state.moods[t].reduce((sum, m) => sum + m.val, 0) / state.moods[t].length);
   state.surveys[t].emotions.joy = avg;
-  
   haptic('success'); playSound('success'); save(); renderAll();
   showToast(`✓ Настроение (${value}) сохранено в ${timeStr}`);
 }
@@ -1972,51 +1676,84 @@ function renderQuickMoodUI() {
   const t = currentDate;
   const moods = state.moods[t] || [];
   const countEl = document.getElementById('mood-count');
-  if (countEl) countEl.textContent = `Отметок: ${moods.length}`;
-  
+  clearInterval(moodTimerInterval);
   const lastMood = moods[moods.length - 1];
   const now = Date.now();
-  const isLocked = lastMood && (now - lastMood.ts < 1800000); 
-  
-  document.querySelectorAll('#quick-mood-row button').forEach(b => {
-    if (isLocked) {
-        b.style.opacity = '0.3';
-        b.style.pointerEvents = 'none';
-    } else {
-        b.style.opacity = '1';
-        b.style.pointerEvents = 'auto';
-    }
-  });
+  const cooldown = 30 * 60 * 1000;
+  if (lastMood && (now - lastMood.ts < cooldown)) {
+    const updateButtons = () => {
+      const left = cooldown - (Date.now() - lastMood.ts);
+      if (left <= 0) {
+        clearInterval(moodTimerInterval);
+        document.querySelectorAll('#quick-mood-row button').forEach(b => { b.style.opacity = '1'; b.style.pointerEvents = 'auto'; });
+        if (countEl) countEl.textContent = `Отметок: ${moods.length}`;
+        return;
+      }
+      const mins = Math.floor(left / 60000);
+      const secs = Math.floor((left % 60000) / 1000);
+      if (countEl) countEl.textContent = `⏳ ${mins}:${String(secs).padStart(2,'0')} до следующей`;
+      document.querySelectorAll('#quick-mood-row button').forEach(b => { b.style.opacity = '0.3'; b.style.pointerEvents = 'none'; });
+    };
+    updateButtons();
+    moodTimerInterval = setInterval(updateButtons, 1000);
+  } else {
+    if (countEl) countEl.textContent = `Отметок: ${moods.length}`;
+    document.querySelectorAll('#quick-mood-row button').forEach(b => { b.style.opacity = '1'; b.style.pointerEvents = 'auto'; });
+  }
 }
 
-function getDailySurveyProgress(dateStr) {
-  const s = state.surveys[dateStr];
-  if (s && s.evening) return 1; 
-  return 0;
-}
+function getDailySurveyProgress(dateStr) { const s = state.surveys[dateStr]; if (s && s.evening) return 1; return 0; }
 
+// ============ ЕЖЕДНЕВНЫЙ ОПРОС ============
 function openDailySurvey() {
   const dateStr = currentDate;
   const s = state.surveys[dateStr] || {};
   const moods = state.moods[dateStr] || [];
   const avgMood = moods.length ? Math.round(moods.reduce((sum, m) => sum + m.val, 0) / moods.length) : 5;
+  const sleepStart = s.physical?.sleepStart || '';
+  const sleepEnd = s.physical?.sleepEnd || '';
+  const movement = s.physical?.movement || '';
+  const socialContact = s.social?.contact === true ? 'yes' : s.social?.contact === false ? 'no' : '';
+  const screenHours = s.screen?.totalHours ?? '';
+  const gratitude = s.reflection?.gratitude || s.reflection?.wins || '';
+  const productivity = s.mental?.productivity ?? 5;
+  const anxiety = s.emotions?.anxiety ?? 5;
+  const energy = s.physical?.energy ?? 5;
+  const meaning = s.mental?.meaning ?? 5;
   
   openSheet(`
-    <h2>Как прошёл день?</h2>
-    <p style="font-size:13px;color:var(--text-sec);margin-bottom:16px;">Короткий опрос на 1-2 минуты. Среднее настроение за день: ${avgMood}/10</p>
+    <h2>Вечерний опрос</h2>
+    <p style="font-size:13px;color:var(--text-sec);margin-bottom:16px;">1 минута. Средний пульс за день: ${avgMood}/10</p>
     
-    <div class="field"><label>Продуктивность (1-10) <span style="float:right;color:var(--accent);font-weight:700;" id="v-d-prod">${s.mental?.productivity || 5}</span></label>
-      <input type="range" id="d-prod" min="1" max="10" value="${s.mental?.productivity || 5}" oninput="document.getElementById('v-d-prod').textContent=this.value">
+    <div class="survey-section">Как ты себя чувствовал</div>
+    <div class="field"><label>Энергия (1-10) <span style="float:right;color:var(--accent);font-weight:700;" id="v-d-energy">${energy}</span></label>
+      <input type="range" id="d-energy" min="1" max="10" value="${energy}" oninput="document.getElementById('v-d-energy').textContent=this.value">
     </div>
-    <div class="field"><label>Тревога (1-10) <span style="float:right;color:var(--accent);font-weight:700;" id="v-d-anx">${s.emotions?.anxiety || 3}</span></label>
-      <input type="range" id="d-anx" min="1" max="10" value="${s.emotions?.anxiety || 3}" oninput="document.getElementById('v-d-anx').textContent=this.value">
+    <div class="field"><label>Тревога (1-10) <span style="float:right;color:var(--accent);font-weight:700;" id="v-d-anx">${anxiety}</span></label>
+      <input type="range" id="d-anx" min="1" max="10" value="${anxiety}" oninput="document.getElementById('v-d-anx').textContent=this.value">
     </div>
-    <div class="field"><label>Усталость (1-10) <span style="float:right;color:var(--accent);font-weight:700;" id="v-d-fat">${s.physical?.fatigue || 5}</span></label>
-      <input type="range" id="d-fat" min="1" max="10" value="${s.physical?.fatigue || 5}" oninput="document.getElementById('v-d-fat').textContent=this.value">
+    <div class="field"><label>Смысл в том, что делал (1-10) <span style="float:right;color:var(--accent);font-weight:700;" id="v-d-meaning">${meaning}</span></label>
+      <input type="range" id="d-meaning" min="1" max="10" value="${meaning}" oninput="document.getElementById('v-d-meaning').textContent=this.value">
     </div>
-    <div class="field"><label>Часов сна (прошлой ночью)</label><input type="number" id="d-sleep" min="0" max="14" step="0.5" value="${s.physical?.sleepHours || ''}" placeholder="8"></div>
-    <div class="field"><label>Экранное время (часов)</label><input type="number" id="d-screen" min="0" max="24" step="0.5" value="${s.screen?.totalHours || ''}" placeholder="4"></div>
-    <div class="field"><label>Заметка о дне (необязательно)</label><textarea id="d-note" placeholder="Что запомнилось?">${escapeHtml(s.reflection?.wins || '')}</textarea></div>
+    <div class="field"><label>Продуктивность (1-10) <span style="float:right;color:var(--accent);font-weight:700;" id="v-d-prod">${productivity}</span></label>
+      <input type="range" id="d-prod" min="1" max="10" value="${productivity}" oninput="document.getElementById('v-d-prod').textContent=this.value">
+    </div>
+
+    <div class="survey-section">Сон</div>
+    <div class="field"><label>Во сколько лёг прошлой ночью</label><input type="time" id="d-sleep-start" value="${sleepStart}" step="60"></div>
+    <div class="field"><label>Во сколько встал сегодня</label><input type="time" id="d-sleep-end" value="${sleepEnd}" step="60"></div>
+
+    <div class="survey-section">Контекст дня</div>
+    <div class="field"><label>Движение, минут (прогулка, спорт)</label><input type="number" id="d-movement" min="0" max="600" step="5" value="${movement}" placeholder="0"></div>
+    <div class="field"><label>Было живое общение (не по экрану)?</label>
+      <select id="d-social">
+        <option value="" ${socialContact===''?'selected':''}>—</option>
+        <option value="yes" ${socialContact==='yes'?'selected':''}>Да</option>
+        <option value="no" ${socialContact==='no'?'selected':''}>Нет</option>
+      </select>
+    </div>
+    <div class="field"><label>Экранное время вне работы (часов)</label><input type="number" id="d-screen" min="0" max="24" step="0.5" value="${screenHours}" placeholder="0"></div>
+    <div class="field"><label>За что благодарен сегодня</label><textarea id="d-gratitude" placeholder="Одна вещь...">${escapeHtml(gratitude)}</textarea></div>
     
     <div class="sheet-actions" style="display:flex;gap:8px;">
       <button class="btn-cancel" style="flex:1;margin:0;" onclick="closeSheet()">Отмена</button>
@@ -2025,54 +1762,278 @@ function openDailySurvey() {
   `);
 }
 
+function computeSleepHours(start, end) {
+  if (!start || !end) return null;
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  let startM = sh * 60 + sm;
+  let endM = eh * 60 + em;
+  if (endM <= startM) endM += 24 * 60;
+  return +((endM - startM) / 60).toFixed(1);
+}
+
 function saveDailySurvey() {
   const dateStr = currentDate;
   if (!state.surveys[dateStr]) state.surveys[dateStr] = {};
   const s = state.surveys[dateStr];
-  
   s.evening = true;
   s.eveningTime = new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'});
+  
   s.mental = s.mental || {};
   s.mental.productivity = +document.getElementById('d-prod').value;
+  s.mental.meaning = +document.getElementById('d-meaning').value;
   
   s.emotions = s.emotions || {};
   s.emotions.anxiety = +document.getElementById('d-anx').value;
   
   s.physical = s.physical || {};
-  s.physical.fatigue = +document.getElementById('d-fat').value;
-  s.physical.sleepHours = parseFloat(document.getElementById('d-sleep').value) || null;
+  s.physical.energy = +document.getElementById('d-energy').value;
+  s.physical.sleepStart = document.getElementById('d-sleep-start').value || null;
+  s.physical.sleepEnd = document.getElementById('d-sleep-end').value || null;
+  s.physical.sleepHours = computeSleepHours(s.physical.sleepStart, s.physical.sleepEnd);
+  s.physical.movement = parseFloat(document.getElementById('d-movement').value) || 0;
+  
+  s.social = s.social || {};
+  const socialVal = document.getElementById('d-social').value;
+  s.social.contact = socialVal === 'yes' ? true : socialVal === 'no' ? false : null;
   
   s.screen = s.screen || {};
   s.screen.totalHours = parseFloat(document.getElementById('d-screen').value) || null;
   
   s.reflection = s.reflection || {};
-  s.reflection.wins = document.getElementById('d-note').value.trim();
+  s.reflection.gratitude = document.getElementById('d-gratitude').value.trim();
   
   const moods = state.moods[dateStr] || [];
-  if (moods.length) {
-    s.emotions.joy = Math.round(moods.reduce((sum, m) => sum + m.val, 0) / moods.length);
-  }
+  if (moods.length) s.emotions.joy = Math.round(moods.reduce((sum, m) => sum + m.val, 0) / moods.length);
   
   haptic('success'); playSound('success'); save(); closeSheet(); renderAll();
 }
 
-// ============ БОЛЬШОЙ НЕДЕЛЬНЫЙ ОПРОС ============
-function slider(id,label,val){return`<div class="field"><label>${label} <span style="float:right;color:var(--accent);font-weight:700;" id="v-${id}">${val}</span></label><input type="range" id="s-${id}" min="1" max="10" value="${val}" oninput="document.getElementById('v-${id}').textContent=this.value"></div>`}
+// ============ БОЛЬШОЙ ОПРОС (КОМПАС НЕДЕЛИ) ============
 function openWeeklySurvey(wk){
-  wk=wk||isoWeek();const s=state.weeklySurveys[wk]||{};const get=(path,dflt)=>path.split('.').reduce((o,k)=>(o||{})[k],s)??dflt;
-  openSheet(`<h2>Большой опрос (на неделю)</h2><p style="font-size:13px;color:var(--text-sec);margin-bottom:12px;">Неделя ${wk}</p><div class="survey-section">1. Неделя</div>${slider('w.overall','Удовлетворённость',get('overall.satisfaction',5))}${slider('w.energy','Энергия',get('overall.energy',5))}${slider('w.stress','Стресс',get('overall.stress',5))}<div class="survey-section">2. Продуктивность</div>${slider('w.prod','Продуктивность',get('work.productivity',5))}${slider('w.focus','Фокус',get('work.focus',5))}${slider('w.procrast','Прокастинация',get('work.procrastination',5))}<div class="survey-section">3. Отношения</div>${slider('w.comm','Общение',get('social.communication',5))}${slider('w.support','Поддержка',get('social.support',5))}${slider('w.conflict','Конфликты',get('social.conflicts',3))}<div class="survey-section">4. Здоровье</div>${slider('w.health','Самочувствие',get('health.physical',5))}<div class="field"><label>Сон (ч/день)</label><input type="number" id="w-sleep" min="0" max="14" step="0.5" value="${get('health.sleepAvg','')}"></div><div class="field"><label>Спорт (мин/нед)</label><input type="number" id="w-sport" min="0" max="2000" step="10" value="${get('health.sportMin','')}"></div><div class="survey-section">5. Духовное</div>${slider('w.spirit','Практика',get('spiritual.practice',5))}${slider('w.selfSat','Удовлетворённость собой',get('spiritual.selfSatisfaction',5))}<div class="survey-section">6. Привычки</div>${slider('w.habitProg','Довольны прогрессом',get('habits.progress',5))}<div class="survey-section">7. Рефлексия</div><div class="field"><label>Главное событие</label><textarea id="w-event">${escapeHtml(get('reflection.mainEvent',''))}</textarea></div><div class="field"><label>Цель следующей недели</label><textarea id="w-goal">${escapeHtml(get('reflection.nextGoal',''))}</textarea></div><div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Отмена</button><button class="btn-primary" onclick="saveWeeklySurvey('${wk}')">Сохранить</button></div>`)}
-function saveWeeklySurvey(wk){wk=wk||isoWeek();const val=id=>+document.getElementById('s-'+id).value;const num=id=>{const v=parseFloat(document.getElementById(id).value);return isNaN(v)?null:v};const txt=id=>document.getElementById(id).value.trim();state.weeklySurveys[wk]={overall:{satisfaction:val('w.overall'),energy:val('w.energy'),stress:val('w.stress')},work:{productivity:val('w.prod'),focus:val('w.focus'),procrastination:val('w.procrast')},social:{communication:val('w.comm'),support:val('w.support'),conflicts:val('w.conflict')},health:{physical:val('w.health'),sleepAvg:num('w-sleep'),sportMin:num('w-sport')},spiritual:{practice:val('w.spirit'),selfSatisfaction:val('w.selfSat')},habits:{progress:val('w.habitProg')},reflection:{mainEvent:txt('w-event'),nextGoal:txt('w-goal')},ts:Date.now()};haptic('success');playSound('success');save();closeSheet();renderAll()}
+  wk = wk || isoWeek();
+  const s = state.weeklySurveys[wk] || {};
+  const passed = !!s.ts;
+  const get = (k, d) => s[k] ?? d;
+  
+  openSheet(`
+    <h2>Компас недели</h2>
+    <p style="font-size:13px;color:var(--text-sec);margin-bottom:12px;">
+      Неделя ${wk} ${passed ? '· <span style="color:var(--green);font-weight:700;">✅ Пройден</span>' : ''}
+    </p>
+    
+    <div class="survey-section">1. Цель недели</div>
+    <div class="field"><label>Одна главная цель этой недели</label>
+      <input type="text" id="w-goal" value="${escapeHtml(get('goal',''))}" placeholder="Например: доделать проект X">
+    </div>
+    <div class="field"><label>Насколько продвинулся к ней (1-10) <span style="float:right;color:var(--accent);font-weight:700;" id="v-w-progress">${get('progress',5)}</span></label>
+      <input type="range" id="s-w-progress" min="1" max="10" value="${get('progress',5)}" oninput="document.getElementById('v-w-progress').textContent=this.value">
+    </div>
+
+    <div class="survey-section">2. Шаг к мечте</div>
+    <div class="field"><label>Какой конкретный шаг ты сделал к большой мечте?</label>
+      <textarea id="w-dreamStep" placeholder="Даже маленький шаг — важен">${escapeHtml(get('dreamStep',''))}</textarea>
+    </div>
+
+    <div class="survey-section">3. Что мешало</div>
+    <div class="field"><label>Главное препятствие</label>
+      <select id="w-obstacle">
+        <option value="" ${!get('obstacle','')?'selected':''}>—</option>
+        <option value="sleep" ${get('obstacle','')==='sleep'?'selected':''}>Плохой сон</option>
+        <option value="anxiety" ${get('obstacle','')==='anxiety'?'selected':''}>Тревога</option>
+        <option value="procrastination" ${get('obstacle','')==='procrastination'?'selected':''}>Прокрастинация</option>
+        <option value="people" ${get('obstacle','')==='people'?'selected':''}>Люди / обстоятельства</option>
+        <option value="none" ${get('obstacle','')==='none'?'selected':''}>Ничего серьёзного</option>
+      </select>
+    </div>
+
+    <div class="survey-section">4. Общее самочувствие</div>
+    <div class="field"><label>Насколько доволен неделей (1-10) <span style="float:right;color:var(--accent);font-weight:700;" id="v-w-wellbeing">${get('wellbeing',5)}</span></label>
+      <input type="range" id="s-w-wellbeing" min="1" max="10" value="${get('wellbeing',5)}" oninput="document.getElementById('v-w-wellbeing').textContent=this.value">
+    </div>
+
+    <div class="survey-section">5. Рефлексия</div>
+    <div class="field"><label>Что ты понял о себе за эту неделю?</label>
+      <textarea id="w-lesson" placeholder="Уроки — это топливо для следующего шага">${escapeHtml(get('lesson',''))}</textarea>
+    </div>
+
+    <div class="sheet-actions">
+      <button class="btn-cancel" onclick="closeSheet()">Отмена</button>
+      <button class="btn-primary" onclick="saveWeeklySurvey('${wk}')">Сохранить</button>
+    </div>
+  `);
+}
+
+function saveWeeklySurvey(wk){
+  wk = wk || isoWeek();
+  const goal = document.getElementById('w-goal').value.trim();
+  const progress = +document.getElementById('s-w-progress').value;
+  const dreamStep = document.getElementById('w-dreamStep').value.trim();
+  const obstacle = document.getElementById('w-obstacle').value;
+  const wellbeing = +document.getElementById('s-w-wellbeing').value;
+  const lesson = document.getElementById('w-lesson').value.trim();
+  
+  state.weeklySurveys[wk] = {
+    goal, progress, dreamStep, obstacle, wellbeing, lesson,
+    ts: Date.now()
+  };
+  haptic('success'); playSound('success'); save(); closeSheet(); renderAll();
+}
+
+// ============ МЕЧТА ============
+function hasDream() {
+  return state.dream && (state.dream.vision || (state.dream.markers && state.dream.markers.length));
+}
+
+function openDreamEditor() {
+  const dream = state.dream || { vision: '', markers: [], reviews: {} };
+  const markers = dream.markers.length ? dream.markers : [''];
+  
+  openSheet(`
+    <h2>Моя мечта</h2>
+    <p style="font-size:13px;color:var(--text-sec);margin-bottom:16px;">
+      Куда ты идёшь? Одно предложение о будущем и 3-5 маркеров, по которым поймёшь, что приблизился.
+    </p>
+    
+    <div class="field"><label>Через год я хочу быть...</label>
+      <textarea id="dream-vision" placeholder="Например: человеком, который свободно говорит на английском и работает над своим проектом" style="min-height:100px;">${escapeHtml(dream.vision)}</textarea>
+    </div>
+    
+    <div class="field"><label>Маркеры прогресса (что будет значить «я на пути»)</label>
+      <div id="markers-container">
+        ${markers.map((m, i) => `
+          <div class="marker-item">
+            <input type="text" class="marker-input" value="${escapeHtml(m)}" placeholder="Маркер ${i+1}">
+            ${markers.length > 1 ? `<button class="marker-del" onclick="removeMarker(this)">×</button>` : ''}
+          </div>
+        `).join('')}
+      </div>
+      <button class="btn-cancel" style="width:auto;margin-top:8px;padding:8px 14px;font-size:13px;" onclick="addMarker()">+ Добавить маркер</button>
+    </div>
+    
+    <div class="sheet-actions" style="margin-top:20px;">
+      <button class="btn-cancel" onclick="closeSheet()">Отмена</button>
+      <button class="btn-primary" onclick="saveDream()">Сохранить</button>
+    </div>
+  `);
+}
+
+function addMarker() {
+  const container = document.getElementById('markers-container');
+  const count = container.querySelectorAll('.marker-item').length;
+  if (count >= 5) { showToast('Максимум 5 маркеров'); return; }
+  const div = document.createElement('div');
+  div.className = 'marker-item';
+  div.innerHTML = `<input type="text" class="marker-input" placeholder="Маркер ${count+1}"><button class="marker-del" onclick="removeMarker(this)">×</button>`;
+  container.appendChild(div);
+}
+
+function removeMarker(btn) {
+  const container = document.getElementById('markers-container');
+  if (container.querySelectorAll('.marker-item').length <= 1) return;
+  btn.closest('.marker-item').remove();
+}
+
+function saveDream() {
+  const vision = document.getElementById('dream-vision').value.trim();
+  const markers = [...document.querySelectorAll('.marker-input')].map(i => i.value.trim()).filter(Boolean);
+  if (!state.dream) state.dream = { vision:'', markers:[], reviews:{} };
+  state.dream.vision = vision;
+  state.dream.markers = markers;
+  state.dream.updatedAt = Date.now();
+  if (!state.dream.createdAt) state.dream.createdAt = Date.now();
+  haptic('success'); playSound('success'); save(); closeSheet(); renderAll();
+}
+
+function openMonthlyReview() {
+  const now = new Date();
+  const key = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const prev = state.dream.reviews[key] || {};
+  openSheet(`
+    <h2>Ревизия месяца</h2>
+    <p style="font-size:13px;color:var(--text-sec);margin-bottom:16px;">${now.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</p>
+    <div class="field"><label>Насколько приблизился к мечте (1-10) <span style="float:right;color:var(--accent);font-weight:700;" id="v-rev-score">${prev.score || 5}</span></label>
+      <input type="range" id="rev-score" min="1" max="10" value="${prev.score || 5}" oninput="document.getElementById('v-rev-score').textContent=this.value">
+    </div>
+    <div class="field"><label>Что изменилось?</label>
+      <textarea id="rev-note" placeholder="Что стало по-другому в этом месяце?">${escapeHtml(prev.note || '')}</textarea>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-cancel" onclick="closeSheet()">Отмена</button>
+      <button class="btn-primary" onclick="saveMonthlyReview('${key}')">Сохранить</button>
+    </div>
+  `);
+}
+
+function saveMonthlyReview(key) {
+  const score = +document.getElementById('rev-score').value;
+  const note = document.getElementById('rev-note').value.trim();
+  if (!state.dream.reviews) state.dream.reviews = {};
+  state.dream.reviews[key] = { score, note, ts: Date.now() };
+  haptic('success'); save(); closeSheet(); renderAll();
+}
+
+function renderDreamCard() {
+  const container = document.getElementById('dream-card-container');
+  if (!container) return;
+  if (!hasDream()) {
+    container.innerHTML = `
+      <div class="card dream-card" onclick="openDreamEditor()">
+        <div class="dream-label">${svgIcon('compass','currentColor',14)} Моя мечта</div>
+        <div class="dream-empty">Определи мечту →</div>
+        <div class="dream-meta">Одно предложение о будущем + 3-5 маркеров. Это фокус, к которому сходятся все действия.</div>
+      </div>
+    `;
+    return;
+  }
+  const dream = state.dream;
+  const markersCount = dream.markers.filter(Boolean).length;
+  const now = new Date();
+  const monthKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const hasReview = !!dream.reviews[monthKey];
+  container.innerHTML = `
+    <div class="card dream-card" onclick="openDreamEditor()">
+      <div class="dream-label">${svgIcon('compass','currentColor',14)} Моя мечта</div>
+      <div class="dream-title">${escapeHtml(dream.vision || 'Определи мечту')}</div>
+      <div class="dream-meta">${markersCount} ${markersCount === 1 ? 'маркер' : markersCount < 5 ? 'маркера' : 'маркеров'} · ${hasReview ? '✅ ревизия месяца сделана' : '⏳ пора сделать ревизию'}</div>
+    </div>
+    ${!hasReview ? `<button class="btn-primary" style="margin-bottom:10px;background:var(--indigo);" onclick="openMonthlyReview()">Сделать ревизию месяца</button>` : ''}
+  `;
+}
+
+function renderWeeklyCard() {
+  const container = document.getElementById('weekly-survey-container');
+  if (!container) return;
+  const wk = isoWeek();
+  const s = state.weeklySurveys[wk];
+  const passed = s && s.ts;
+  container.innerHTML = `
+    <div class="card compass-card" onclick="openWeeklySurvey('${wk}')" style="cursor:pointer;">
+      <div class="compass-label">${svgIcon('target','currentColor',14)} Компас недели</div>
+      ${passed ? `
+        <div class="compass-goal">${escapeHtml(s.goal || 'Цель не указана')}</div>
+        <div class="compass-meta">Прогресс: ${s.progress}/10 · Шаг к мечте: ${s.dreamStep ? '✓' : '—'}</div>
+        <div class="compass-status passed">✅ Опрос пройден</div>
+      ` : `
+        <div class="compass-goal">Определи цель недели →</div>
+        <div class="compass-meta">10 вопросов. Фокус, шаг к мечте, рефлексия.</div>
+      `}
+    </div>
+  `;
+}
+
+// ============ АНАЛИТИКА ============
+function lastNDates(n){const a=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);a.push(d.toISOString().slice(0,10))}return a}
+function avgOf(a){const v=a.filter(x=>x!=null&&!isNaN(x));return v.length?v.reduce((x,y)=>x+y,0)/v.length:null}
+function corr(xs,ys){const p=xs.map((x,i)=>[x,ys[i]]).filter(([x,y])=>x!=null&&y!=null&&!isNaN(x)&&!isNaN(y));const n=p.length;if(n<3)return null;const mx=p.reduce((a,q)=>a+q[0],0)/n,my=p.reduce((a,q)=>a+q[1],0)/n;let num=0,dx=0,dy=0;for(const[x,y]of p){num+=(x-mx)*(y-my);dx+=(x-mx)**2;dy+=(y-my)**2}const den=Math.sqrt(dx*dy);return den?num/den:null}
+function surveyMetric(dateStr,path){const s=state.surveys[dateStr];if(!s)return null;const val=path.split('.').reduce((o,k)=>o&&o[k],s);if(val!=null)return val;return null}
 
 function setRing(id,r,pct){const el=document.getElementById(id);const c=2*Math.PI*r;el.setAttribute('stroke-dasharray',`${c*Math.max(0,Math.min(1,pct))} ${c}`)}
 function updateRings(){
   const t=currentDate;const sPct=getDailySurveyProgress(t);const sched=habitsScheduledForDate(t);const hPct=sched.length?sched.filter(h=>isHabitDoneForDate(h,t)).length/sched.length:0;const tToday=state.tasks.filter(x=>x.recurrence?matchesRecurrence(x,t):x.date===t);const tPct=tToday.length?tToday.filter(x=>isTaskDoneOn(x,t)).length/tToday.length:0;
   setRing('ring-survey',52,sPct);setRing('ring-habits',38,hPct);setRing('ring-tasks',24,tPct);
   document.getElementById('pct-survey').textContent=Math.round(sPct*100)+'%';document.getElementById('pct-habits').textContent=Math.round(hPct*100)+'%';document.getElementById('pct-tasks').textContent=Math.round(tPct*100)+'%';
-  
-  const btn=document.getElementById('survey-btn');
-  const btnContent=document.getElementById('survey-btn-content');
-  const btnTime=document.getElementById('survey-btn-time');
-  
+  const btn=document.getElementById('survey-btn');const btnContent=document.getElementById('survey-btn-content');const btnTime=document.getElementById('survey-btn-time');
   if(getDailySurveyProgress(t)){
     btn.classList.add('done');
     btnContent.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg> <span>Опрос пройден</span>`;
@@ -2084,13 +2045,7 @@ function updateRings(){
   }
 }
 
-function renderAll(){ updateDateNav(); updateTopbar(); updateRings(); renderQuickMoodUI(); renderFocusOfDay(); renderHabitsToday(); renderTasksTodayMini(); renderTasks(); renderNotes(); renderCalendar(); renderStats(); }
-
-// Статистика
-function lastNDates(n){const a=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);a.push(d.toISOString().slice(0,10))}return a}
-function avgOf(a){const v=a.filter(x=>x!=null&&!isNaN(x));return v.length?v.reduce((x,y)=>x+y,0)/v.length:null}
-function corr(xs,ys){const p=xs.map((x,i)=>[x,ys[i]]).filter(([x,y])=>x!=null&&y!=null&&!isNaN(x)&&!isNaN(y));const n=p.length;if(n<3)return null;const mx=p.reduce((a,q)=>a+q[0],0)/n,my=p.reduce((a,q)=>a+q[1],0)/n;let num=0,dx=0,dy=0;for(const[x,y]of p){num+=(x-mx)*(y-my);dx+=(x-mx)**2;dy+=(y-my)**2}const den=Math.sqrt(dx*dy);return den?num/den:null}
-function surveyMetric(dateStr,path){const s=state.surveys[dateStr];if(!s)return null;const val=path.split('.').reduce((o,k)=>o&&o[k],s);if(val!=null)return val;const flat={'emotions.joy':s.mood,'mental.productivity':s.productivity,'emotions.anxiety':s.anxiety,'screen.totalHours':s.screenTime};return flat[path]??null}
+function renderAll(){ updateDateNav(); updateTopbar(); updateRings(); renderQuickMoodUI(); renderFocusOfDay(); renderHabitsToday(); renderTasksTodayMini(); renderTasks(); renderNotes(); renderCalendar(); renderStats(); renderDreamCard(); renderWeeklyCard(); }
 
 function renderChart(series) {
   const el = document.getElementById('chart-mood-prod');
@@ -2124,7 +2079,9 @@ function renderStatsGrid() {
     { key: 'emotions.anxiety', label: 'Тревога', inv: true },
     { key: 'physical.energy', label: 'Энергия' },
     { key: 'physical.sleepHours', label: 'Сон', suffix: ' ч' },
-    { key: 'screen.totalHours', label: 'Экран', suffix: ' ч', inv: true }
+    { key: 'screen.totalHours', label: 'Экран', suffix: ' ч', inv: true },
+    { key: 'mental.meaning', label: 'Смысл' },
+    { key: 'physical.movement', label: 'Движение', suffix: ' мин' }
   ];
   document.getElementById('stats-grid').innerHTML = metrics.map(m => {
     const cur = avgOf(d7.map(d => surveyMetric(d, m.key)));
@@ -2192,12 +2149,136 @@ function renderCorrMatrix() {
   el.innerHTML = html;
 }
 
+function renderAutoInsights() {
+  const el = document.getElementById('auto-insights');
+  if (!el) return;
+  const days = lastNDates(30);
+  const insights = [];
+  
+  // Сон ↔ тревога
+  const lowSleep = days.filter(d => { const h = state.surveys[d]?.physical?.sleepHours; return h != null && h < 7; });
+  const normSleep = days.filter(d => { const h = state.surveys[d]?.physical?.sleepHours; return h != null && h >= 7; });
+  const lowAnx = avgOf(lowSleep.map(d => state.surveys[d]?.emotions?.anxiety));
+  const normAnx = avgOf(normSleep.map(d => state.surveys[d]?.emotions?.anxiety));
+  if (lowAnx != null && normAnx != null && Math.abs(lowAnx - normAnx) > 0.3) {
+    const diff = (lowAnx - normAnx).toFixed(1);
+    insights.push({ icon: '😴', text: lowAnx > normAnx ? `Когда сон < 7 ч, тревога в среднем на ${diff} выше` : `Когда сон < 7 ч, тревога в среднем на ${Math.abs(diff)} ниже` });
+  }
+  
+  // Движение ↔ настроение
+  const moveDays = days.filter(d => (state.surveys[d]?.physical?.movement || 0) >= 20);
+  const noMoveDays = days.filter(d => (state.surveys[d]?.physical?.movement || 0) < 20 && state.surveys[d]);
+  const moveMood = avgOf(moveDays.map(d => state.surveys[d]?.emotions?.joy));
+  const noMoveMood = avgOf(noMoveDays.map(d => state.surveys[d]?.emotions?.joy));
+  if (moveMood != null && noMoveMood != null && moveMood - noMoveMood > 0.5) {
+    insights.push({ icon: '🏃', text: `В дни с движением настроение на ${(moveMood - noMoveMood).toFixed(1)} выше` });
+  }
+  
+  // Стабильность сна
+  const sleepVals = days.map(d => state.surveys[d]?.physical?.sleepHours).filter(v => v != null);
+  if (sleepVals.length >= 5) {
+    const mean = avgOf(sleepVals);
+    const variance = avgOf(sleepVals.map(v => (v - mean) ** 2));
+    const std = Math.sqrt(variance);
+    insights.push({ icon: '⏰', text: `Сон в среднем ${mean.toFixed(1)} ч, стабильность ±${std.toFixed(1)} ч` });
+  }
+  
+  // Тренд тревоги (2 недели vs предыдущие 2)
+  const last28 = lastNDates(28);
+  const w1 = last28.slice(0, 14), w2 = last28.slice(14);
+  const anx1 = avgOf(w1.map(d => state.surveys[d]?.emotions?.anxiety));
+  const anx2 = avgOf(w2.map(d => state.surveys[d]?.emotions?.anxiety));
+  if (anx1 != null && anx2 != null && Math.abs(anx2 - anx1) > 0.5) {
+    const dir = anx2 < anx1 ? '↓' : '↑';
+    const good = anx2 < anx1;
+    insights.push({ icon: good ? '📉' : '📈', text: `Тревога за 2 недели ${dir} на ${Math.abs(anx2 - anx1).toFixed(1)}` });
+  }
+  
+  // Тренд настроения
+  const joy1 = avgOf(w1.map(d => state.surveys[d]?.emotions?.joy));
+  const joy2 = avgOf(w2.map(d => state.surveys[d]?.emotions?.joy));
+  if (joy1 != null && joy2 != null && Math.abs(joy2 - joy1) > 0.5) {
+    const dir = joy2 > joy1 ? '↑' : '↓';
+    const good = joy2 > joy1;
+    insights.push({ icon: good ? '🌟' : '💧', text: `Настроение за 2 недели ${dir} на ${Math.abs(joy2 - joy1).toFixed(1)}` });
+  }
+  
+  // Экран ↔ сон
+  const screenSleepCorr = corr(days.map(d => state.surveys[d]?.screen?.totalHours), days.map(d => state.surveys[d]?.physical?.sleepHours));
+  if (screenSleepCorr != null && Math.abs(screenSleepCorr) > 0.4) {
+    insights.push({ icon: '📱', text: screenSleepCorr < 0 ? `Больше экрана → меньше сон (связь ${screenSleepCorr.toFixed(2)})` : `Больше экрана → больше сон (связь ${screenSleepCorr.toFixed(2)})` });
+  }
+  
+  if (!insights.length) {
+    const daysWithData = days.filter(d => state.surveys[d]?.evening).length;
+    if (daysWithData < 3) el.innerHTML = `<div class="empty-hint">📊 Собираем данные (${daysWithData}/3 дня). Заполни 3 вечерних опроса — появятся первые инсайты.</div>`;
+    else el.innerHTML = `<div class="empty-hint">📊 Пока значимых паттернов не найдено. Продолжай заполнять опросы — на 2-3 неделе данных появятся связи.</div>`;
+    return;
+  }
+  el.innerHTML = insights.map(i => `<div class="insight"><span class="insight-icon">${i.icon}</span>${escapeHtml(i.text)}</div>`).join('');
+}
+
+function renderTrends4W() {
+  const el = document.getElementById('trends-4w');
+  if (!el) return;
+  const last28 = lastNDates(28);
+  const weeks = [last28.slice(0,7), last28.slice(7,14), last28.slice(14,21), last28.slice(21,28)];
+  const metrics = [
+    { key: 'emotions.joy', label: 'Настроение', inv: false },
+    { key: 'mental.productivity', label: 'Продуктивность', inv: false },
+    { key: 'emotions.anxiety', label: 'Тревога', inv: true },
+    { key: 'physical.energy', label: 'Энергия', inv: false }
+  ];
+  const rows = metrics.map(m => {
+    const vals = weeks.map(w => avgOf(w.map(d => state.surveys[d]?.[m.key.split('.')[0]]?.[m.key.split('.')[1]])));
+    const firstNonNull = vals.find(v => v != null);
+    const lastNonNull = [...vals].reverse().find(v => v != null);
+    const delta = (firstNonNull != null && lastNonNull != null) ? lastNonNull - firstNonNull : null;
+    const good = delta != null && (m.inv ? delta < -0.3 : delta > 0.3);
+    const bad = delta != null && (m.inv ? delta > 0.3 : delta < -0.3);
+    const arrow = delta == null ? '' : delta > 0.3 ? '↑' : delta < -0.3 ? '↓' : '→';
+    return { label: m.label, vals, delta, good, bad, arrow };
+  });
+  if (!rows.some(r => r.vals.some(v => v != null))) {
+    el.innerHTML = '<div class="empty-hint">Нужно минимум 2-3 недели данных для трендов.</div>';
+    return;
+  }
+  el.innerHTML = rows.map(r => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:.5px solid var(--separator);">
+      <div style="flex:1;font-size:13px;">${r.label}</div>
+      ${r.vals.map(v => `<div style="width:32px;text-align:center;font-size:11px;color:var(--text-sec);font-variant-numeric:tabular-nums;">${v != null ? v.toFixed(1) : '·'}</div>`).join('')}
+      <div style="width:52px;text-align:right;font-size:13px;font-weight:700;color:${r.good ? 'var(--green)' : r.bad ? 'var(--red)' : 'var(--text-sec)'};">${r.arrow}${r.delta != null ? Math.abs(r.delta).toFixed(1) : ''}</div>
+    </div>
+  `).join('') + `<div style="display:flex;gap:10px;font-size:10px;color:var(--text-sec);margin-top:8px;"><div style="flex:1;"></div>${['−3н','−2н','−1н','сейчас'].map(w => `<div style="width:32px;text-align:center;">${w}</div>`).join('')}<div style="width:52px;"></div></div>`;
+}
+
+function renderDreamProgress() {
+  const el = document.getElementById('dream-progress');
+  if (!el) return;
+  if (!hasDream()) {
+    el.innerHTML = `<div class="empty-hint">🌱 Определи мечту — и здесь появятся маркеры прогресса и ревизии месяцев.</div><button class="btn-primary" style="margin-top:8px;" onclick="openDreamEditor()">Определить мечту</button>`;
+    return;
+  }
+  const dream = state.dream;
+  const reviews = Object.entries(dream.reviews || {}).sort((a,b) => a[0].localeCompare(b[0])).slice(-6);
+  const lastReview = reviews.length ? reviews[reviews.length-1][1] : null;
+  el.innerHTML = `
+    <div style="font-size:14px;font-weight:600;margin-bottom:6px;">${escapeHtml(dream.vision)}</div>
+    ${dream.markers.filter(Boolean).length ? `<div style="margin-bottom:12px;">${dream.markers.filter(Boolean).map(m => `<div class="insight" style="font-size:13px;">◦ ${escapeHtml(m)}</div>`).join('')}</div>` : ''}
+    ${reviews.length ? `
+      <div style="font-size:11px;font-weight:700;color:var(--text-sec);text-transform:uppercase;margin-top:12px;margin-bottom:6px;">Ревизии месяцев</div>
+      ${reviews.map(([key, r]) => `<div class="insight" style="display:flex;justify-content:space-between;align-items:center;"><div><b>${key}</b>${r.note ? `<div style="font-size:12px;color:var(--text-sec);margin-top:2px;">${escapeHtml(r.note)}</div>` : ''}</div><b style="color:${r.score >= 7 ? 'var(--green)' : r.score >= 4 ? 'var(--orange)' : 'var(--red)'};">${r.score}/10</b></div>`).join('')}
+    ` : ''}
+    <button class="btn-primary" style="margin-top:12px;background:var(--indigo);" onclick="openMonthlyReview()">${lastReview ? 'Новая ревизия месяца' : 'Сделать первую ревизию'}</button>
+  `;
+}
+
 function renderPsyProfile() {
   const el = document.getElementById('psy-profile');
   const days = lastNDates(14);
   const get = k => avgOf(days.map(d => surveyMetric(d, k)));
-  const joy = get('emotions.joy'), calm = get('emotions.calm'), anx = get('emotions.anxiety'), sad = get('emotions.sadness'), irr = get('emotions.irritation');
-  const posAvg = avgOf([joy, calm].filter(x => x != null));
+  const joy = get('emotions.joy'), anx = get('emotions.anxiety'), sad = get('emotions.sadness'), irr = get('emotions.irritation'), meaning = get('mental.meaning');
+  const posAvg = joy;
   const negAvg = avgOf([anx, sad, irr].filter(x => x != null));
   const balance = (posAvg != null && negAvg != null) ? posAvg - negAvg : null;
   const balanceLabel = balance == null ? 'мало данных' : balance > 2 ? '🟢 позитивный' : balance > 0 ? '🟡 сбалансированный' : '🔴 негативный';
@@ -2211,19 +2292,18 @@ function renderPsyProfile() {
   const burnLabel = burn > 7 ? '🔴 Высокий' : burn > 5 ? '🟡 Умеренный' : burn > 0 ? '🟢 Низкий' : '—';
   const sleepCorr = corr(days.map(d => surveyMetric(d, 'physical.sleepHours')), days.map(d => surveyMetric(d, 'emotions.joy')));
   const screenAnx = corr(days.map(d => surveyMetric(d, 'screen.totalHours')), days.map(d => surveyMetric(d, 'emotions.anxiety')));
-  const socSat = get('social.satisfaction');
   
-  if (balance == null && burn === 0 && sleepCorr == null && socSat == null) {
-    el.innerHTML = '<div class="expert-badge badge-psy">Психолог</div><div class="empty-hint">Пройдите 2-3 вечерних опроса, чтобы получить психологический профиль.</div>';
+  if (balance == null && burn === 0 && sleepCorr == null && meaning == null) {
+    el.innerHTML = '<div class="expert-badge badge-psy">Психолог</div><div class="empty-hint">Пройди 2-3 вечерних опроса, чтобы получить психологический профиль.</div>';
     return;
   }
   
   el.innerHTML = `<div class="expert-badge badge-psy">Психолог</div>
     <div class="insight"><b>Эмоциональный баланс:</b> ${balanceLabel} ${balance != null ? `(${balance.toFixed(1)})` : ''}</div>
     <div class="insight"><b>Индикатор выгорания:</b> ${burnLabel} ${burn ? `(${burn.toFixed(1)}/10)` : ''}</div>
+    ${meaning != null ? `<div class="insight"><b>Ощущение смысла:</b> ${meaning.toFixed(1)}/10 ${meaning < 5 ? '— стоит проверить, совпадает ли то, что ты делаешь, с твоими ценностями' : '— хороший знак'}</div>` : ''}
     ${sleepCorr != null && Math.abs(sleepCorr) > 0.3 ? `<div class="insight"><b>Сон влияет на настроение:</b> r=${sleepCorr.toFixed(2)}</div>` : ''}
     ${screenAnx != null && Math.abs(screenAnx) > 0.3 ? `<div class="insight"><b>Экран ↔ тревога:</b> r=${screenAnx.toFixed(2)}</div>` : ''}
-    ${socSat != null && socSat < 5 ? `<div class="insight"><b>Общение:</b> ${socSat.toFixed(1)}/10</div>` : ''}
     <div class="insight" style="color:var(--text-sec);font-size:13px;">На основе ${days.filter(d => state.surveys[d]).length} опросов за 14 дней</div>`;
 }
 
@@ -2237,17 +2317,17 @@ function renderPedRecommendations() {
   const doneTasks = totalTasks.filter(t => t.done).length;
   const taskRate = totalTasks.length ? Math.round(doneTasks / totalTasks.length * 100) : null;
   const recs = [];
-  if (active.length > 3 && habitRate != null && habitRate < 40) recs.push({ e: '✂️', t: `У вас ${active.length} привычек, но выполняете ${habitRate.toFixed(0)}%. Сократите до 2-3.` });
+  if (active.length > 3 && habitRate != null && habitRate < 40) recs.push({ e: '✂️', t: `У вас ${active.length} привычек, но выполняете ${habitRate.toFixed(0)}%. Сократи до 2-3.` });
   else if (habitRate != null && habitRate >= 70) recs.push({ e: '🏆', t: `Отличная приверженность (${habitRate.toFixed(0)}%). Можно добавить новую.` });
-  if (bestStreak >= 5) recs.push({ e: '🔥', t: `Лучшая серия — ${bestStreak} дней. Продолжайте!` });
-  if (taskRate != null && taskRate < 50 && totalTasks.length > 5) recs.push({ e: '🎯', t: `Выполняете ${taskRate}% задач. Сократите до 3-5 в день.` });
+  if (bestStreak >= 5) recs.push({ e: '🔥', t: `Лучшая серия — ${bestStreak} дней. Продолжай!` });
+  if (taskRate != null && taskRate < 50 && totalTasks.length > 5) recs.push({ e: '🎯', t: `Выполняешь ${taskRate}% задач. Сократи до 3-5 в день.` });
   const sleepMood = corr(lastNDates(14).map(d => surveyMetric(d, 'physical.sleepHours')), lastNDates(14).map(d => surveyMetric(d, 'emotions.joy')));
-  if (sleepMood != null && sleepMood > 0.4) recs.push({ e: '🧪', t: `Эксперимент: ложитесь на 30 мин раньше 3 дня подряд.` });
+  if (sleepMood != null && sleepMood > 0.4) recs.push({ e: '🧪', t: `Эксперимент: ложись на 30 мин раньше 3 дня подряд — проверь, как это отразится на настроении.` });
   const wdProds = {}; lastNDates(30).forEach(d => { if (!state.surveys[d]) return; const wd = new Date(d + 'T12:00:00').getDay(); const p = surveyMetric(d, 'mental.productivity'); if (p != null) (wdProds[wd] = wdProds[wd] || []).push(p); });
   let bestWd = null, bestVal = 0;
   Object.entries(wdProds).forEach(([wd, arr]) => { const a = avgOf(arr); if (a && a > bestVal) { bestVal = a; bestWd = +wd; } });
   if (bestWd != null) recs.push({ e: '📅', t: `Самый продуктивный день — ${WEEKDAYS_LONG[bestWd]} (${bestVal.toFixed(1)}/10).` });
-  if (!recs.length) recs.push({ e: '📊', t: 'Собираем данные. Пройдите 3-5 опросов.' });
+  if (!recs.length) recs.push({ e: '📊', t: 'Собираем данные. Пройди 3-5 опросов.' });
   el.innerHTML = `<div class="expert-badge badge-ped">Педагог</div>` + recs.map(r => `<div class="insight">${r.e} ${escapeHtml(r.t)}</div>`).join('');
 }
 
@@ -2258,23 +2338,31 @@ function renderYearInPixels() {
 
 function renderStats() {
   const d14 = lastNDates(14);
-  
   const daysWithData = Object.keys(state.surveys).filter(d => state.surveys[d] && (state.surveys[d].evening || (state.surveys[d].emotions && state.surveys[d].emotions.joy))).length;
   const summaryEl = document.getElementById('stats-summary');
-  if (daysWithData === 0) {
-    summaryEl.innerHTML = '📊 Пока нет данных. Пройдите первый вечерний опрос (кнопка на главной), чтобы начать собирать аналитику.';
-  } else if (daysWithData < 3) {
-    summaryEl.innerHTML = `📊 Данных пока мало (${daysWithData} дн.). Пройдите ещё ${3-daysWithData} опроса — появятся графики и паттерны.`;
-  } else {
-    summaryEl.innerHTML = `📊 Статистика на основе <b>${daysWithData}</b> дней опросов. Чем больше данных, тем точнее рекомендации.`;
-  }
+  if (daysWithData === 0) summaryEl.innerHTML = '📊 Пока нет данных. Пройди первый вечерний опрос — начнёт появляться аналитика.';
+  else if (daysWithData < 3) summaryEl.innerHTML = `📊 Данных пока мало (${daysWithData} дн.). Пройди ещё ${3-daysWithData} опроса — появятся графики и паттерны.`;
+  else summaryEl.innerHTML = `📊 Статистика на основе <b>${daysWithData}</b> дней опросов.`;
   
-  renderChart([{ color: 'var(--td-orange)', data: d14.map(d => surveyMetric(d, 'emotions.joy')) }, { color: 'var(--td-blue)', data: d14.map(d => surveyMetric(d, 'mental.productivity')) }]);
-  renderStatsGrid(); renderWeekdayPatterns(); renderCorrMatrix(); renderPsyProfile(); renderPedRecommendations(); renderYearInPixels();
+  renderAutoInsights();
+  renderDreamProgress();
+  renderChart([
+    { color: 'var(--td-orange)', data: d14.map(d => surveyMetric(d, 'emotions.joy')) },
+    { color: 'var(--td-blue)', data: d14.map(d => surveyMetric(d, 'mental.productivity')) },
+    { color: 'var(--pink)', data: d14.map(d => surveyMetric(d, 'emotions.anxiety')) }
+  ]);
+  renderTrends4W();
+  renderStatsGrid();
+  renderWeekdayPatterns();
+  renderCorrMatrix();
+  renderPsyProfile();
+  renderPedRecommendations();
+  renderYearInPixels();
 }
 
 function renderTasksTodayMini(){const t=currentDate;const tasks=state.tasks.filter(x=>x.recurrence?matchesRecurrence(x,t):x.date===t);document.getElementById('tasks-today-mini').innerHTML=tasks.length?tasks.map(x=>taskRowHTML(x,t)).join(''):'<div class="empty-hint">Задач нет. Нажмите +, чтобы добавить.</div>'}
 
+// ============ ЗАМЕТКИ ============
 let currentNoteId=null,noteSaveTimer=null;
 function scheduleNoteSave(){clearTimeout(noteSaveTimer);noteSaveTimer=setTimeout(saveCurrentNote,1500)}
 function saveCurrentNote(){if(!currentNoteId)return;clearTimeout(noteSaveTimer);const n=state.notes.find(x=>x.id===currentNoteId);if(!n)return;n.title=document.getElementById('edit-note-title').value.trim()||'Без названия';const body=document.getElementById('edit-note-body');body.querySelectorAll('input[type=checkbox]').forEach(cb=>{if(cb.checked)cb.setAttribute('checked','checked');else cb.removeAttribute('checked')});n.body=body.innerHTML;n.updatedAt=Date.now();save()}
@@ -2290,37 +2378,28 @@ function togglePinNote(){const n=state.notes.find(x=>x.id===currentNoteId);if(!n
 function closeNoteEditor(){saveCurrentNote();currentNoteId=null;document.getElementById('notes-list-view').style.display='block';document.getElementById('note-edit-view').style.display='none';renderNotes()}
 function deleteCurrentNote(){if(!currentNoteId||!confirm('Удалить?'))return;state.notes=state.notes.filter(n=>n.id!==currentNoteId);save();currentNoteId=null;document.getElementById('notes-list-view').style.display='block';document.getElementById('note-edit-view').style.display='none';renderNotes()}
 
+// ============ КАЛЕНДАРЬ ============
 let calDate=new Date();
 function renderCalendar(){const y=calDate.getFullYear(),m=calDate.getMonth();const first=new Date(y,m,1);const startWeekday=(first.getDay()+6)%7;const daysInMonth=new Date(y,m+1,0).getDate();const today=todayStr();document.getElementById('cal-title').textContent=calDate.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});const cells=[];for(let i=0;i<startWeekday;i++)cells.push('<div class="cal-day empty"></div>');for(let d=1;d<=daysInMonth;d++){const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const sDone=!!state.surveys[dateStr];const hDone=state.habits.some(h=>!h.archived&&isHabitDoneForDate(h,dateStr));const tDone=state.tasks.some(t=>t.recurrence?(matchesRecurrence(t,dateStr)&&isTaskDoneOn(t,dateStr)):(t.date===dateStr&&t.done));cells.push(`<div class="cal-day ${dateStr===today?'today':''}" style="aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;background:var(--input-bg);gap:2px;cursor:pointer;color:var(--text);${dateStr===today?'outline:2px solid var(--td-red);':''}" onclick="openDayDetail('${dateStr}')"><div>${d}</div><div style="display:flex;gap:2px;"><span style="width:4px;height:4px;border-radius:50%;background:${sDone?'var(--pink)':'var(--text-tert)'}"></span><span style="width:4px;height:4px;border-radius:50%;background:${hDone?'var(--green)':'var(--text-tert)'}"></span><span style="width:4px;height:4px;border-radius:50%;background:${tDone?'var(--td-blue)':'var(--text-tert)'}"></span></div></div>`)}document.getElementById('cal-grid').innerHTML=cells.join('')}
-function openDayDetail(dateStr){const s=state.surveys[dateStr];const habitsDone=state.habits.filter(h=>!h.archived&&isHabitDoneForDate(h,dateStr));const tasksOnDay=state.tasks.filter(t=>t.recurrence?matchesRecurrence(t,dateStr):t.date===dateStr);const tasksDone=tasksOnDay.filter(t=>isTaskDoneOn(t,dateStr));const isToday=dateStr===todayStr();openSheet(`<h2>${formatDateHuman(dateStr)}</h2>${isToday?'<div style="display:inline-block;padding:2px 8px;background:var(--chip-bg);border-radius:6px;font-size:11px;color:var(--text-sec);margin-bottom:8px;">Сегодня</div>':''}<div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Опрос</div>${s?`<div class="insight"><b>Радость:</b> ${s.emotions?.joy??'—'}/10 · <b>Продуктивность:</b> ${s.mental?.productivity??'—'}/10</div>`:`<div class="empty-hint">Опрос не заполнен</div>`}<div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Привычки (${habitsDone.length}/${state.habits.filter(h=>!h.archived).length})</div>${habitsDone.length?habitsDone.map(h=>`<div class="insight">${svgIcon(h.icon,h.color,14)} ${escapeHtml(h.name)}</div>`).join(''):'<div class="empty-hint">Ни одна не выполнена</div>'}<div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Задачи (${tasksDone.length}/${tasksOnDay.length})</div>${tasksOnDay.length?tasksOnDay.map(t=>`<div class="insight">${isTaskDoneOn(t,dateStr)?'✅':'○'} ${escapeHtml(t.title)}</div>`).join(''):'<div class="empty-hint">Задач не было</div>'}<div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Закрыть</button><button class="btn-primary" onclick="closeSheet();goToDate('${dateStr}')">Открыть →</button></div>`)}
+function openDayDetail(dateStr){const s=state.surveys[dateStr];const habitsDone=state.habits.filter(h=>!h.archived&&isHabitDoneForDate(h,dateStr));const tasksOnDay=state.tasks.filter(t=>t.recurrence?matchesRecurrence(t,dateStr):t.date===dateStr);const tasksDone=tasksOnDay.filter(t=>isTaskDoneOn(t,dateStr));const isToday=dateStr===todayStr();openSheet(`<h2>${formatDateHuman(dateStr)}</h2>${isToday?'<div style="display:inline-block;padding:2px 8px;background:var(--chip-bg);border-radius:6px;font-size:11px;color:var(--text-sec);margin-bottom:8px;">Сегодня</div>':''}<div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Опрос</div>${s?`<div class="insight"><b>Настроение:</b> ${s.emotions?.joy??'—'}/10 · <b>Продуктивность:</b> ${s.mental?.productivity??'—'}/10 · <b>Смысл:</b> ${s.mental?.meaning??'—'}/10</div>`:`<div class="empty-hint">Опрос не заполнен</div>`}<div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Привычки (${habitsDone.length}/${state.habits.filter(h=>!h.archived).length})</div>${habitsDone.length?habitsDone.map(h=>`<div class="insight">${svgIcon(h.icon,h.color,14)} ${escapeHtml(h.name)}</div>`).join(''):'<div class="empty-hint">Ни одна не выполнена</div>'}<div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Задачи (${tasksDone.length}/${tasksOnDay.length})</div>${tasksOnDay.length?tasksOnDay.map(t=>`<div class="insight">${isTaskDoneOn(t,dateStr)?'✅':'○'} ${escapeHtml(t.title)}</div>`).join(''):'<div class="empty-hint">Задач не было</div>'}<div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Закрыть</button><button class="btn-primary" onclick="closeSheet();goToDate('${dateStr}')">Открыть →</button></div>`)}
 function goToDate(dateStr){currentDate=dateStr;switchTab('today')}
 function prevMonth(){calDate.setMonth(calDate.getMonth()-1);haptic();renderCalendar()}
 function nextMonth(){calDate.setMonth(calDate.getMonth()+1);haptic();renderCalendar()}
 
 function initQuote() { const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000); const q = QUOTES[dayOfYear % QUOTES.length]; document.getElementById('quote-text').innerText = `«${q.t}»`; document.getElementById('quote-author').innerText = `— ${q.a}`; }
 
-function fireConfetti() {
-  const colors = ['#db4c3f', '#eb8909', '#246fe0', '#058527', '#AF52DE', '#FF2D55'];
-  for (let i = 0; i < 50; i++) {
-    const piece = document.createElement('div'); piece.className = 'confetti-piece'; piece.style.left = Math.random() * 100 + 'vw'; piece.style.top = -10 + 'px'; piece.style.background = colors[Math.floor(Math.random() * colors.length)]; piece.style.animationDuration = (Math.random() * 2 + 2) + 's'; piece.style.animationDelay = (Math.random() * 0.5) + 's';
-    document.body.appendChild(piece); setTimeout(() => piece.remove(), 4000);
-  }
-}
-
 // ============ Импорт / Экспорт ============
 function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`cantilena-backup-${todayStr()}.json`;a.click();URL.revokeObjectURL(url)}
-function exportCSV(){let csv="Дата,Среднее настроение,Продуктивность,Тревога,Сон,Экран\n";Object.keys(state.surveys).sort().forEach(d=>{const s=state.surveys[d];const avgMood=(state.moods[d]||[]).length?Math.round(state.moods[d].reduce((sum,m)=>sum+m.val,0)/state.moods[d].length):'';csv+=`${d},${avgMood},${s.mental?.productivity||''},${s.emotions?.anxiety||''},${s.physical?.sleepHours||''},${s.screen?.totalHours||''}\n`});const blob=new Blob(["\uFEFF"+csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`cantilena-data-${todayStr()}.csv`;a.click();}
+function exportCSV(){let csv="Дата,Настроение,Продуктивность,Тревога,Энергия,Смысл,Сон_ч,Лёг,Встал,Движение_мин,Общение,Экран_ч,Благодарность\n";Object.keys(state.surveys).sort().forEach(d=>{const s=state.surveys[d];const avgMood=(state.moods[d]||[]).length?Math.round(state.moods[d].reduce((sum,m)=>sum+m.val,0)/state.moods[d].length):'';const soc=s.social?.contact===true?'да':s.social?.contact===false?'нет':'';csv+=`${d},${avgMood},${s.mental?.productivity||''},${s.emotions?.anxiety||''},${s.physical?.energy||''},${s.mental?.meaning||''},${s.physical?.sleepHours||''},${s.physical?.sleepStart||''},${s.physical?.sleepEnd||''},${s.physical?.movement||''},${soc},${s.screen?.totalHours||''},"${(s.reflection?.gratitude||'').replace(/"/g,'""')}"\n`});const blob=new Blob(["\uFEFF"+csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`cantilena-data-${todayStr()}.csv`;a.click();}
 function importData(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{try{const data=JSON.parse(ev.target.result);if(!data||!Array.isArray(data.habits))throw new Error('Неверный формат');if(!confirm('Заменить данные?'))return;state=migrateState(data);save();applyTheme();renderAll();alert('Импорт успешно!')}catch(err){alert('Ошибка: '+err.message)}};reader.readAsText(file);e.target.value=''}
 
 // Запуск рендера
 try {
-  initQuote(); 
+  initQuote();
   renderAll();
   generateAppleIcon();
   document.querySelectorAll('.fab').forEach(f => f.classList.remove('visible'));
-} catch(e) {
-  console.error("Ошибка при рендере:", e);
-}
+} catch(e) { console.error("Ошибка при рендере:", e); }
 
 window.addEventListener('load',()=>{setTimeout(initSupabase,500)});
 window.addEventListener('beforeunload',()=>{if(currentNoteId)saveCurrentNote()});
