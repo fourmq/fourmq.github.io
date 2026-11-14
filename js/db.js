@@ -1,6 +1,6 @@
 import { uid, ICONS, PALETTE, todayStr } from './utils.js';
 
-export const SEED_KEY = 'cantilena_seed_v4', STORAGE = 'cantilena_v19'; // Обновил версию
+export const SEED_KEY = 'cantilena_seed_v4', STORAGE = 'cantilena_v19';
 
 export function migrateState(s) {
   s.surveys = s.surveys || {};
@@ -9,10 +9,7 @@ export function migrateState(s) {
   s.settings = s.settings || {};
   if (s.settings.haptics === undefined) s.settings.haptics = true;
   if (s.settings.sounds === undefined) s.settings.sounds = true;
-  s.reminders = s.reminders || [
-    { id: uid(), time: '09:00', text: 'Доброе утро! Время для привычек.', enabled: true },
-    { id: uid(), time: '21:00', text: 'Как прошел день? Пора заполнить дневник.', enabled: true }
-  ];
+  s.reminders = s.reminders || [];
   s.moods = s.moods || {};
   s.supabase = s.supabase || { url: '', key: '', email: '', lastSync: null };
   s.habits = (s.habits || []).map((h, i) => {
@@ -40,12 +37,6 @@ export function loadState() {
     try { const s = JSON.parse(localStorage.getItem(key)); if (s && Array.isArray(s.habits)) { raw = s; break; } } catch (e) {}
   }
   const s = migrateState(raw || {});
-  if (!localStorage.getItem(SEED_KEY)) {
-    const existing = new Set(s.habits.map(h => h.name));
-    // Если привычек нет, добавим дефолтные (можно вынести в utils, но для скорости оставим тут)
-    // ...
-    localStorage.setItem(SEED_KEY, '1');
-  }
   localStorage.setItem(STORAGE, JSON.stringify(s));
   return s;
 }
@@ -82,17 +73,6 @@ export async function initSupabase() {
       await pullFromCloud(true, false);
       startPolling();
     }
-    supabaseClient.auth.onAuthStateChange(async (e, s) => {
-      if (s) {
-        currentUser = s.user;
-        await pullFromCloud(true, false);
-        startPolling();
-        if (window.renderAll) window.renderAll();
-      } else {
-        currentUser = null;
-        if (pollInterval) clearInterval(pollInterval);
-      }
-    });
   } catch (e) { console.warn(e); }
 }
 
@@ -100,8 +80,6 @@ export function startPolling() {
   if (pollInterval) clearInterval(pollInterval);
   pollInterval = setInterval(async () => {
     if (!currentUser || !supabaseClient || isPushing) return;
-    const active = document.activeElement;
-    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable) && active.value && active.value.length > 0) return;
     try {
       const { data, error } = await supabaseClient.from('cantilena_data').select('updated_at').eq('user_id', currentUser.id).maybeSingle();
       if (error || !data) return;
@@ -123,9 +101,13 @@ export async function pullFromCloud(force = false, askBeforeOverwrite = false) {
           askedAboutOverwrite = true;
         }
       }
-      window.state = migrateState(data.data);
+      const newState = migrateState(data.data);
+      // Правильное обновление стейта без потери ссылок
+      Object.keys(state).forEach(key => delete state[key]);
+      Object.assign(state, newState);
+      
       lastCloudUpdate = new Date(data.updated_at).getTime();
-      localStorage.setItem(STORAGE, JSON.stringify(window.state));
+      localStorage.setItem(STORAGE, JSON.stringify(state));
       if (window.applyTheme) window.applyTheme();
       if (window.renderAll) window.renderAll();
     }
@@ -137,7 +119,7 @@ export async function pushToCloud() {
   isPushing = true;
   try {
     const nowISO = new Date().toISOString();
-    await supabaseClient.from('cantilena_data').upsert({ user_id: currentUser.id, data: window.state, updated_at: nowISO }, { onConflict: 'user_id' });
+    await supabaseClient.from('cantilena_data').upsert({ user_id: currentUser.id, data: state, updated_at: nowISO }, { onConflict: 'user_id' });
     lastCloudUpdate = new Date(nowISO).getTime();
   } catch (e) {}
   finally { setTimeout(() => { isPushing = false; }, 2000); }
@@ -147,13 +129,4 @@ window.scheduleSync = function() {
   if (!currentUser || !supabaseClient) return;
   clearTimeout(syncTimer);
   syncTimer = setTimeout(pushToCloud, 1500);
-};
-
-window.manualSyncWithUI = async function(btn) {
-  const icon = btn.querySelector('.sync-icon');
-  if (icon) icon.classList.add('spinning');
-  await pullFromCloud(false, false);
-  await pushToCloud();
-  if (icon) icon.classList.remove('spinning');
-  if (window.showToast) window.showToast('🔄 Данные обновлены');
 };
