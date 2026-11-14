@@ -57,48 +57,164 @@ export function openChangelog() {
   window.openSheet(`<h2>Что нового?</h2><div style="margin-top:16px;">${itemsHtml}</div><button class="btn-cancel" onclick="window.openSettings()">← Назад</button>`);
 }
 
-window.toggleContextTag = function(id) {
-  const btn = document.getElementById('tag-' + id);
-  if (tempContextTags.includes(id)) {
-    tempContextTags = tempContextTags.filter(t => t !== id);
-    btn.style.background = 'var(--input-bg)'; btn.style.borderColor = 'var(--separator-med)'; btn.style.color = 'var(--text)';
-  } else {
-    tempContextTags.push(id);
-    btn.style.background = 'var(--accent-soft)'; btn.style.borderColor = 'var(--accent)'; btn.style.color = 'var(--accent)';
-  }
-};
+export function openWeeklySurvey(wk) {
+  wk = wk || window.isoWeek();
+  const s = state.weeklySurveys[wk] || {};
+  const passed = !!s.ts;
+  const get = (k, d) => s[k] ?? d;
+  
+  window.openSheet(`
+    <h2>Компас недели</h2>
+    <p style="font-size:13px;color:var(--text-sec);margin-bottom:12px;">
+      Неделя ${wk} ${passed ? '· <span style="color:var(--green);font-weight:700;">✅ Пройден</span>' : ''}
+    </p>
+    
+    <div class="survey-section">1. Цель недели</div>
+    <div class="field"><label>Одна главная цель этой недели</label>
+      <input type="text" id="w-goal" value="${escapeHtml(get('goal', ''))}" placeholder="Например: доделать проект X">
+    </div>
+    <div class="field"><label>Насколько продвинулся к ней (1-10) <span style="float:right;color:var(--accent);font-weight:700;" id="v-w-progress">${get('progress', 5)}</span></label>
+      <input type="range" id="s-w-progress" min="1" max="10" value="${get('progress', 5)}" oninput="document.getElementById('v-w-progress').textContent=this.value">
+    </div>
 
-function computeSleepHours(start, end) {
-  if (!start || !end) return null;
-  const [sh, sm] = start.split(':').map(Number); const [eh, em] = end.split(':').map(Number);
-  let startM = sh * 60 + sm; let endM = eh * 60 + em;
-  if (endM <= startM) endM += 24 * 60;
-  return +((endM - startM) / 60).toFixed(1);
+    <div class="survey-section">2. Шаг к мечте</div>
+    <div class="field"><label>Какой конкретный шаг ты сделал к большой мечте?</label>
+      <textarea id="w-dreamStep" placeholder="Даже маленький шаг — важен">${escapeHtml(get('dreamStep', ''))}</textarea>
+    </div>
+
+    <div class="survey-section">3. Что мешало</div>
+    <div class="field"><label>Главное препятствие</label>
+      <select id="w-obstacle">
+        <option value="" ${!get('obstacle', '') ? 'selected' : ''}>—</option>
+        <option value="sleep" ${get('obstacle', '') === 'sleep' ? 'selected' : ''}>Плохой сон</option>
+        <option value="anxiety" ${get('obstacle', '') === 'anxiety' ? 'selected' : ''}>Тревога</option>
+        <option value="procrastination" ${get('obstacle', '') === 'procrastination' ? 'selected' : ''}>Прокрастинация</option>
+        <option value="people" ${get('obstacle', '') === 'people' ? 'selected' : ''}>Люди / обстоятельства</option>
+        <option value="none" ${get('obstacle', '') === 'none' ? 'selected' : ''}>Ничего серьёзного</option>
+      </select>
+    </div>
+
+    <div class="survey-section">4. Общее самочувствие</div>
+    <div class="field"><label>Насколько доволен неделей (1-10) <span style="float:right;color:var(--accent);font-weight:700;" id="v-w-wellbeing">${get('wellbeing', 5)}</span></label>
+      <input type="range" id="s-w-wellbeing" min="1" max="10" value="${get('wellbeing', 5)}" oninput="document.getElementById('v-w-wellbeing').textContent=this.value">
+    </div>
+
+    <div class="survey-section">5. Рефлексия</div>
+    <div class="field"><label>Что ты понял о себе за эту неделю?</label>
+      <textarea id="w-lesson" placeholder="Уроки — это топливо для следующего шага">${escapeHtml(get('lesson', ''))}</textarea>
+    </div>
+
+    <div class="sheet-actions">
+      <button class="btn-cancel" onclick="window.closeSheet()">Отмена</button>
+      <button class="btn-primary" onclick="window.saveWeeklySurvey('${wk}')">Сохранить</button>
+    </div>
+  `);
 }
 
-window.saveDailySurvey = function() {
-  const dateStr = window.currentDate;
-  if (!state.surveys[dateStr]) state.surveys[dateStr] = {};
-  const s = state.surveys[dateStr];
-  s.evening = true;
-  s.eveningTime = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+export function saveWeeklySurvey(wk) {
+  wk = wk || window.isoWeek();
+  const goal = document.getElementById('w-goal').value.trim();
+  const progress = +document.getElementById('s-w-progress').value;
+  const dreamStep = document.getElementById('w-dreamStep').value.trim();
+  const obstacle = document.getElementById('w-obstacle').value;
+  const wellbeing = +document.getElementById('s-w-wellbeing').value;
+  const lesson = document.getElementById('w-lesson').value.trim();
   
-  s.mental = s.mental || {}; s.mental.productivity = +document.getElementById('d-prod').value; s.mental.meaning = +document.getElementById('d-meaning').value;
-  s.emotions = s.emotions || {}; s.emotions.anxiety = +document.getElementById('d-anx').value;
-  s.physical = s.physical || {}; s.physical.energy = +document.getElementById('d-energy').value;
-  s.physical.sleepStart = document.getElementById('d-sleep-start').value || null;
-  s.physical.sleepEnd = document.getElementById('d-sleep-end').value || null;
-  s.physical.sleepHours = computeSleepHours(s.physical.sleepStart, s.physical.sleepEnd);
-  s.physical.movement = parseFloat(document.getElementById('d-movement').value) || 0;
-  
-  s.reflection = s.reflection || {}; s.reflection.gratitude = document.getElementById('d-gratitude').value.trim();
-  s.contextTags = tempContextTags;
-  
-  const moods = state.moods[dateStr] || [];
-  if (moods.length) s.emotions.joy = Math.round(moods.reduce((sum, m) => sum + m.val, 0) / moods.length);
-  
+  state.weeklySurveys[wk] = { goal, progress, dreamStep, obstacle, wellbeing, lesson, ts: Date.now() };
   window.haptic('success'); window.playSound('success'); save(); window.closeSheet(); window.renderAll();
-};
+}
 
-window.openDailySurvey = openDailySurvey;
-window.openChangelog = openChangelog;
+export function hasDream() {
+  return state.dream && (state.dream.vision || (state.dream.markers && state.dream.markers.length));
+}
+
+export function openDreamEditor() {
+  const dream = state.dream || { vision: '', markers: [], reviews: {} };
+  const markers = dream.markers.length ? dream.markers : [''];
+  
+  let markersHtml = '';
+  markers.forEach((m, i) => {
+    markersHtml += `
+      <div class="marker-item">
+        <input type="text" class="marker-input" value="${escapeHtml(m)}" placeholder="Маркер ${i + 1}">
+        ${markers.length > 1 ? `<button class="marker-del" onclick="window.removeMarker(this)">×</button>` : ''}
+      </div>
+    `;
+  });
+  
+  window.openSheet(`
+    <h2>Моя мечта</h2>
+    <p style="font-size:13px;color:var(--text-sec);margin-bottom:16px;">
+      Куда ты идёшь? Одно предложение о будущем и 3-5 маркеров, по которым поймёшь, что приблизился.
+    </p>
+    
+    <div class="field"><label>Через год я хочу быть...</label>
+      <textarea id="dream-vision" placeholder="Например: человеком, который свободно говорит на английском и работает над своим проектом" style="min-height:100px;">${escapeHtml(dream.vision)}</textarea>
+    </div>
+    
+    <div class="field"><label>Маркеры прогресса (что будет значить «я на пути»)</label>
+      <div id="markers-container">${markersHtml}</div>
+      <button class="btn-cancel" style="width:auto;margin-top:8px;padding:8px 14px;font-size:13px;" onclick="window.addMarker()">+ Добавить маркер</button>
+    </div>
+    
+    <div class="sheet-actions" style="margin-top:20px;">
+      <button class="btn-cancel" onclick="window.closeSheet()">Отмена</button>
+      <button class="btn-primary" onclick="window.saveDream()">Сохранить</button>
+    </div>
+  `);
+}
+
+export function addMarker() {
+  const container = document.getElementById('markers-container');
+  const count = container.querySelectorAll('.marker-item').length;
+  if (count >= 5) { window.showToast('Максимум 5 маркеров'); return; }
+  const div = document.createElement('div');
+  div.className = 'marker-item';
+  div.innerHTML = `<input type="text" class="marker-input" placeholder="Маркер ${count + 1}"><button class="marker-del" onclick="window.removeMarker(this)">×</button>`;
+  container.appendChild(div);
+}
+
+export function removeMarker(btn) {
+  const container = document.getElementById('markers-container');
+  if (container.querySelectorAll('.marker-item').length <= 1) return;
+  btn.closest('.marker-item').remove();
+}
+
+export function saveDream() {
+  const vision = document.getElementById('dream-vision').value.trim();
+  const markers = [...document.querySelectorAll('.marker-input')].map(i => i.value.trim()).filter(Boolean);
+  if (!state.dream) state.dream = { vision: '', markers: [], reviews: {} };
+  state.dream.vision = vision;
+  state.dream.markers = markers;
+  state.dream.updatedAt = Date.now();
+  if (!state.dream.createdAt) state.dream.createdAt = Date.now();
+  window.haptic('success'); window.playSound('success'); save(); window.closeSheet(); window.renderAll();
+}
+
+export function openMonthlyReview() {
+  const now = new Date();
+  const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const prev = state.dream.reviews[key] || {};
+  window.openSheet(`
+    <h2>Ревизия месяца</h2>
+    <p style="font-size:13px;color:var(--text-sec);margin-bottom:16px;">${now.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</p>
+    <div class="field"><label>Насколько приблизился к мечте (1-10) <span style="float:right;color:var(--accent);font-weight:700;" id="v-rev-score">${prev.score || 5}</span></label>
+      <input type="range" id="rev-score" min="1" max="10" value="${prev.score || 5}" oninput="document.getElementById('v-rev-score').textContent=this.value">
+    </div>
+    <div class="field"><label>Что изменилось?</label>
+      <textarea id="rev-note" placeholder="Что стало по-другому в этом месяце?">${escapeHtml(prev.note || '')}</textarea>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-cancel" onclick="window.closeSheet()">Отмена</button>
+      <button class="btn-primary" onclick="window.saveMonthlyReview('${key}')">Сохранить</button>
+    </div>
+  `);
+}
+
+export function saveMonthlyReview(key) {
+  const score = +document.getElementById('rev-score').value;
+  const note = document.getElementById('rev-note').value.trim();
+  if (!state.dream.reviews) state.dream.reviews = {};
+  state.dream.reviews[key] = { score, note, ts: Date.now() };
+  window.haptic('success'); save(); window.closeSheet(); window.renderAll();
+}
