@@ -194,7 +194,6 @@ input:checked + .slider:before{transform:translateX(20px)}
 #edit-note-title { width: 100%; font-size: 20px; font-weight: 700; border: none; outline: none; background: transparent; color: var(--text); margin-bottom: 8px; padding: 4px 0; }
 #edit-note-body { min-height: 400px; font-size: 16px; line-height: 1.55; outline: none; color: var(--text); padding-bottom: 40px; }
 
-/* ИСПРАВЛЕННЫЙ ЛОГОТИП СЛЕВА */
 .sidebar{display:none;flex-direction:column;background:var(--sidebar);border-right:1px solid var(--sidebar-border);width:260px;flex-shrink:0;padding:20px 12px}
 .sidebar-brand{padding:6px 14px 24px;font-size:22px;font-weight:800;color:var(--text);line-height:1.1}
 .sidebar-brand span{color:var(--accent);font-weight:600;font-size:13px;display:block;margin-top:4px;letter-spacing:0;text-transform:uppercase}
@@ -419,6 +418,12 @@ input:checked + .slider:before{transform:translateX(20px)}
 <div class="toast" id="toast"></div>
 
 <script>
+// Защита от зависания заставки: скроем её через 1.5 сек в любом случае
+setTimeout(() => { 
+  const splash = document.getElementById('splash');
+  if (splash) splash.classList.add('hidden'); 
+}, 1500);
+
 // ============ Служебные функции ============
 const todayStr=()=>new Date().toISOString().slice(0,10);
 const uid=()=>Date.now()+Math.floor(Math.random()*10000);
@@ -458,8 +463,8 @@ function changeDay(offset) { const d = new Date(currentDate + 'T12:00:00'); d.se
 function goToday() { currentDate = todayStr(); haptic(); renderAll(); }
 function updateDateNav() { const label = document.getElementById('date-nav-label'); if(!label)return; if(currentDate === todayStr()) { label.innerHTML = 'Сегодня'; } else { const d = new Date(currentDate + 'T12:00:00'); label.innerHTML = `${d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', weekday: 'short' })} <span class="back-today" onclick="goToday()">Вернуться</span>`; } }
 
-const SEED_KEY='cantilena_seed_v4', STORAGE='cantilena_v10';
-function loadState(){let raw=null;for(const key of [STORAGE,'cantilena_v9','cantilena_v8']){try{const s=JSON.parse(localStorage.getItem(key));if(s&&Array.isArray(s.habits)){raw=s;break}}catch(e){}}const s=migrateState(raw||{});seedDefaults(s);localStorage.setItem(STORAGE,JSON.stringify(s));return s}
+const SEED_KEY='cantilena_seed_v4', STORAGE='cantilena_v11';
+function loadState(){let raw=null;for(const key of [STORAGE,'cantilena_v10','cantilena_v9']){try{const s=JSON.parse(localStorage.getItem(key));if(s&&Array.isArray(s.habits)){raw=s;break}}catch(e){}}const s=migrateState(raw||{});seedDefaults(s);localStorage.setItem(STORAGE,JSON.stringify(s));return s}
 function seedDefaults(s){if(localStorage.getItem(SEED_KEY))return;const existing=new Set(s.habits.map(h=>h.name));let order=s.habits.length;DEFAULT_HABITS.forEach(d=>{if(!existing.has(d.name)){const clone=JSON.parse(JSON.stringify(d));s.habits.push({...clone,id:uid(),checks:{},skips:{},archived:false,order:order++,createdAt:Date.now()})}});localStorage.setItem(SEED_KEY,'1')}
 function migrateState(s){
   s.surveys=s.surveys||{};s.weeklySurveys=s.weeklySurveys||{};s.theme=s.theme||'auto';
@@ -1253,11 +1258,14 @@ function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'
 function exportCSV(){let csv="Дата,Среднее настроение,Продуктивность,Тревога,Сон,Экран\n";Object.keys(state.surveys).sort().forEach(d=>{const s=state.surveys[d];const avgMood=(state.moods[d]||[]).length?Math.round(state.moods[d].reduce((sum,m)=>sum+m.val,0)/state.moods[d].length):'';csv+=`${d},${avgMood},${s.mental?.productivity||''},${s.emotions?.anxiety||''},${s.physical?.sleepHours||''},${s.screen?.totalHours||''}\n`});const blob=new Blob(["\uFEFF"+csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`cantilena-data-${todayStr()}.csv`;a.click();}
 function importData(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{try{const data=JSON.parse(ev.target.result);if(!data||!Array.isArray(data.habits))throw new Error('Неверный формат');if(!confirm('Заменить данные?'))return;state=migrateState(data);save();applyTheme();renderAll();alert('Импорт успешно!')}catch(err){alert('Ошибка: '+err.message)}};reader.readAsText(file);e.target.value=''}
 
-function renderAll(){ updateDateNav(); updateTopbar(); updateRings(); renderQuickMoodUI(); renderFocusOfDay(); renderHabitsToday(); renderTasksTodayMini(); renderTasks(); renderNotes(); renderCalendar(); renderStats(); }
+// Запуск рендера
+try {
+  initQuote(); 
+  renderAll();
+} catch(e) {
+  console.error("Ошибка при рендере:", e);
+}
 
-initQuote(); 
-renderAll();
-setTimeout(() => { document.getElementById('splash').classList.add('hidden'); }, 1500);
 window.addEventListener('load',()=>{setTimeout(initSupabase,500)});
 window.addEventListener('beforeunload',()=>{if(currentNoteId)saveCurrentNote()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&currentNoteId)saveCurrentNote()});
