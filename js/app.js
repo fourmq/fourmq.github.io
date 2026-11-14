@@ -1,5 +1,5 @@
-import { todayStr, haptic, escapeHtml, svgIcon, APP_VERSION, playSound, showToast, uid, PALETTE, WEEKDAYS_SHORT, WEEKDAYS_LONG, formatDateHuman } from './utils.js';
-import { state, save, initSupabase, pullFromCloud, pushToCloud } from './db.js';
+import { todayStr, haptic, escapeHtml, svgIcon, APP_VERSION, playSound, showToast, uid, PALETTE, WEEKDAYS_SHORT, WEEKDAYS_LONG, formatDateHuman, stripHtml, ICONS } from './utils.js';
+import { state, save, initSupabase, pullFromCloud, pushToCloud, migrateState } from './db.js';
 import * as Tasks from './tasks.js';
 import * as Surveys from './surveys.js';
 
