@@ -1,6 +1,8 @@
-export const APP_VERSION = '2.2.0';
+export const APP_VERSION = '2.3.0';
 export const CHANGELOG = [
-  { v: '2.2.0', date: 'Сегодня', items: ['Переход на модули (файлы)', 'Помодоро-таймер', 'Повторяющиеся задачи', 'Умный дневник', 'Теги контекста'] }
+  { v: '2.3.0', date: 'Сегодня', items: ['Внедрен инновационный таймер Фокуса', 'Связка задач с таймером', 'Плавающий виджет таймера поверх окон', 'Новый Календарь в Задачах (как в Todoist)', 'Смена тем вернулась в настройки'] },
+  { v: '2.2.0', date: 'Ранее', items: ['Переход на модули (файлы)', 'Помодоро-таймер в фокусе дня', 'Повторяющиеся задачи', 'Умный дневник', 'Теги контекста'] },
+  { v: '2.1.0', date: 'Ранее', items: ['Разделение на файлы', 'Система версий и Changelog'] }
 ];
 
 export const DAILY_PROMPTS = [
@@ -43,7 +45,7 @@ export function showToast(msg) {
   el.textContent = msg;
   el.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
 }
 
 let audioCtx = null;
