@@ -3,7 +3,6 @@ import { state, save } from './db.js';
 
 export let tempContextTags = [];
 
-// ==== ВЕЧЕРНИЙ ОПРОС ====
 export function openDailySurvey() {
   const dateStr = window.currentDate;
   const s = state.surveys[dateStr] || {};
@@ -45,52 +44,7 @@ export function openDailySurvey() {
     <div class="sheet-actions" style="display:flex;gap:8px;"><button class="btn-cancel" style="flex:1;" onclick="window.closeSheet()">Отмена</button><button class="btn-primary" style="flex:1;" onclick="window.saveDailySurvey()">Сохранить</button></div>
   `);
 }
-window.openDailySurvey = openDailySurvey;
 
-window.toggleContextTag = function(id) {
-  const btn = document.getElementById('tag-' + id);
-  if (tempContextTags.includes(id)) {
-    tempContextTags = tempContextTags.filter(t => t !== id);
-    btn.style.background = 'var(--input-bg)'; btn.style.borderColor = 'var(--separator-med)'; btn.style.color = 'var(--text)';
-  } else {
-    tempContextTags.push(id);
-    btn.style.background = 'var(--accent-soft)'; btn.style.borderColor = 'var(--accent)'; btn.style.color = 'var(--accent)';
-  }
-};
-
-function computeSleepHours(start, end) {
-  if (!start || !end) return null;
-  const [sh, sm] = start.split(':').map(Number); const [eh, em] = end.split(':').map(Number);
-  let startM = sh * 60 + sm; let endM = eh * 60 + em;
-  if (endM <= startM) endM += 24 * 60;
-  return +((endM - startM) / 60).toFixed(1);
-}
-
-window.saveDailySurvey = function() {
-  const dateStr = window.currentDate;
-  if (!state.surveys[dateStr]) state.surveys[dateStr] = {};
-  const s = state.surveys[dateStr];
-  s.evening = true;
-  s.eveningTime = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-  
-  s.mental = s.mental || {}; s.mental.productivity = +document.getElementById('d-prod').value; s.mental.meaning = +document.getElementById('d-meaning').value;
-  s.emotions = s.emotions || {}; s.emotions.anxiety = +document.getElementById('d-anx').value;
-  s.physical = s.physical || {}; s.physical.energy = +document.getElementById('d-energy').value;
-  s.physical.sleepStart = document.getElementById('d-sleep-start').value || null;
-  s.physical.sleepEnd = document.getElementById('d-sleep-end').value || null;
-  s.physical.sleepHours = computeSleepHours(s.physical.sleepStart, s.physical.sleepEnd);
-  s.physical.movement = parseFloat(document.getElementById('d-movement').value) || 0;
-  
-  s.reflection = s.reflection || {}; s.reflection.gratitude = document.getElementById('d-gratitude').value.trim();
-  s.contextTags = tempContextTags;
-  
-  const moods = state.moods[dateStr] || [];
-  if (moods.length) s.emotions.joy = Math.round(moods.reduce((sum, m) => sum + m.val, 0) / moods.length);
-  
-  window.haptic('success'); window.playSound('success'); save(); window.closeSheet(); window.renderAll();
-};
-
-// ==== CHANGELOG ====
 export function openChangelog() {
   const itemsHtml = CHANGELOG.map(c => `
     <div style="margin-bottom:16px;">
@@ -102,11 +56,3 @@ export function openChangelog() {
   `).join('');
   window.openSheet(`<h2>Что нового?</h2><div style="margin-top:16px;">${itemsHtml}</div><button class="btn-cancel" onclick="window.openSettings()">← Назад</button>`);
 }
-window.openChangelog = openChangelog;
-
-// ==== СТАТИСТИКА (остальной код) ====
-// ... Сюда копируешь функции renderStats, renderAutoInsights, renderChart, renderCorrMatrix, 
-// renderPsyProfile, renderPedRecommendations, renderYearInPixels, renderTrends4W ...
-// И функции Компаса недели и Мечты (openWeeklySurvey, renderDreamCard, openDreamEditor и т.д.)
-// В функции которых вызывается renderAll(), используй window.renderAll().
-// В функциях которых вызывается openSheet(), используй window.openSheet().
