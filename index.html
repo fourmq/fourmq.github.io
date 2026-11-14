@@ -19,27 +19,26 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;height:100dvh;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
 .app{width:100%;height:100%;display:flex;background:var(--bg);overflow:hidden}
 
-#splash{position:fixed;inset:0;background:#3E1728;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s ease-out, visibility .5s}
+/* АНИМИРОВАННАЯ ЗАСТАВКА */
+#splash{position:fixed;inset:0;background:#3E1728;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s ease-out, visibility .6s}
 #splash.hidden{opacity:0;visibility:hidden}
-.splash-logo{width:100px;height:100px;margin-bottom:20px;animation:scaleIn .8s cubic-bezier(.2,.9,.3,1)}
-.splash-title{color:#F2A0C0;font-size:24px;font-weight:700;letter-spacing:1px;opacity:0;animation:fadeIn .8s .3s forwards}
-@keyframes scaleIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.splash-svg{width:160px;height:160px;margin-bottom:20px;overflow:visible}
+.splash-title{color:#F2A0C0;font-size:28px;font-weight:700;letter-spacing:2px;opacity:0;animation:fadeIn 1s .8s forwards}
 @keyframes fadeIn{to{opacity:1}}
 
 .main-area{flex:1;display:flex;flex-direction:column;min-width:0;position:relative;overflow:hidden}
 @keyframes screenIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes checkPop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
 @keyframes spin{100%{transform:rotate(360deg)}}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
 
 .topbar{padding:calc(env(safe-area-inset-top,0px) + 4px) 20px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
 .topbar-info{flex:1;min-width:0}
 .topbar h1{font-size:26px;font-weight:700;letter-spacing:-.6px;line-height:1.1}
 .topbar-meta{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-sec);margin-top:4px;font-weight:500}
 .topbar-meta .time-mono{font-variant-numeric:tabular-nums;color:var(--text);font-weight:600}
-
 .save-indicator { font-size: 12px; color: var(--green); font-weight: 600; margin-left: 8px; opacity: 0; transition: opacity 0.3s; display: flex; align-items: center; gap: 4px; }
 .save-indicator.show { opacity: 1; }
-
 .topbar .icon-btn{background:none;border:none;color:var(--accent);cursor:pointer;padding:6px;font-size:20px;line-height:1;flex-shrink:0;transition:transform .15s;display:flex;align-items:center;justify-content:center}
 .topbar .icon-btn:active{transform:scale(.9)}
 .sync-icon.spinning{animation:spin 1s linear infinite}
@@ -74,7 +73,6 @@ main{flex:1;overflow-y:auto;padding-bottom:24px;-webkit-overflow-scrolling:touch
 .quote-text{margin-bottom:8px}
 .quote-author{font-size:12px;font-weight:600;font-style:normal;color:var(--text-tert)}
 
-/* Настройки */
 .settings-group{background:var(--card);border-radius:16px;margin-bottom:20px;overflow:hidden}
 .settings-header{font-size:12px;font-weight:600;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;padding:0 16px 8px;margin-top:8px}
 .settings-row{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:.5px solid var(--separator);font-size:16px;font-weight:500}
@@ -91,7 +89,6 @@ main{flex:1;overflow-y:auto;padding-bottom:24px;-webkit-overflow-scrolling:touch
 input:checked + .slider{background-color:var(--green)}
 input:checked + .slider:before{transform:translateX(20px)}
 
-/* Графики */
 .chart-svg{width:100%;height:auto;display:block;overflow:visible}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .stat-card{background:var(--card);border-radius:16px;padding:14px}
@@ -218,11 +215,17 @@ input:checked + .slider:before{transform:translateX(20px)}
 </head>
 <body>
 
+<!-- ЗАСТАВКА С АНИМАЦИЕЙ -->
 <div id="splash">
-  <svg class="splash-logo" viewBox="0 0 512 512">
-    <rect width="512" height="512" rx="115" fill="#3E1728"/>
-    <circle cx="256" cy="150" r="42" fill="#F2A0C0"/>
-    <path d="M 75 320 C 130 210, 180 210, 230 280 S 310 400, 370 350 S 420 280, 430 260" fill="none" stroke="#F2A0C0" stroke-width="32" stroke-linecap="round"/>
+  <svg class="splash-svg" viewBox="0 0 512 512">
+    <rect width="512" height="512" rx="115" fill="#3E1728" />
+    <path id="wavePath" d="M 75 320 C 130 210, 180 210, 230 280 S 310 400, 370 350 S 420 280, 430 260" fill="none" stroke="#F2A0C0" stroke-width="32" stroke-linecap="round"/>
+    <!-- Шарик, который будет катиться -->
+    <circle cx="0" cy="0" r="20" fill="#F2A0C0">
+      <animateMotion dur="1.5s" repeatCount="1" fill="freeze" keyPoints="0;1" keyTimes="0;1" calcMode="linear">
+        <mpath href="#wavePath"/>
+      </animateMotion>
+    </circle>
   </svg>
   <div class="splash-title">Cantilena</div>
 </div>
@@ -270,7 +273,7 @@ input:checked + .slider:before{transform:translateX(20px)}
             <circle id="ring-tasks" cx="60" cy="60" r="24" stroke="var(--accent)" stroke-width="10" fill="none" stroke-linecap="round" transform="rotate(-90 60 60)"/>
           </svg>
           <div class="rings-legend">
-            <div><span class="dot" style="background:var(--pink)"></span>Настроение <b id="pct-survey">0%</b></div>
+            <div><span class="dot" style="background:var(--pink)"></span>Дневник <b id="pct-survey">0%</b></div>
             <div><span class="dot" style="background:var(--green)"></span>Привычки <b id="pct-habits">0%</b></div>
             <div><span class="dot" style="background:var(--accent)"></span>Задачи <b id="pct-tasks">0%</b></div>
           </div>
@@ -418,11 +421,11 @@ input:checked + .slider:before{transform:translateX(20px)}
 <div class="toast" id="toast"></div>
 
 <script>
-// Защита от зависания заставки: скроем её через 1.5 сек в любом случае
+// Защита от зависания заставки
 setTimeout(() => { 
   const splash = document.getElementById('splash');
   if (splash) splash.classList.add('hidden'); 
-}, 1500);
+}, 2000);
 
 // ============ Служебные функции ============
 const todayStr=()=>new Date().toISOString().slice(0,10);
@@ -450,11 +453,38 @@ function playSound(type) {
   } catch(e){}
 }
 
-// ============ Иконки ============
-const ICONS={sunrise:'<path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/>',activity:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',book:'<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>',bookOpen:'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',tree:'<path d="m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-.3a1 1 0 0 1-.7-1.7L9 9h-.2A1 1 0 0 1 8 7.3L12 3l4 4.3a1 1 0 0 1-.8 1.7H15l2.5 3.3a1 1 0 0 1-.8 1.7H17Z"/><path d="M12 22v-3"/>',graduationCap:'<path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>',droplet:'<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',heart:'<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',target:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',pencil:'<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',coffee:'<path d="M17 8h1a4 4 0 1 1 0 8h-1M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>',sparkle:'<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>',check:'<path d="M20 6 9 17l-5-5"/>'};
+// ============ Иконки (Единый стиль) ============
+const ICONS={
+  sunrise:'<path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/>',
+  activity:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+  book:'<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>',
+  bookOpen:'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+  music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+  tree:'<path d="m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-.3a1 1 0 0 1-.7-1.7L9 9h-.2A1 1 0 0 1 8 7.3L12 3l4 4.3a1 1 0 0 1-.8 1.7H15l2.5 3.3a1 1 0 0 1-.8 1.7H17Z"/><path d="M12 22v-3"/>',
+  graduationCap:'<path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>',
+  droplet:'<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',
+  moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+  heart:'<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+  target:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  pencil:'<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+  coffee:'<path d="M17 8h1a4 4 0 1 1 0 8h-1M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>',
+  sparkle:'<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>'
+};
+const EMOJI_TO_ICON = {'✅':'check','💧':'droplet','📖':'book','🏃':'activity','🧘':'heart','💪':'activity','🎯':'target','🌙':'moon','☀️':'sun','🥗':'apple','✍️':'pencil','🎸':'music','🧹':'sparkle','💊':'pill','📵':'phoneOff','🚭':'phoneOff','🛏️':'moon','🍎':'apple','🧠':'brain','🎨':'pencil'};
+
 function svgIcon(name,color='currentColor',size=20){const path=ICONS[name]||ICONS.sparkle;return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`}
 const PALETTE=['#FF3B30','#FF9500','#FFCC00','#34C759','#5AC8FA','#007AFF','#5856D6','#AF52DE','#FF2D55'];
-const DEFAULT_HABITS=[{name:'Подъем до 8:00',icon:'sunrise',color:'#FF9500',target:1,schedule:{type:'daily'}},{name:'Зарядка',icon:'activity',color:'#34C759',target:1,schedule:{type:'daily'}},{name:'Библия',icon:'book',color:'#007AFF',target:1,schedule:{type:'daily'}},{name:'Музыка',icon:'music',color:'#AF52DE',target:1,schedule:{type:'daily'}},{name:'Прогулка',icon:'tree',color:'#5AC8FA',target:1,schedule:{type:'daily'}},{name:'Чтение',icon:'bookOpen',color:'#FF2D55',target:1,schedule:{type:'daily'}},{name:'Богословские курсы',icon:'graduationCap',color:'#5856D6',target:1,schedule:{type:'weekdays',days:[1,4]}}];
+const DEFAULT_HABITS=[
+  {name:'Подъем до 8:00',icon:'sunrise',color:'#FF9500',target:1,schedule:{type:'daily'}},
+  {name:'Зарядка',icon:'activity',color:'#34C759',target:1,schedule:{type:'daily'}},
+  {name:'Библия',icon:'book',color:'#007AFF',target:1,schedule:{type:'daily'}},
+  {name:'Музыка',icon:'music',color:'#AF52DE',target:1,schedule:{type:'daily'}},
+  {name:'Прогулка',icon:'tree',color:'#5AC8FA',target:1,schedule:{type:'daily'}},
+  {name:'Чтение',icon:'bookOpen',color:'#FF2D55',target:1,schedule:{type:'daily'}},
+  {name:'Богословские курсы',icon:'graduationCap',color:'#5856D6',target:1,schedule:{type:'weekdays',days:[1,4]}}
+];
 const QUOTES=[{t:"Всё могу в укрепляющем меня Иисусе Христе.", a:"Фил. 4:13"},{t:"Ты не обязан быть великим, чтобы начать, но ты должен начать, чтобы стать великим.", a:"Зиг Зиглар"},{t:"Господь — Пастырь мой; я ни в чём не буду нуждаться.", a:"Псалом 22:1"},{t:"Дисциплина — это выбор между тем, чего ты хочешь сейчас, и тем, чего хочешь больше всего.", a:"Огастес Ф. Хоули"},{t:"Научи нас так счислять дни наши, чтобы нам приобрести сердце мудрое.", a:"Псалом 89:12"},{t:"Успех — это сумма небольших усилий, повторяемых изо дня в день.", a:"Роберт Кольер"},{t:"Придите ко Мне все труждающиеся и обременённые, и Я успокою вас.", a:"Мф. 11:28"},{t:"Ты никогда не изменишь свою жизнь, пока не изменишь то, что делаешь каждый день.", a:"Майк Мёрдок"},{t:"Всё делайте без ропота и сомнения.", a:"Фил. 2:14"},{t:"Лучшее время посадить дерево было 20 лет назад. Второе лучшее время — сегодня.", a:"Китайская пословица"}];
 
 // ============ State & Date ============
@@ -463,8 +493,8 @@ function changeDay(offset) { const d = new Date(currentDate + 'T12:00:00'); d.se
 function goToday() { currentDate = todayStr(); haptic(); renderAll(); }
 function updateDateNav() { const label = document.getElementById('date-nav-label'); if(!label)return; if(currentDate === todayStr()) { label.innerHTML = 'Сегодня'; } else { const d = new Date(currentDate + 'T12:00:00'); label.innerHTML = `${d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', weekday: 'short' })} <span class="back-today" onclick="goToday()">Вернуться</span>`; } }
 
-const SEED_KEY='cantilena_seed_v4', STORAGE='cantilena_v11';
-function loadState(){let raw=null;for(const key of [STORAGE,'cantilena_v10','cantilena_v9']){try{const s=JSON.parse(localStorage.getItem(key));if(s&&Array.isArray(s.habits)){raw=s;break}}catch(e){}}const s=migrateState(raw||{});seedDefaults(s);localStorage.setItem(STORAGE,JSON.stringify(s));return s}
+const SEED_KEY='cantilena_seed_v4', STORAGE='cantilena_v12';
+function loadState(){let raw=null;for(const key of [STORAGE,'cantilena_v11','cantilena_v10']){try{const s=JSON.parse(localStorage.getItem(key));if(s&&Array.isArray(s.habits)){raw=s;break}}catch(e){}}const s=migrateState(raw||{});seedDefaults(s);localStorage.setItem(STORAGE,JSON.stringify(s));return s}
 function seedDefaults(s){if(localStorage.getItem(SEED_KEY))return;const existing=new Set(s.habits.map(h=>h.name));let order=s.habits.length;DEFAULT_HABITS.forEach(d=>{if(!existing.has(d.name)){const clone=JSON.parse(JSON.stringify(d));s.habits.push({...clone,id:uid(),checks:{},skips:{},archived:false,order:order++,createdAt:Date.now()})}});localStorage.setItem(SEED_KEY,'1')}
 function migrateState(s){
   s.surveys=s.surveys||{};s.weeklySurveys=s.weeklySurveys||{};s.theme=s.theme||'auto';
@@ -477,7 +507,11 @@ function migrateState(s){
   ];
   s.moods = s.moods || {}; 
   s.supabase=s.supabase||{url:'',key:'',email:'',lastSync:null};
-  s.habits=(s.habits||[]).map((h,i)=>({id:h.id||uid(),name:h.name||'Привычка',icon:h.icon||'sparkle',color:h.color||PALETTE[i%PALETTE.length],target:h.target||1,schedule:h.schedule||{type:'daily'},checks:h.checks||{},skips:h.skips||{},archived:h.archived||false,order:h.order!=null?h.order:i,createdAt:h.createdAt||Date.now()}));
+  s.habits=(s.habits||[]).map((h,i)=>{
+    let icon = h.icon || 'sparkle';
+    if (!ICONS[icon]) icon = EMOJI_TO_ICON[icon] || 'sparkle';
+    return {id:h.id||uid(),name:h.name||'Привычка',icon:icon,color:h.color||PALETTE[i%PALETTE.length],target:h.target||1,schedule:h.schedule||{type:'daily'},checks:h.checks||{},skips:h.skips||{},archived:h.archived||false,order:h.order!=null?h.order:i,createdAt:h.createdAt||Date.now()};
+  });
   s.tasks=(s.tasks||[]).map(t=>({id:t.id||uid(),title:t.title||'',description:t.description||'',done:t.done||false,date:t.date||null,startTime:t.startTime||null,duration:t.duration||null,priority:t.priority||4,projectId:t.projectId||null,subtasks:t.subtasks||[],tags:t.tags||[],recurrence:t.recurrence||null,completions:t.completions||{},createdAt:t.createdAt||Date.now()}));
   s.projects=s.projects||[{id:1,name:'Личное',color:'#007AFF'}];
   s.notes=(s.notes||[]).map(n=>({id:n.id||uid(),title:n.title||'Без названия',body:n.body||'',folderId:n.folderId||null,pinned:n.pinned||false,createdAt:n.createdAt||Date.now(),updatedAt:n.updatedAt||Date.now()}));
@@ -499,13 +533,38 @@ const save=()=>{
 // ============ Свайп шторки вниз ============
 let sheetStartY = 0, sheetCurrentY = 0, isDraggingSheet = false;
 const sheetEl = document.getElementById('sheet');
-const sheetHandle = document.getElementById('sheet-handle');
 
-sheetHandle.addEventListener('touchstart', e => { sheetStartY = e.touches[0].clientY; isDraggingSheet = true; sheetEl.style.transition = 'none'; }, {passive: true});
-sheetHandle.addEventListener('touchmove', e => { if (!isDraggingSheet) return; sheetCurrentY = e.touches[0].clientY; const diff = sheetCurrentY - sheetStartY; if (diff > 0) sheetEl.style.transform = `translateY(${diff}px)`; }, {passive: true});
-sheetHandle.addEventListener('touchend', () => { if (!isDraggingSheet) return; isDraggingSheet = false; sheetEl.style.transition = 'transform .3s ease-out'; const diff = sheetCurrentY - sheetStartY; if (diff > 100) { closeSheet(); } else { sheetEl.style.transform = ''; } sheetStartY = 0; sheetCurrentY = 0; });
+sheetEl.addEventListener('touchstart', e => {
+    if (sheetEl.scrollTop > 0) return; // Если скроллим контент, не свайпаем
+    sheetStartY = e.touches[0].clientY;
+    isDraggingSheet = true;
+    sheetEl.style.transition = 'none';
+}, {passive: true});
 
-// ============ Синхронизация (Supabase) ============
+sheetEl.addEventListener('touchmove', e => {
+    if (!isDraggingSheet) return;
+    sheetCurrentY = e.touches[0].clientY;
+    const diff = sheetCurrentY - sheetStartY;
+    if (diff > 0) {
+        sheetEl.style.transform = `translateY(${diff}px)`;
+    }
+}, {passive: true});
+
+sheetEl.addEventListener('touchend', () => {
+    if (!isDraggingSheet) return;
+    isDraggingSheet = false;
+    sheetEl.style.transition = 'transform .3s ease-out';
+    const diff = sheetCurrentY - sheetStartY;
+    if (diff > 100) {
+        closeSheet();
+    } else {
+        sheetEl.style.transform = ''; 
+    }
+    sheetStartY = 0;
+    sheetCurrentY = 0;
+});
+
+// ============ Синхронизация ============
 let supabaseClient=null, syncTimer=null, currentUser=null, pollInterval=null;
 let lastCloudUpdate = 0; let isPushing = false;
 
@@ -890,14 +949,41 @@ function removeTask(id){state.tasks=state.tasks.filter(t=>t.id!==id);haptic();sa
 let editingTaskId=null;
 function openTaskEditor(id){
   editingTaskId=id||null;const t=id?state.tasks.find(x=>x.id===id):{title:'',description:'',date:currentDate,startTime:null,duration:null,priority:4,projectId:null,subtasks:[],tags:[],recurrence:null,completions:{}};
-  openSheet(`<h2>${id?'Задача':'Новая задача'}</h2><div class="field"><label>Название</label><input type="text" id="t-title" value="${escapeHtml(t.title)}"></div><div class="field"><label>Описание</label><textarea id="t-desc">${escapeHtml(t.description||'')}</textarea></div><div class="field"><label>Дата</label><input type="date" id="t-date" value="${t.date||''}"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div class="field"><label>Время</label><input type="time" id="t-time" value="${t.startTime||''}"></div><div class="field"><label>Длит. (мин)</label><input type="number" id="t-duration" min="0" max="1440" step="5" value="${t.duration||''}"></div></div><div class="field"><label>Приоритет</label><div style="display:flex;gap:8px;" id="t-priorities">${[1,2,3,4].map(p=>`<button class="filter-pill ${t.priority===p?'active':''}" data-p="${p}" style="padding:8px 14px;border-radius:18px;border:none;font-weight:600;background:${t.priority===p?'var(--accent)':'var(--card)'};color:${t.priority===p?'#fff':'var(--text-sec)'};" onclick="pickPriority(this)">P${p}</button>`).join('')}</div></div><div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Отмена</button><button class="btn-primary" onclick="saveTask()">Сохранить</button></div>`);
+  
+  const projectsOptions = state.projects.map(p=>`<option value="${p.id}" ${t.projectId===p.id?'selected':''}>${escapeHtml(p.name)}</option>`).join('');
+  
+  openSheet(`
+    <h2>${id?'Задача':'Новая задача'}</h2>
+    <div class="field"><label>Название</label><input type="text" id="t-title" value="${escapeHtml(t.title)}"></div>
+    <div class="field"><label>Описание</label><textarea id="t-desc">${escapeHtml(t.description||'')}</textarea></div>
+    
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="field"><label>Проект</label><select id="t-project"><option value="">Без проекта</option>${projectsOptions}</select></div>
+      <div class="field"><label>Приоритет</label><div style="display:flex;gap:4px;" id="t-priorities">${[1,2,3,4].map(p=>`<button class="filter-pill ${t.priority===p?'active':''}" data-p="${p}" style="padding:8px 10px;border-radius:10px;border:none;font-weight:600;flex:1;background:${t.priority===p?'var(--accent)':'var(--card)'};color:${t.priority===p?'#fff':'var(--text-sec)'};" onclick="pickPriority(this)">P${p}</button>`).join('')}</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="field"><label>Дата</label><input type="date" id="t-date" value="${t.date||''}"></div>
+      <div class="field"><label>Время</label><input type="time" id="t-time" value="${t.startTime||''}"></div>
+    </div>
+    <div class="field"><label>Длительность (мин)</label><input type="number" id="t-duration" min="0" max="1440" step="5" value="${t.duration||''}" placeholder="Например: 30"></div>
+    
+    <div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Отмена</button><button class="btn-primary" onclick="saveTask()">Сохранить</button></div>
+  `);
 }
 function pickPriority(btn){document.querySelectorAll('#t-priorities button').forEach(b=>{b.classList.remove('active');b.style.background='var(--card)';b.style.color='var(--text-sec)'});btn.classList.add('active');btn.style.background='var(--accent)';btn.style.color='#fff'}
 function saveTask(){
   const title=document.getElementById('t-title').value.trim();if(!title){alert('Введите название');return}
-  const description=document.getElementById('t-desc').value.trim();const date=document.getElementById('t-date').value||null;const startTime=document.getElementById('t-time').value||null;const duration=parseInt(document.getElementById('t-duration').value)||null;const priority=parseInt(document.querySelector('#t-priorities .active')?.dataset.p||'4');
-  if(editingTaskId){const t=state.tasks.find(x=>x.id===editingTaskId);Object.assign(t,{title,description,date,startTime,duration,priority})}
-  else{state.tasks.push({id:uid(),title,description,done:false,date,startTime,duration,priority,projectId:null,subtasks:[],tags:[],recurrence:null,completions:{},createdAt:Date.now()})}
+  const description=document.getElementById('t-desc').value.trim();
+  const date=document.getElementById('t-date').value||null;
+  const startTime=document.getElementById('t-time').value||null;
+  const duration=parseInt(document.getElementById('t-duration').value)||null;
+  const priority=parseInt(document.querySelector('#t-priorities .active')?.dataset.p||'4');
+  const projVal=document.getElementById('t-project').value;
+  const projectId=projVal?parseInt(projVal):null;
+  
+  if(editingTaskId){const t=state.tasks.find(x=>x.id===editingTaskId);Object.assign(t,{title,description,date,startTime,duration,priority,projectId})}
+  else{state.tasks.push({id:uid(),title,description,done:false,date,startTime,duration,priority,projectId,subtasks:[],tags:[],recurrence:null,completions:{},createdAt:Date.now()})}
   haptic('success');playSound('success');save();closeSheet();renderAll();
 }
 
@@ -925,14 +1011,23 @@ function renderFocusOfDay() {
   tasks.sort((a,b) => a.priority - b.priority);const top = tasks[0];focusCard.style.display = 'block';document.getElementById('focus-title').innerHTML = escapeHtml(top.title);document.getElementById('focus-meta').innerText = top.priority === 1 ? "Высокий приоритет" : "Следующая задача";
 }
 
-// ============ ПУЛЬС ДНЯ (Множественные смайлики) ============
+// ============ ПУЛЬС ДНЯ (Лимит 30 минут) ============
 function quickMood(value){
   const t = currentDate;
   if(!state.moods[t]) state.moods[t] = [];
-  const now = new Date();
-  const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
   
-  state.moods[t].push({ time: timeStr, val: value });
+  const now = Date.now();
+  const lastMood = state.moods[t][state.moods[t].length - 1];
+  
+  // Проверка лимита: 30 минут = 1800000 мс
+  if (lastMood && (now - lastMood.ts < 1800000)) {
+    const minsLeft = Math.ceil((1800000 - (now - lastMood.ts)) / 60000);
+    showToast(`⏳ Следующая отметка через ${minsLeft} мин.`);
+    return;
+  }
+  
+  const timeStr = new Date(now).toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'});
+  state.moods[t].push({ time: timeStr, val: value, ts: now });
   
   if(!state.surveys[t]) state.surveys[t] = {};
   if(!state.surveys[t].emotions) state.surveys[t].emotions = {};
@@ -949,15 +1044,22 @@ function renderQuickMoodUI() {
   const countEl = document.getElementById('mood-count');
   if (countEl) countEl.textContent = `Отметок: ${moods.length}`;
   
-  const avg = moods.length ? Math.round(moods.reduce((sum, m) => sum + m.val, 0) / moods.length) : null;
+  const lastMood = moods[moods.length - 1];
+  const now = Date.now();
+  const isLocked = lastMood && (now - lastMood.ts < 1800000); 
+  
   document.querySelectorAll('#quick-mood-row button').forEach(b => {
-    const v = +b.dataset.val;
-    b.style.opacity = (avg !== null && Math.abs(v - avg) <= 1) ? '1' : '0.5';
-    b.style.transform = (avg !== null && Math.abs(v - avg) <= 1) ? 'scale(1.1)' : 'scale(1)';
+    if (isLocked) {
+        b.style.opacity = '0.3';
+        b.style.pointerEvents = 'none';
+    } else {
+        b.style.opacity = '1';
+        b.style.pointerEvents = 'auto';
+    }
   });
 }
 
-// ============ ВЕЧЕРНИЙ ОПРОС (Короткий) ============
+// ============ ВЕЧЕРНИЙ ОПРОС (Заполняет кольцо) ============
 function getDailySurveyProgress(dateStr) {
   const s = state.surveys[dateStr];
   if (s && s.evening) return 1; 
@@ -965,13 +1067,7 @@ function getDailySurveyProgress(dateStr) {
 }
 
 function getSurveyProgress(dateStr) {
-  let pct = 0;
-  const moods = state.moods[dateStr] || [];
-  if (moods.length >= 1) pct += 0.2;
-  if (moods.length >= 3) pct += 0.3;
-  
-  if (getDailySurveyProgress(dateStr)) pct += 0.5;
-  return pct;
+  return getDailySurveyProgress(dateStr);
 }
 
 function openDailySurvey() {
@@ -982,7 +1078,7 @@ function openDailySurvey() {
   
   openSheet(`
     <h2>Как прошёл день?</h2>
-    <p style="font-size:13px;color:var(--text-sec);margin-bottom:16px;">Короткий опрос на 1-2 минуты. Ваше среднее настроение: ${avgMood}/10</p>
+    <p style="font-size:13px;color:var(--text-sec);margin-bottom:16px;">Короткий опрос на 1-2 минуты. Среднее настроение за день: ${avgMood}/10</p>
     
     <div class="field"><label>Продуктивность (1-10) <span style="float:right;color:var(--accent);font-weight:700;" id="v-d-prod">${s.mental?.productivity || 5}</span></label>
       <input type="range" id="d-prod" min="1" max="10" value="${s.mental?.productivity || 5}" oninput="document.getElementById('v-d-prod').textContent=this.value">
