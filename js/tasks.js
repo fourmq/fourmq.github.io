@@ -136,7 +136,6 @@ export function openTaskEditor(id) {
 }
 window.openTaskEditor = openTaskEditor;
 
-// --- Вспомогательные функции редактора ---
 window.updateTaskChipDate = function(val) {
   const chipText = document.getElementById('chip-date-text');
   const chip = document.getElementById('chip-date');
@@ -370,7 +369,7 @@ export function renderFocusOfDay() {
   document.getElementById('focus-meta').innerText = top.priority === 1 ? "Высокий приоритет · Нажмите, чтобы найти" : "Следующая задача · Нажмите, чтобы найти";
 }
 
-window.focusTaskClick = function() {
+export function focusTaskClick() {
   const id = document.getElementById('focus-card').dataset.taskId;
   if (!id) return;
   haptic();
@@ -382,4 +381,5 @@ window.focusTaskClick = function() {
       setTimeout(() => { el.classList.add('highlight-pulse'); setTimeout(() => el.classList.remove('highlight-pulse'), 2100); }, 200);
     }
   }, 200);
-};
+}
+window.focusTaskClick = focusTaskClick;
