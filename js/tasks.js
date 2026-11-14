@@ -60,6 +60,17 @@ export function toggleTask(id, dateStr = window.currentDate, el) {
 }
 window.toggleTask = toggleTask;
 
+// Функция для автозавершения из таймера
+export function completeTaskFromFocus(id) {
+  const t = state.tasks.find(x => x.id === id);
+  if (t && !t.done) {
+    if (t.recurrence) t.completions[todayStr()] = true;
+    else t.done = true;
+    save();
+  }
+}
+window.completeTaskFromFocus = completeTaskFromFocus;
+
 export function removeTask(id) {
   if (!confirm('Удалить задачу?')) return;
   state.tasks = state.tasks.filter(t => t.id !== id);
