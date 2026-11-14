@@ -41,13 +41,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-s
 /* ЗАСТАВКА */
 #splash{position:fixed;inset:0;background:#3E1728;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s ease-out, visibility .6s;cursor:pointer}
 #splash.hidden{opacity:0;visibility:hidden}
-/* CSS-защита: заставка исчезнет даже если JS упал */
-#splash {
-  animation: forceHideSplash .4s ease 2.5s forwards;
-}
-@keyframes forceHideSplash {
-  to { opacity: 0; visibility: hidden; pointer-events: none; }
-}
+#splash { animation: forceHideSplash .4s ease 2.5s forwards; }
+@keyframes forceHideSplash { to { opacity: 0; visibility: hidden; pointer-events: none; } }
 
 .splash-svg{width:200px;height:200px;margin-bottom:20px;overflow:visible}
 .splash-title{color:#F2A0C0;font-size:28px;font-weight:700;letter-spacing:2px;opacity:0;animation:fadeIn 1s .5s forwards}
@@ -426,7 +421,6 @@ input:checked + .slider:before{transform:translateX(18px)}
 </head>
 <body>
 
-<!-- ЛОВУШКА ОШИБОК JS -->
 <script>
 window.addEventListener('error', function(event) {
   const errDiv = document.createElement('div');
@@ -852,7 +846,10 @@ const ICONS={
   compass:'<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>',
   trophy:'<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
 };
-function svgIcon(name,color='currentColor',size=20){const path=ICONS[name]||ICONS.sparkle;return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`}
+function svgIcon(name,color='currentColor',size=20){
+  const path=ICONS[name]||ICONS.sparkle;
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+}
 const PALETTE=['#FF3B30','#FF9500','#FFCC00','#34C759','#5AC8FA','#007AFF','#5856D6','#AF52DE','#FF2D55'];
 const DEFAULT_HABITS=[
   {name:'Подъем до 8:00',icon:'sunrise',color:'#FF9500',target:1,schedule:{type:'daily'}},
@@ -866,9 +863,23 @@ const DEFAULT_HABITS=[
 const QUOTES=[{t:"Всё могу в укрепляющем меня Иисусе Христе.", a:"Фил. 4:13"},{t:"Ты не обязан быть великим, чтобы начать, но ты должен начать, чтобы стать великим.", a:"Зиг Зиглар"},{t:"Господь — Пастырь мой; я ни в чём не буду нуждаться.", a:"Псалом 22:1"},{t:"Дисциплина — это выбор между тем, чего ты хочешь сейчас, и тем, чего хочешь больше всего.", a:"Огастес Ф. Хоули"},{t:"Научи нас так счислять дни наши, чтобы нам приобрести сердце мудрое.", a:"Псалом 89:12"},{t:"Успех — это сумма небольших усилий, повторяемых изо дня в день.", a:"Роберт Кольер"},{t:"Придите ко Мне все труждающиеся и обременённые, и Я успокою вас.", a:"Мф. 11:28"},{t:"Ты никогда не изменишь свою жизнь, пока не изменишь то, что делаешь каждый день.", a:"Майк Мёрдок"},{t:"Всё делайте без ропота и сомнения.", a:"Фил. 2:14"},{t:"Лучшее время посадить дерево было 20 лет назад. Второе лучшее время — сегодня.", a:"Китайская пословица"}];
 
 let currentDate = todayStr();
-function changeDay(offset) { const d = new Date(currentDate + 'T12:00:00'); d.setDate(d.getDate() + offset); currentDate = d.toISOString().slice(0, 10); haptic(); renderAll(); }
+function changeDay(offset) {
+  const d = new Date(currentDate + 'T12:00:00');
+  d.setDate(d.getDate() + offset);
+  currentDate = d.toISOString().slice(0, 10);
+  haptic(); renderAll();
+}
 function goToday() { currentDate = todayStr(); haptic(); renderAll(); }
-function updateDateNav() { const label = document.getElementById('date-nav-label'); if(!label)return; if(currentDate === todayStr()) { label.innerHTML = 'Сегодня'; } else { const d = new Date(currentDate + 'T12:00:00'); label.innerHTML = `${d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', weekday: 'short' })} <span class="back-today" onclick="goToday()">Вернуться</span>`; } }
+function updateDateNav() {
+  const label = document.getElementById('date-nav-label');
+  if(!label) return;
+  if(currentDate === todayStr()) {
+    label.innerHTML = 'Сегодня';
+  } else {
+    const d = new Date(currentDate + 'T12:00:00');
+    label.innerHTML = `${d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', weekday: 'short' })} <span class="back-today" onclick="goToday()">Вернуться</span>`;
+  }
+}
 
 function getDynamicTitle() {
   const today = new Date(); today.setHours(0,0,0,0);
@@ -881,13 +892,16 @@ function getDynamicTitle() {
   if (diffDays === 1) return 'Завтра';
   if (diffDays === 2) return 'Послезавтра';
   if (diffDays === 3) return 'Через 3 дня';
+  
   const dow = today.getDay() || 7;
   const mondayThisWeek = new Date(today); mondayThisWeek.setDate(today.getDate() - dow + 1);
   const sundayThisWeek = new Date(mondayThisWeek); sundayThisWeek.setDate(mondayThisWeek.getDate() + 6);
   if (target >= mondayThisWeek && target <= sundayThisWeek) return 'На этой неделе';
+  
   const sundayLastWeek = new Date(mondayThisWeek); sundayLastWeek.setDate(mondayThisWeek.getDate() - 1);
   const mondayLastWeek = new Date(sundayLastWeek); mondayLastWeek.setDate(sundayLastWeek.getDate() - 6);
   if (target >= mondayLastWeek && target <= sundayLastWeek) return 'На прошлой неделе';
+  
   if (target.getFullYear() === today.getFullYear()) {
     const mDiff = target.getMonth() - today.getMonth();
     if (mDiff === -1) return 'В прошлом месяце';
@@ -902,9 +916,32 @@ function getDynamicTitle() {
   return target.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-const SEED_KEY='cantilena_seed_v4', STORAGE='cantilena_v17';
-function loadState(){let raw=null;for(const key of [STORAGE,'cantilena_v16','cantilena_v15','cantilena_v14']){try{const s=JSON.parse(localStorage.getItem(key));if(s&&Array.isArray(s.habits)){raw=s;break}}catch(e){}}const s=migrateState(raw||{});seedDefaults(s);localStorage.setItem(STORAGE,JSON.stringify(s));return s}
-function seedDefaults(s){if(localStorage.getItem(SEED_KEY))return;const existing=new Set(s.habits.map(h=>h.name));let order=s.habits.length;DEFAULT_HABITS.forEach(d=>{if(!existing.has(d.name)){const clone=JSON.parse(JSON.stringify(d));s.habits.push({...clone,id:uid(),checks:{},skips:{},archived:false,order:order++,createdAt:Date.now()})}});localStorage.setItem(SEED_KEY,'1')}
+const SEED_KEY='cantilena_seed_v4', STORAGE='cantilena_v18';
+function loadState(){
+  let raw=null;
+  for(const key of [STORAGE,'cantilena_v17','cantilena_v16','cantilena_v15']){
+    try{
+      const s=JSON.parse(localStorage.getItem(key));
+      if(s&&Array.isArray(s.habits)){raw=s;break}
+    }catch(e){}
+  }
+  const s=migrateState(raw||{});
+  seedDefaults(s);
+  localStorage.setItem(STORAGE,JSON.stringify(s));
+  return s;
+}
+function seedDefaults(s){
+  if(localStorage.getItem(SEED_KEY))return;
+  const existing=new Set(s.habits.map(h=>h.name));
+  let order=s.habits.length;
+  DEFAULT_HABITS.forEach(d=>{
+    if(!existing.has(d.name)){
+      const clone=JSON.parse(JSON.stringify(d));
+      s.habits.push({...clone,id:uid(),checks:{},skips:{},archived:false,order:order++,createdAt:Date.now()})
+    }
+  });
+  localStorage.setItem(SEED_KEY,'1');
+}
 function migrateState(s){
   s.surveys=s.surveys||{};s.weeklySurveys=s.weeklySurveys||{};s.theme=s.theme||'auto';
   s.settings=s.settings||{};
@@ -943,15 +980,33 @@ const save=()=>{
   localStorage.setItem(STORAGE,JSON.stringify(state));
   scheduleSync();
   const ind = document.getElementById('save-indicator');
-  if (ind) { ind.classList.add('show'); clearTimeout(saveIndicatorTimer); saveIndicatorTimer = setTimeout(() => { ind.classList.remove('show'); }, 2000); }
+  if (ind) {
+    ind.classList.add('show');
+    clearTimeout(saveIndicatorTimer);
+    saveIndicatorTimer = setTimeout(() => { ind.classList.remove('show'); }, 2000);
+  }
 };
 
 let startY = 0, currentY = 0, isDragging = false;
 const sheet = document.getElementById('sheet');
 const handleWrap = document.getElementById('sheet-handle-wrap');
-handleWrap.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; currentY = startY; isDragging = true; sheet.classList.add('dragging'); });
-handleWrap.addEventListener('touchmove', (e) => { if (!isDragging) return; currentY = e.touches[0].clientY; const diff = currentY - startY; if (diff > 0) { sheet.style.transform = `translateY(${diff}px)`; e.preventDefault(); } }, { passive: false });
-handleWrap.addEventListener('touchend', () => { if (!isDragging) return; isDragging = false; sheet.classList.remove('dragging'); const diff = currentY - startY; if (diff > 80) { sheet.style.transform = ''; closeSheet(); } else { sheet.style.transform = ''; } startY = 0; currentY = 0; });
+handleWrap.addEventListener('touchstart', (e) => {
+  startY = e.touches[0].clientY; currentY = startY; isDragging = true; sheet.classList.add('dragging');
+});
+handleWrap.addEventListener('touchmove', (e) => {
+  if (!isDragging) return;
+  currentY = e.touches[0].clientY;
+  const diff = currentY - startY;
+  if (diff > 0) { sheet.style.transform = `translateY(${diff}px)`; e.preventDefault(); }
+}, { passive: false });
+handleWrap.addEventListener('touchend', () => {
+  if (!isDragging) return;
+  isDragging = false; sheet.classList.remove('dragging');
+  const diff = currentY - startY;
+  if (diff > 80) { sheet.style.transform = ''; closeSheet(); }
+  else { sheet.style.transform = ''; }
+  startY = 0; currentY = 0;
+});
 
 let supabaseClient=null, syncTimer=null, currentUser=null, pollInterval=null;
 let lastCloudUpdate = 0; let isPushing = false;
@@ -1274,8 +1329,19 @@ function tickClock(){
 }
 setInterval(tickClock, 1000); tickClock();
 
-function openSheet(html){document.getElementById('sheet-content').innerHTML=html;document.getElementById('sheet').classList.add('open');document.getElementById('backdrop').classList.add('open');document.getElementById('sheet').scrollTop=0}
-function closeSheet(){ closePopover(); const s=document.getElementById('sheet'); s.classList.remove('open'); document.getElementById('backdrop').classList.remove('open'); s.style.transform=''; }
+function openSheet(html){
+  document.getElementById('sheet-content').innerHTML=html;
+  document.getElementById('sheet').classList.add('open');
+  document.getElementById('backdrop').classList.add('open');
+  document.getElementById('sheet').scrollTop=0;
+}
+function closeSheet(){
+  closePopover();
+  const s=document.getElementById('sheet');
+  s.classList.remove('open');
+  document.getElementById('backdrop').classList.remove('open');
+  s.style.transform='';
+}
 function closePopover(){ const p = document.getElementById('popover-overlay'); if (p) p.classList.remove('open'); }
 
 function isScheduledOn(h,dateStr){const d=new Date(dateStr+'T12:00:00');const sch=h.schedule||{type:'daily'};if(sch.type==='daily')return true;if(sch.type==='weekdays')return(sch.days||[]).includes(d.getDay());if(sch.type==='interval'){const start=new Date((sch.startDate||h.createdAt)+'T12:00:00');const diff=Math.floor((d-start)/86400000);return diff>=0&&diff%(sch.interval||2)===0}return true}
@@ -1286,18 +1352,59 @@ function activeHabits(){return state.habits.filter(h=>!h.archived).sort((a,b)=>(
 function habitsScheduledForDate(dateStr){return activeHabits().filter(h=>{if(h.skips&&h.skips[dateStr])return true;const sch=h.schedule||{type:'daily'};if(sch.type==='weekly')return weekCount(h,dateStr)<(sch.interval||3)||(h.checks[dateStr]||0)>0;return isScheduledOn(h,dateStr)})}
 
 function renderHabitsToday(){
-  const el=document.getElementById('habits-today');const t=currentDate;const list=habitsScheduledForDate(t);
-  if(!list.length){el.innerHTML='<div class="empty-hint">Нет привычек на этот день.<br>Нажмите ⚙️, чтобы настроить или добавить новую.</div>';return}
-  el.innerHTML=list.map(h=>{
-    const cnt=h.checks[t]||0;const done=isHabitDoneForDate(h,t);const skipped=h.skips&&h.skips[t];const streak=habitStreak(h);const isCounter=h.target>1;
-    const pillText=isCounter&&!done?(cnt>0?`${cnt}/${h.target}`:`0/${h.target}`):'';
-    let sub=skipped?'⏸ Пропущено':(h.schedule.type==='weekly'?`${weekCount(h,t)}/${h.schedule.interval||3} на неделе`:(isCounter?`${cnt}/${h.target} · ${streak>0?'🔥 '+streak:''}`:(streak>0?'🔥 '+streak+' дн.':'Каждый день')));
-    return `<div class="habit-row ${skipped?'skipped':''}" data-habit-id="${h.id}">
-      <div class="check-circle ${done?'done':''} ${isCounter&&cnt>0&&!done?'partial':''}" onclick="toggleHabit(${h.id},this)">${skipped?'⏸':(isCounter&&!done?pillText:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/></svg>')}</div>
-      <div class="habit-icon-badge" style="background:${hexToRgba(h.color,0.15)};" onclick="openHabitDetail(${h.id})">${svgIcon(h.icon,h.color,20)}</div>
-      <div class="habit-info" onclick="openHabitDetail(${h.id})"><div class="habit-name ${done?'done':''}">${escapeHtml(h.name)}</div><div class="habit-sub">${sub}</div></div>
-    </div>`;
-  }).join('');
+  const el=document.getElementById('habits-today');
+  const t=currentDate;
+  const list=habitsScheduledForDate(t);
+  if(!list.length){
+    el.innerHTML='<div class="empty-hint">Нет привычек на этот день.<br>Нажмите ⚙️, чтобы настроить или добавить новую.</div>';
+    return;
+  }
+  
+  let html = '';
+  list.forEach(h => {
+    const cnt = h.checks[t] || 0;
+    const done = isHabitDoneForDate(h, t);
+    const skipped = h.skips && h.skips[t];
+    const streak = habitStreak(h);
+    const isCounter = h.target > 1;
+    const pillText = isCounter && !done ? (cnt > 0 ? `${cnt}/${h.target}` : `0/${h.target}`) : '';
+    let sub = '';
+    
+    if(skipped) {
+      sub = '⏸ Пропущено';
+    } else if(h.schedule.type === 'weekly') {
+      sub = `${weekCount(h,t)}/${h.schedule.interval||3} на неделе`;
+    } else if(isCounter) {
+      sub = `${cnt}/${h.target} · ${streak > 0 ? '🔥 '+streak : ''}`;
+    } else {
+      sub = streak > 0 ? '🔥 '+streak+' дн.' : 'Каждый день';
+    }
+    
+    let checkContent = '';
+    if (skipped) {
+      checkContent = '⏸';
+    } else if (isCounter && !done) {
+      checkContent = pillText;
+    } else {
+      checkContent = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    }
+    
+    html += `
+      <div class="habit-row ${skipped?'skipped':''}" data-habit-id="${h.id}">
+        <div class="check-circle ${done?'done':''} ${isCounter&&cnt>0&&!done?'partial':''}" onclick="toggleHabit(${h.id},this)">
+          ${checkContent}
+        </div>
+        <div class="habit-icon-badge" style="background:${hexToRgba(h.color,0.15)};" onclick="openHabitDetail(${h.id})">
+          ${svgIcon(h.icon,h.color,20)}
+        </div>
+        <div class="habit-info" onclick="openHabitDetail(${h.id})">
+          <div class="habit-name ${done?'done':''}">${escapeHtml(h.name)}</div>
+          <div class="habit-sub">${sub}</div>
+        </div>
+      </div>
+    `;
+  });
+  el.innerHTML = html;
 }
 
 function toggleHabit(id,el){
@@ -1321,7 +1428,15 @@ function openHabitDetail(id){
   const h=state.habits.find(x=>x.id===id);if(!h)return;
   const days=[];for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10))}
   const doneDays=days.filter(d=>isHabitDoneForDate(h,d));const pct=Math.round(doneDays.length/30*100);const streak=habitStreak(h);const total=Object.values(h.checks).reduce((a,b)=>a+(b||0),0);const today=currentDate;const skippedToday=h.skips&&h.skips[today];
-  const heatmap=days.map(d=>{const done=isHabitDoneForDate(h,d);const skipped=h.skips&&h.skips[d];const scheduled=isScheduledOn(h,d);return `<div style="aspect-ratio:1;border-radius:4px;background:${done?'var(--green)':(skipped?'var(--yellow)':'var(--hm-empty)')};${!scheduled&&!done?'opacity:.3':''} ${d===today?'outline:2px solid var(--accent);outline-offset:1px;':''}"></div>`}).join('');
+  
+  let heatmap = '';
+  days.forEach(d => {
+    const done=isHabitDoneForDate(h,d);
+    const skipped=h.skips&&h.skips[d];
+    const scheduled=isScheduledOn(h,d);
+    heatmap += `<div style="aspect-ratio:1;border-radius:4px;background:${done?'var(--green)':(skipped?'var(--yellow)':'var(--hm-empty)')};${!scheduled&&!done?'opacity:.3':''} ${d===today?'outline:2px solid var(--accent);outline-offset:1px;':''}"></div>`;
+  });
+  
   openSheet(`
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;"><div class="habit-icon-badge" style="background:${hexToRgba(h.color,0.15)};width:48px;height:48px;border-radius:12px;">${svgIcon(h.icon,h.color,26)}</div><h2 style="margin:0;">${escapeHtml(h.name)}</h2></div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;"><div style="text-align:center;padding:12px;background:var(--input-bg);border-radius:12px;"><div style="font-size:22px;font-weight:700;">${streak}</div><div style="font-size:11px;color:var(--text-sec);">серия</div></div><div style="text-align:center;padding:12px;background:var(--input-bg);border-radius:12px;"><div style="font-size:22px;font-weight:700;">${pct}%</div><div style="font-size:11px;color:var(--text-sec);">30 дней</div></div><div style="text-align:center;padding:12px;background:var(--input-bg);border-radius:12px;"><div style="font-size:22px;font-weight:700;">${total}</div><div style="font-size:11px;color:var(--text-sec);">всего</div></div></div>
@@ -1335,7 +1450,10 @@ function skipHabitToday(id){const h=state.habits.find(x=>x.id===id);if(!h)return
 
 function openHabitSettings(){
   const habits=[...state.habits].sort((a,b)=>(a.order||0)-(b.order||0));
-  const list=habits.map((h,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:.5px solid var(--separator);"><div style="display:flex;flex-direction:column;gap:2px;"><button onclick="moveHabit(${h.id},-1)" style="width:28px;height:22px;border-radius:6px;border:none;background:var(--chip-bg);color:var(--text);">▲</button><button onclick="moveHabit(${h.id},1)" style="width:28px;height:22px;border-radius:6px;border:none;background:var(--chip-bg);color:var(--text);">▼</button></div><div style="width:36px;height:36px;border-radius:10px;background:${hexToRgba(h.color,0.15)};display:flex;align-items:center;justify-content:center;">${svgIcon(h.icon,h.color,20)}</div><div style="flex:1;cursor:pointer;" onclick="closeSheet();setTimeout(()=>openHabitEditor(${h.id}),100)"><h4 style="font-size:15px;font-weight:600;">${escapeHtml(h.name)}</h4><p style="font-size:12px;color:var(--text-sec);">${h.schedule.type==='daily'?'Каждый день':h.schedule.type==='weekdays'?'Дни недели':'Раз в неделю'}</p></div><button onclick="event.stopPropagation();deleteHabit(${h.id})" style="background:none;border:none;color:var(--text-sec);display:flex;align-items:center;">${svgIcon('x','currentColor',20)}</button></div>`).join('');
+  let list = '';
+  habits.forEach(h => {
+    list += `<div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:.5px solid var(--separator);"><div style="display:flex;flex-direction:column;gap:2px;"><button onclick="moveHabit(${h.id},-1)" style="width:28px;height:22px;border-radius:6px;border:none;background:var(--chip-bg);color:var(--text);">▲</button><button onclick="moveHabit(${h.id},1)" style="width:28px;height:22px;border-radius:6px;border:none;background:var(--chip-bg);color:var(--text);">▼</button></div><div style="width:36px;height:36px;border-radius:10px;background:${hexToRgba(h.color,0.15)};display:flex;align-items:center;justify-content:center;">${svgIcon(h.icon,h.color,20)}</div><div style="flex:1;cursor:pointer;" onclick="closeSheet();setTimeout(()=>openHabitEditor(${h.id}),100)"><h4 style="font-size:15px;font-weight:600;">${escapeHtml(h.name)}</h4><p style="font-size:12px;color:var(--text-sec);">${h.schedule.type==='daily'?'Каждый день':h.schedule.type==='weekdays'?'Дни недели':'Раз в неделю'}</p></div><button onclick="event.stopPropagation();deleteHabit(${h.id})" style="background:none;border:none;color:var(--text-sec);display:flex;align-items:center;">${svgIcon('x','currentColor',20)}</button></div>`;
+  });
   openSheet(`<h2>Привычки</h2><p style="font-size:13px;color:var(--text-sec);margin-bottom:12px;">Порядок и настройки.</p><div class="card tight" style="margin-bottom:12px;">${list}</div><button class="btn-primary" onclick="closeSheet();setTimeout(openHabitEditor,100)">+ Новая привычка</button><div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Готово</button></div>`);
 }
 function moveHabit(id,dir){const sorted=state.habits.slice().sort((a,b)=>(a.order||0)-(b.order||0));const idx=sorted.findIndex(h=>h.id===id);const newIdx=idx+dir;if(newIdx<0||newIdx>=sorted.length)return;[sorted[idx],sorted[newIdx]]=[sorted[newIdx],sorted[idx]];sorted.forEach((h,i)=>h.order=i);haptic();save();openHabitSettings()}
@@ -1390,22 +1508,25 @@ function taskRowHTML(t,dateStr=currentDate,opts={}){
     else if (t.date === todayStr()) dateClass = 'today';
     else dateClass = 'future';
   }
-  return `<div class="task-row" data-task-id="${t.id}">
-    <div class="check-circle ${done?'done':''} p${t.priority}" onclick="event.stopPropagation();toggleTask(${t.id},'${dateStr}',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </div>
-    <div class="task-body" onclick="openTaskEditor(${t.id})">
-      <div class="task-title ${done?'done':''}">${escapeHtml(t.title)}</div>
-      <div class="task-meta">
-        ${dateLabel?`<span class="date-tag ${dateClass}">${svgIcon('calendar','currentColor',12)} ${dateLabel}</span>`:''}
-        ${timeLabel?`<span>${timeLabel}</span>`:''}
-        ${durLabel?`<span>${durLabel}</span>`:''}
-        ${project?`<span class="project-tag"><span class="project-dot" style="background:${project.color}"></span>${escapeHtml(project.name)}</span>`:''}
-        ${recurLabel?`<span style="color:var(--text-sec);font-size:11px;">${recurLabel}</span>`:''}
+  
+  return `
+    <div class="task-row" data-task-id="${t.id}">
+      <div class="check-circle ${done?'done':''} p${t.priority}" onclick="event.stopPropagation();toggleTask(${t.id},'${dateStr}',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
+      <div class="task-body" onclick="openTaskEditor(${t.id})">
+        <div class="task-title ${done?'done':''}">${escapeHtml(t.title)}</div>
+        <div class="task-meta">
+          ${dateLabel?`<span class="date-tag ${dateClass}">${svgIcon('calendar','currentColor',12)} ${dateLabel}</span>`:''}
+          ${timeLabel?`<span>${timeLabel}</span>`:''}
+          ${durLabel?`<span>${durLabel}</span>`:''}
+          ${project?`<span class="project-tag"><span class="project-dot" style="background:${project.color}"></span>${escapeHtml(project.name)}</span>`:''}
+          ${recurLabel?`<span style="color:var(--text-sec);font-size:11px;">${recurLabel}</span>`:''}
+        </div>
+      </div>
+      <button class="del-x" onclick="event.stopPropagation();removeTask(${t.id})">${svgIcon('x','currentColor',18)}</button>
     </div>
-    <button class="del-x" onclick="event.stopPropagation();removeTask(${t.id})">${svgIcon('x','currentColor',18)}</button>
-  </div>`;
+  `;
 }
 function formatDuration(min){if(min<60)return min+' мин';const h=Math.floor(min/60),m=min%60;return m?`${h}ч ${m}м`:`${h}ч`}
 function formatTaskDate(d){const today=todayStr();const tom=new Date();tom.setDate(tom.getDate()+1);if(d===today)return'Сегодня';if(d===tom.toISOString().slice(0,10))return'Завтра';return new Date(d+'T00:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'short'})}
@@ -1432,6 +1553,7 @@ function openTaskEditor(id){
   const project = t.projectId ? state.projects.find(p => p.id === t.projectId) : null;
   const prioLabel = t.priority < 4 ? 'P' + t.priority : 'Приоритет';
   const prioClass = t.priority < 4 ? 'p' + t.priority : '';
+  
   openSheet(`
     <div class="td-editor">
       <input type="text" id="t-title" class="td-title-input" value="${escapeHtml(t.title)}" placeholder="Название задачи" autocomplete="off">
@@ -1541,21 +1663,31 @@ function renderTasks(){
     {id:'all', label:'Все', count: allActive.length},
     {id:'projects', label:'Проекты', count: state.projects.length}
   ];
+  
   filtersEl.innerHTML = filters.map(f => `<button class="filter-pill ${state.taskFilter === f.id ? 'active' : ''}" onclick="setTaskFilter('${f.id}')">${f.label}${f.count !== null ? ` <span class="count">${f.count}</span>` : ''}</button>`).join('');
+  
   if (state.taskFilter === 'projects') {
+    let projHtml = '';
+    state.projects.forEach(p => {
+      const c = state.tasks.filter(t => t.projectId === p.id && !isTaskDoneOn(t, realToday)).length;
+      projHtml += `<div class="card flat" style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="openProject(${p.id})"><span style="width:12px;height:12px;border-radius:3px;background:${p.color};"></span><div style="flex:1;font-weight:600;">${escapeHtml(p.name)}</div><span style="color:var(--text-sec);font-size:13px;">${c}</span></div>`;
+    });
+    
     content.innerHTML = `
       <div style="display:flex;gap:8px;margin-bottom:8px;">
         <input id="new-project" placeholder="Новый проект" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--card);color:var(--text);outline:none;font-size:16px;height:42px;" onkeydown="if(event.key==='Enter')addProject()">
         <button onclick="addProject()" style="padding:10px 18px;background:var(--td-red);color:#fff;border:none;border-radius:10px;font-size:18px;cursor:pointer;">+</button>
       </div>
-      ${state.projects.map(p => { const c = state.tasks.filter(t => t.projectId === p.id && !isTaskDoneOn(t, realToday)).length; return `<div class="card flat" style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="openProject(${p.id})"><span style="width:12px;height:12px;border-radius:3px;background:${p.color};"></span><div style="flex:1;font-weight:600;">${escapeHtml(p.name)}</div><span style="color:var(--text-sec);font-size:13px;">${c}</span></div>`; }).join('')}
+      ${projHtml}
     `;
     return;
   }
+  
   if (state.taskFilter === 'week') {
     content.innerHTML = renderWeekView().html;
     return;
   }
+  
   if (state.taskFilter === 'all') {
     const allFilter = state.taskAllFilter || 'active';
     const subchips = `<div class="all-subfilters">
@@ -1564,15 +1696,19 @@ function renderTasks(){
       <button class="subfilter-chip ${allFilter === 'no-date' ? 'active' : ''}" onclick="setAllFilter('no-date')">Без даты</button>
       <button class="subfilter-chip ${allFilter === 'done' ? 'active' : ''}" onclick="setAllFilter('done')">Выполненные</button>
     </div>`;
+    
     let tasks = [];
     if (allFilter === 'active') tasks = state.tasks.filter(t => !t.done && !t.recurrence);
     else if (allFilter === 'overdue') tasks = state.tasks.filter(t => !t.done && t.date && t.date < realToday && !t.recurrence);
     else if (allFilter === 'no-date') tasks = state.tasks.filter(t => !t.done && !t.date && !t.recurrence);
     else tasks = state.tasks.filter(t => t.done || (t.recurrence && Object.values(t.completions || {}).some(Boolean)));
+    
     tasks.sort((a, b) => { if (a.priority !== b.priority) return a.priority - b.priority; if (a.date && b.date) return a.date.localeCompare(b.date); if (a.date) return -1; if (b.date) return 1; return 0; });
+    
     content.innerHTML = subchips + (tasks.length ? `<div class="card tight">${tasks.map(t => taskRowHTML(t, t.date || realToday)).join('')}</div>` : `<div class="card"><div class="empty-hint">Нет задач в этой категории.</div></div>`);
     return;
   }
+  
   let tasks = state.tasks.filter(t => t.recurrence ? matchesRecurrence(t, today) : t.date === today);
   tasks.sort((a, b) => { const aDone = isTaskDoneOn(a, today) ? 1 : 0; const bDone = isTaskDoneOn(b, today) ? 1 : 0; if (aDone !== bDone) return aDone - bDone; if (a.priority !== b.priority) return a.priority - b.priority; if (a.startTime && b.startTime) return a.startTime.localeCompare(b.startTime); return 0; });
   content.innerHTML = tasks.length ? `<div class="card tight">${tasks.map(t => taskRowHTML(t, today)).join('')}</div>` : `<div class="card"><div class="empty-hint">Задач нет.<br>Нажмите +, чтобы добавить.</div></div>`;
@@ -1591,8 +1727,10 @@ function renderWeekView() {
   else if (taskWeekOffset === 2) label = 'Через неделю';
   else if (taskWeekOffset === -2) label = 'Две недели назад';
   else { const fmt = d => `${d.getDate()}.${String(d.getMonth()+1).padStart(2,'0')}`; label = `${fmt(monday)} – ${fmt(sunday)}`; }
+  
   let html = `<div class="week-nav"><button class="week-nav-btn" onclick="changeTaskWeek(-1)">‹</button><div class="week-nav-label">${label}</div><button class="week-nav-btn" onclick="changeTaskWeek(1)">›</button></div>`;
   const monthsShort = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+  
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday); d.setDate(monday.getDate() + i);
     const dateStr = d.toISOString().slice(0, 10);
@@ -1603,21 +1741,37 @@ function renderWeekView() {
     const dayName = WEEKDAYS_LONG[d.getDay()];
     const dayNum = d.getDate();
     const monthName = monthsShort[d.getMonth()];
-    html += `<div class="week-day ${isToday ? 'today' : ''} ${isPast ? 'past' : ''}">
-      <div class="week-day-header">
-        <span class="week-day-name">${dayName}</span>
-        <span class="week-day-date">${dayNum} ${monthName}</span>
-        ${isToday ? '<span class="week-day-badge">Сегодня</span>' : ''}
+    
+    let tasksHtml = '';
+    if (dayTasks.length) {
+      tasksHtml = dayTasks.map(t => taskRowHTML(t, dateStr, {hideDate: true})).join('');
+    } else {
+      tasksHtml = '<div class="week-day-empty">Нет задач</div>';
+    }
+    
+    html += `
+      <div class="week-day ${isToday ? 'today' : ''} ${isPast ? 'past' : ''}">
+        <div class="week-day-header">
+          <span class="week-day-name">${dayName}</span>
+          <span class="week-day-date">${dayNum} ${monthName}</span>
+          ${isToday ? '<span class="week-day-badge">Сегодня</span>' : ''}
+        </div>
+        <div class="week-day-tasks">${tasksHtml}</div>
       </div>
-      <div class="week-day-tasks">${dayTasks.length ? dayTasks.map(t => taskRowHTML(t, dateStr, {hideDate: true})).join('') : '<div class="week-day-empty">Нет задач</div>'}</div>
-    </div>`;
+    `;
   }
   return { html };
 }
 function changeTaskWeek(dir) { taskWeekOffset += dir; haptic(); renderTasks(); }
 function setTaskFilter(f){state.taskFilter=f;haptic();save();renderTasks()}
 function setAllFilter(f){state.taskAllFilter=f;haptic();save();renderTasks()}
-function openProject(id){ const p=state.projects.find(x=>x.id===id); const tasks=state.tasks.filter(t=>t.projectId===id); openSheet(`<h2>${escapeHtml(p.name)}</h2><div class="card tight" style="margin-bottom:12px;">${tasks.length?tasks.map(t=>taskRowHTML(t, t.date || todayStr())).join(''):'<div class="empty-hint">Задач нет</div>'}</div><div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Закрыть</button><button class="btn-danger" onclick="deleteProject(${id})">Удалить</button></div>`); }
+
+function openProject(id){
+  const p=state.projects.find(x=>x.id===id);
+  const tasks=state.tasks.filter(t=>t.projectId===id);
+  let tasksHtml = tasks.length ? tasks.map(t=>taskRowHTML(t, t.date || todayStr())).join('') : '<div class="empty-hint">Задач нет</div>';
+  openSheet(`<h2>${escapeHtml(p.name)}</h2><div class="card tight" style="margin-bottom:12px;">${tasksHtml}</div><div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Закрыть</button><button class="btn-danger" onclick="deleteProject(${id})">Удалить</button></div>`);
+}
 function addProject(){ const inp=document.getElementById('new-project'); const name=inp.value.trim(); if(!name)return; state.projects.push({id:uid(),name,color:PALETTE[state.projects.length%PALETTE.length]}); inp.value=''; save(); renderTasks(); }
 function deleteProject(id){ if(!confirm('Удалить проект?'))return; state.projects=state.projects.filter(p=>p.id!==id); state.tasks.forEach(t=>{if(t.projectId===id)t.projectId=null}); save(); closeSheet(); renderTasks(); }
 
@@ -1884,6 +2038,16 @@ function openDreamEditor() {
   const dream = state.dream || { vision: '', markers: [], reviews: {} };
   const markers = dream.markers.length ? dream.markers : [''];
   
+  let markersHtml = '';
+  markers.forEach((m, i) => {
+    markersHtml += `
+      <div class="marker-item">
+        <input type="text" class="marker-input" value="${escapeHtml(m)}" placeholder="Маркер ${i+1}">
+        ${markers.length > 1 ? `<button class="marker-del" onclick="removeMarker(this)">×</button>` : ''}
+      </div>
+    `;
+  });
+  
   openSheet(`
     <h2>Моя мечта</h2>
     <p style="font-size:13px;color:var(--text-sec);margin-bottom:16px;">
@@ -1895,14 +2059,7 @@ function openDreamEditor() {
     </div>
     
     <div class="field"><label>Маркеры прогресса (что будет значить «я на пути»)</label>
-      <div id="markers-container">
-        ${markers.map((m, i) => `
-          <div class="marker-item">
-            <input type="text" class="marker-input" value="${escapeHtml(m)}" placeholder="Маркер ${i+1}">
-            ${markers.length > 1 ? `<button class="marker-del" onclick="removeMarker(this)">×</button>` : ''}
-          </div>
-        `).join('')}
-      </div>
+      <div id="markers-container">${markersHtml}</div>
       <button class="btn-cancel" style="width:auto;margin-top:8px;padding:8px 14px;font-size:13px;" onclick="addMarker()">+ Добавить маркер</button>
     </div>
     
@@ -1986,6 +2143,7 @@ function renderDreamCard() {
   const now = new Date();
   const monthKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   const hasReview = !!dream.reviews[monthKey];
+  
   container.innerHTML = `
     <div class="card dream-card" onclick="openDreamEditor()">
       <div class="dream-label">${svgIcon('compass','currentColor',14)} Моя мечта</div>
@@ -2002,17 +2160,25 @@ function renderWeeklyCard() {
   const wk = isoWeek();
   const s = state.weeklySurveys[wk];
   const passed = s && s.ts;
+  
+  let cardContent = '';
+  if (passed) {
+    cardContent = `
+      <div class="compass-goal">${escapeHtml(s.goal || 'Цель не указана')}</div>
+      <div class="compass-meta">Прогресс: ${s.progress}/10 · Шаг к мечте: ${s.dreamStep ? '✓' : '—'}</div>
+      <div class="compass-status passed">✅ Опрос пройден</div>
+    `;
+  } else {
+    cardContent = `
+      <div class="compass-goal">Определи цель недели →</div>
+      <div class="compass-meta">10 вопросов. Фокус, шаг к мечте, рефлексия.</div>
+    `;
+  }
+  
   container.innerHTML = `
     <div class="card compass-card" onclick="openWeeklySurvey('${wk}')" style="cursor:pointer;">
       <div class="compass-label">${svgIcon('target','currentColor',14)} Компас недели</div>
-      ${passed ? `
-        <div class="compass-goal">${escapeHtml(s.goal || 'Цель не указана')}</div>
-        <div class="compass-meta">Прогресс: ${s.progress}/10 · Шаг к мечте: ${s.dreamStep ? '✓' : '—'}</div>
-        <div class="compass-status passed">✅ Опрос пройден</div>
-      ` : `
-        <div class="compass-goal">Определи цель недели →</div>
-        <div class="compass-meta">10 вопросов. Фокус, шаг к мечте, рефлексия.</div>
-      `}
+      ${cardContent}
     </div>
   `;
 }
@@ -2250,13 +2416,24 @@ function renderDreamProgress() {
   const dream = state.dream;
   const reviews = Object.entries(dream.reviews || {}).sort((a,b) => a[0].localeCompare(b[0])).slice(-6);
   const lastReview = reviews.length ? reviews[reviews.length-1][1] : null;
-  el.innerHTML = `
-    <div style="font-size:14px;font-weight:600;margin-bottom:6px;">${escapeHtml(dream.vision)}</div>
-    ${dream.markers.filter(Boolean).length ? `<div style="margin-bottom:12px;">${dream.markers.filter(Boolean).map(m => `<div class="insight" style="font-size:13px;">◦ ${escapeHtml(m)}</div>`).join('')}</div>` : ''}
-    ${reviews.length ? `
+  
+  let markersHtml = '';
+  if (dream.markers.filter(Boolean).length) {
+    markersHtml = `<div style="margin-bottom:12px;">${dream.markers.filter(Boolean).map(m => `<div class="insight" style="font-size:13px;">◦ ${escapeHtml(m)}</div>`).join('')}</div>`;
+  }
+  
+  let reviewsHtml = '';
+  if (reviews.length) {
+    reviewsHtml = `
       <div style="font-size:11px;font-weight:700;color:var(--text-sec);text-transform:uppercase;margin-top:12px;margin-bottom:6px;">Ревизии месяцев</div>
       ${reviews.map(([key, r]) => `<div class="insight" style="display:flex;justify-content:space-between;align-items:center;"><div><b>${key}</b>${r.note ? `<div style="font-size:12px;color:var(--text-sec);margin-top:2px;">${escapeHtml(r.note)}</div>` : ''}</div><b style="color:${r.score >= 7 ? 'var(--green)' : r.score >= 4 ? 'var(--orange)' : 'var(--red)'};">${r.score}/10</b></div>`).join('')}
-    ` : ''}
+    `;
+  }
+  
+  el.innerHTML = `
+    <div style="font-size:14px;font-weight:600;margin-bottom:6px;">${escapeHtml(dream.vision)}</div>
+    ${markersHtml}
+    ${reviewsHtml}
     <button class="btn-primary" style="margin-top:12px;background:var(--indigo);" onclick="openMonthlyReview()">${lastReview ? 'Новая ревизия месяца' : 'Сделать первую ревизию'}</button>
   `;
 }
@@ -2348,12 +2525,70 @@ function renderStats() {
   renderYearInPixels();
 }
 
-function renderTasksTodayMini(){const t=currentDate;const tasks=state.tasks.filter(x=>x.recurrence?matchesRecurrence(x,t):x.date===t);document.getElementById('tasks-today-mini').innerHTML=tasks.length?tasks.map(x=>taskRowHTML(x,t)).join(''):'<div class="empty-hint">Задач нет. Нажмите +, чтобы добавить.</div>'}
+function renderTasksTodayMini(){
+  const t=currentDate;
+  const tasks=state.tasks.filter(x=>x.recurrence?matchesRecurrence(x,t):x.date===t);
+  document.getElementById('tasks-today-mini').innerHTML = tasks.length ? tasks.map(x=>taskRowHTML(x,t)).join('') : '<div class="empty-hint">Задач нет. Нажмите +, чтобы добавить.</div>';
+}
 
 let currentNoteId=null,noteSaveTimer=null;
 function scheduleNoteSave(){clearTimeout(noteSaveTimer);noteSaveTimer=setTimeout(saveCurrentNote,1500)}
-function saveCurrentNote(){if(!currentNoteId)return;clearTimeout(noteSaveTimer);const n=state.notes.find(x=>x.id===currentNoteId);if(!n)return;n.title=document.getElementById('edit-note-title').value.trim()||'Без названия';const body=document.getElementById('edit-note-body');body.querySelectorAll('input[type=checkbox]').forEach(cb=>{if(cb.checked)cb.setAttribute('checked','checked');else cb.removeAttribute('checked')});n.body=body.innerHTML;n.updatedAt=Date.now();save()}
-function renderNotes(){const chips=document.getElementById('folder-chips');if(chips){const folders=[{id:'all',name:'Все',icon:'📚'},...state.noteFolders];chips.innerHTML=folders.map(f=>{const isActive=state.selectedFolder===f.id;const isCustom=f.id!=='all';return `<button class="folder-chip" style="padding:7px 13px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:${isActive?'var(--orange)':'var(--chip-bg)'};color:${isActive?'#fff':'var(--text)'};white-space:nowrap;cursor:pointer;font-family:inherit;" onclick="onFolderChip('${f.id}',${isCustom})">${f.icon||''} ${escapeHtml(f.name)}</button>`}).join('')+`<button class="folder-chip" style="padding:7px 10px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;" onclick="openFolderEditor()">＋</button>`}const el=document.getElementById('notes-list');if(!el)return;const search=(document.getElementById('notes-search')?.value||'').toLowerCase();let notes=state.notes;if(state.selectedFolder!=='all')notes=notes.filter(n=>n.folderId===state.selectedFolder);if(search)notes=notes.filter(n=>(n.title||'').toLowerCase().includes(search)||stripHtml(n.body).toLowerCase().includes(search));notes.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updatedAt||0)-(a.updatedAt||0));if(!notes.length){el.innerHTML='<div class="empty-hint">Заметок нет.<br>Нажмите +, чтобы создать.</div>';return}el.innerHTML=notes.map(n=>{const preview=stripHtml(n.body).slice(0,80);const dt=new Date(n.updatedAt);const dateStr=dt.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});return `<div style="padding:12px 4px;border-bottom:.5px solid var(--separator);cursor:pointer;display:flex;align-items:flex-start;gap:8px;" onclick="openNote(${n.id})">${n.pinned?'<span style="color:var(--orange);font-size:12px;margin-top:3px;">📌</span>':''}<div style="flex:1;min-width:0;"><h4 style="font-size:15px;font-weight:600;margin-bottom:2px;">${escapeHtml(n.title||'Без названия')}</h4><p style="font-size:13px;color:var(--text-sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">${escapeHtml(preview)||'Пустая'}</p></div><span style="font-size:11px;color:var(--text-sec);margin-left:auto;white-space:nowrap;">${dateStr}</span></div>`}).join('')}
+function saveCurrentNote(){
+  if(!currentNoteId)return;
+  clearTimeout(noteSaveTimer);
+  const n=state.notes.find(x=>x.id===currentNoteId);if(!n)return;
+  n.title=document.getElementById('edit-note-title').value.trim()||'Без названия';
+  const body=document.getElementById('edit-note-body');
+  body.querySelectorAll('input[type=checkbox]').forEach(cb=>{if(cb.checked)cb.setAttribute('checked','checked');else cb.removeAttribute('checked')});
+  n.body=body.innerHTML;n.updatedAt=Date.now();save();
+}
+function renderNotes(){
+  const chips=document.getElementById('folder-chips');
+  if(chips){
+    const folders=[{id:'all',name:'Все',icon:'📚'},...state.noteFolders];
+    let chipsHtml = '';
+    folders.forEach(f => {
+      const isActive=state.selectedFolder===f.id;
+      const isCustom=f.id!=='all';
+      chipsHtml += `<button class="folder-chip" style="padding:7px 13px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:${isActive?'var(--orange)':'var(--chip-bg)'};color:${isActive?'#fff':'var(--text)'};white-space:nowrap;cursor:pointer;font-family:inherit;" onclick="onFolderChip('${f.id}',${isCustom})">${f.icon||''} ${escapeHtml(f.name)}</button>`;
+    });
+    chipsHtml += `<button class="folder-chip" style="padding:7px 10px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;" onclick="openFolderEditor()">＋</button>`;
+    chips.innerHTML = chipsHtml;
+  }
+  
+  const el=document.getElementById('notes-list');
+  if(!el)return;
+  const search=(document.getElementById('notes-search')?.value||'').toLowerCase();
+  let notes=state.notes;
+  if(state.selectedFolder!=='all')notes=notes.filter(n=>n.folderId===state.selectedFolder);
+  if(search)notes=notes.filter(n=>(n.title||'').toLowerCase().includes(search)||stripHtml(n.body).toLowerCase().includes(search));
+  notes.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updatedAt||0)-(a.updatedAt||0));
+  
+  if(!notes.length){
+    el.innerHTML='<div class="empty-hint">Заметок нет.<br>Нажмите +, чтобы создать.</div>';
+    return;
+  }
+  
+  let notesHtml = '';
+  notes.forEach(n => {
+    const preview=stripHtml(n.body).slice(0,80);
+    const dt=new Date(n.updatedAt);
+    const dateStr=dt.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
+    const pinIcon = n.pinned ? '<span style="color:var(--orange);font-size:12px;margin-top:3px;">📌</span>' : '';
+    
+    notesHtml += `
+      <div style="padding:12px 4px;border-bottom:.5px solid var(--separator);cursor:pointer;display:flex;align-items:flex-start;gap:8px;" onclick="openNote(${n.id})">
+        ${pinIcon}
+        <div style="flex:1;min-width:0;">
+          <h4 style="font-size:15px;font-weight:600;margin-bottom:2px;">${escapeHtml(n.title||'Без названия')}</h4>
+          <p style="font-size:13px;color:var(--text-sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">${escapeHtml(preview)||'Пустая'}</p>
+        </div>
+        <span style="font-size:11px;color:var(--text-sec);margin-left:auto;white-space:nowrap;">${dateStr}</span>
+      </div>
+    `;
+  });
+  el.innerHTML = notesHtml;
+}
 function onFolderChip(id,isCustom){if(isCustom&&state.selectedFolder===id){openFolderEditor(id);return}state.selectedFolder=id;haptic();save();renderNotes()}
 function openFolderEditor(id){const folder=id?state.noteFolders.find(f=>f.id===id):null;openSheet(`<h2>${folder?'Папка':'Новая папка'}</h2><div class="field"><label>Название</label><input type="text" id="f-name" value="${folder?escapeHtml(folder.name):''}"></div><div class="field"><label>Иконка</label><input type="text" id="f-icon" value="${folder?escapeHtml(folder.icon||'📁'):'📁'}" maxlength="2"></div><div class="sheet-actions">${folder?`<button class="btn-danger" onclick="deleteFolder('${id}')">Удалить</button>`:''}<button class="btn-cancel" onclick="closeSheet()">Отмена</button><button class="btn-primary" onclick="saveFolder('${id||''}')">Сохранить</button></div>`)}
 function saveFolder(id){const name=document.getElementById('f-name').value.trim();const icon=document.getElementById('f-icon').value.trim()||'📁';if(!name)return;if(id){const f=state.noteFolders.find(x=>x.id===id);if(f){f.name=name;f.icon=icon}}else{state.noteFolders.push({id:uid()+'',name,icon})}save();closeSheet();renderNotes()}
@@ -2366,8 +2601,46 @@ function closeNoteEditor(){saveCurrentNote();currentNoteId=null;document.getElem
 function deleteCurrentNote(){if(!currentNoteId||!confirm('Удалить?'))return;state.notes=state.notes.filter(n=>n.id!==currentNoteId);save();currentNoteId=null;document.getElementById('notes-list-view').style.display='block';document.getElementById('note-edit-view').style.display='none';renderNotes()}
 
 let calDate=new Date();
-function renderCalendar(){const y=calDate.getFullYear(),m=calDate.getMonth();const first=new Date(y,m,1);const startWeekday=(first.getDay()+6)%7;const daysInMonth=new Date(y,m+1,0).getDate();const today=todayStr();document.getElementById('cal-title').textContent=calDate.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});const cells=[];for(let i=0;i<startWeekday;i++)cells.push('<div class="cal-day empty"></div>');for(let d=1;d<=daysInMonth;d++){const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const sDone=!!state.surveys[dateStr];const hDone=state.habits.some(h=>!h.archived&&isHabitDoneForDate(h,dateStr));const tDone=state.tasks.some(t=>t.recurrence?(matchesRecurrence(t,dateStr)&&isTaskDoneOn(t,dateStr)):(t.date===dateStr&&t.done));cells.push(`<div class="cal-day ${dateStr===today?'today':''}" style="aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;background:var(--input-bg);gap:2px;cursor:pointer;color:var(--text);${dateStr===today?'outline:2px solid var(--td-red);':''}" onclick="openDayDetail('${dateStr}')"><div>${d}</div><div style="display:flex;gap:2px;"><span style="width:4px;height:4px;border-radius:50%;background:${sDone?'var(--pink)':'var(--text-tert)'}"></span><span style="width:4px;height:4px;border-radius:50%;background:${hDone?'var(--green)':'var(--text-tert)'}"></span><span style="width:4px;height:4px;border-radius:50%;background:${tDone?'var(--td-blue)':'var(--text-tert)'}"></span></div></div>`)}document.getElementById('cal-grid').innerHTML=cells.join('')}
-function openDayDetail(dateStr){const s=state.surveys[dateStr];const habitsDone=state.habits.filter(h=>!h.archived&&isHabitDoneForDate(h,dateStr));const tasksOnDay=state.tasks.filter(t=>t.recurrence?matchesRecurrence(t,dateStr):t.date===dateStr);const tasksDone=tasksOnDay.filter(t=>isTaskDoneOn(t,dateStr));const isToday=dateStr===todayStr();openSheet(`<h2>${formatDateHuman(dateStr)}</h2>${isToday?'<div style="display:inline-block;padding:2px 8px;background:var(--chip-bg);border-radius:6px;font-size:11px;color:var(--text-sec);margin-bottom:8px;">Сегодня</div>':''}<div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Опрос</div>${s?`<div class="insight"><b>Настроение:</b> ${s.emotions?.joy??'—'}/10 · <b>Продуктивность:</b> ${s.mental?.productivity??'—'}/10 · <b>Смысл:</b> ${s.mental?.meaning??'—'}/10</div>`:`<div class="empty-hint">Опрос не заполнен</div>`}<div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Привычки (${habitsDone.length}/${state.habits.filter(h=>!h.archived).length})</div>${habitsDone.length?habitsDone.map(h=>`<div class="insight">${svgIcon(h.icon,h.color,14)} ${escapeHtml(h.name)}</div>`).join(''):'<div class="empty-hint">Ни одна не выполнена</div>'}<div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Задачи (${tasksDone.length}/${tasksOnDay.length})</div>${tasksOnDay.length?tasksOnDay.map(t=>`<div class="insight">${isTaskDoneOn(t,dateStr)?'✅':'○'} ${escapeHtml(t.title)}</div>`).join(''):'<div class="empty-hint">Задач не было</div>'}<div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Закрыть</button><button class="btn-primary" onclick="closeSheet();goToDate('${dateStr}')">Открыть →</button></div>`)}
+function renderCalendar(){
+  const y=calDate.getFullYear(),m=calDate.getMonth();
+  const first=new Date(y,m,1);
+  const startWeekday=(first.getDay()+6)%7;
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const today=todayStr();
+  document.getElementById('cal-title').textContent=calDate.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
+  const cells=[];
+  for(let i=0;i<startWeekday;i++)cells.push('<div class="cal-day empty"></div>');
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const sDone=!!state.surveys[dateStr];
+    const hDone=state.habits.some(h=>!h.archived&&isHabitDoneForDate(h,dateStr));
+    const tDone=state.tasks.some(t=>t.recurrence?(matchesRecurrence(t,dateStr)&&isTaskDoneOn(t,dateStr)):(t.date===dateStr&&t.done));
+    cells.push(`<div class="cal-day ${dateStr===today?'today':''}" style="aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;background:var(--input-bg);gap:2px;cursor:pointer;color:var(--text);${dateStr===today?'outline:2px solid var(--td-red);':''}" onclick="openDayDetail('${dateStr}')"><div>${d}</div><div style="display:flex;gap:2px;"><span style="width:4px;height:4px;border-radius:50%;background:${sDone?'var(--pink)':'var(--text-tert)'}"></span><span style="width:4px;height:4px;border-radius:50%;background:${hDone?'var(--green)':'var(--text-tert)'}"></span><span style="width:4px;height:4px;border-radius:50%;background:${tDone?'var(--td-blue)':'var(--text-tert)'}"></span></div></div>`);
+  }
+  document.getElementById('cal-grid').innerHTML=cells.join('');
+}
+function openDayDetail(dateStr){
+  const s=state.surveys[dateStr];
+  const habitsDone=state.habits.filter(h=>!h.archived&&isHabitDoneForDate(h,dateStr));
+  const tasksOnDay=state.tasks.filter(t=>t.recurrence?matchesRecurrence(t,dateStr):t.date===dateStr);
+  const tasksDone=tasksOnDay.filter(t=>isTaskDoneOn(t,dateStr));
+  const isToday=dateStr===todayStr();
+  
+  let habitsHtml = habitsDone.length ? habitsDone.map(h=>`<div class="insight">${svgIcon(h.icon,h.color,14)} ${escapeHtml(h.name)}</div>`).join('') : '<div class="empty-hint">Ни одна не выполнена</div>';
+  let tasksHtml = tasksOnDay.length ? tasksOnDay.map(t=>`<div class="insight">${isTaskDoneOn(t,dateStr)?'✅':'○'} ${escapeHtml(t.title)}</div>`).join('') : '<div class="empty-hint">Задач не было</div>';
+  
+  openSheet(`
+    <h2>${formatDateHuman(dateStr)}</h2>
+    ${isToday?'<div style="display:inline-block;padding:2px 8px;background:var(--chip-bg);border-radius:6px;font-size:11px;color:var(--text-sec);margin-bottom:8px;">Сегодня</div>':''}
+    <div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Опрос</div>
+    ${s?`<div class="insight"><b>Настроение:</b> ${s.emotions?.joy??'—'}/10 · <b>Продуктивность:</b> ${s.mental?.productivity??'—'}/10 · <b>Смысл:</b> ${s.mental?.meaning??'—'}/10</div>`:`<div class="empty-hint">Опрос не заполнен</div>`}
+    <div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Привычки (${habitsDone.length}/${state.habits.filter(h=>!h.archived).length})</div>
+    ${habitsHtml}
+    <div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px;">Задачи (${tasksDone.length}/${tasksOnDay.length})</div>
+    ${tasksHtml}
+    <div class="sheet-actions"><button class="btn-cancel" onclick="closeSheet()">Закрыть</button><button class="btn-primary" onclick="closeSheet();goToDate('${dateStr}')">Открыть →</button></div>
+  `);
+}
 function goToDate(dateStr){currentDate=dateStr;switchTab('today')}
 function prevMonth(){calDate.setMonth(calDate.getMonth()-1);haptic();renderCalendar()}
 function nextMonth(){calDate.setMonth(calDate.getMonth()+1);haptic();renderCalendar()}
@@ -2375,7 +2648,18 @@ function nextMonth(){calDate.setMonth(calDate.getMonth()+1);haptic();renderCalen
 function initQuote() { const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000); const q = QUOTES[dayOfYear % QUOTES.length]; document.getElementById('quote-text').innerText = `«${q.t}»`; document.getElementById('quote-author').innerText = `— ${q.a}`; }
 
 function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`cantilena-backup-${todayStr()}.json`;a.click();URL.revokeObjectURL(url)}
-function exportCSV(){let csv="Дата,Настроение,Продуктивность,Тревога,Энергия,Смысл,Сон_ч,Лёг,Встал,Движение_мин,Общение,Экран_ч,Благодарность\n";Object.keys(state.surveys).sort().forEach(d=>{const s=state.surveys[d];const avgMood=(state.moods[d]||[]).length?Math.round(state.moods[d].reduce((sum,m)=>sum+m.val,0)/state.moods[d].length):'';const soc=s.social?.contact===true?'да':s.social?.contact===false?'нет':'';csv+=`${d},${avgMood},${s.mental?.productivity||''},${s.emotions?.anxiety||''},${s.physical?.energy||''},${s.mental?.meaning||''},${s.physical?.sleepHours||''},${s.physical?.sleepStart||''},${s.physical?.sleepEnd||''},${s.physical?.movement||''},${soc},${s.screen?.totalHours||''},"${(s.reflection?.gratitude||'').replace(/"/g,'""')}"\n`});const blob=new Blob(["\uFEFF"+csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`cantilena-data-${todayStr()}.csv`;a.click();}
+function exportCSV(){
+  let csv="Дата,Настроение,Продуктивность,Тревога,Энергия,Смысл,Сон_ч,Лёг,Встал,Движение_мин,Общение,Экран_ч,Благодарность\n";
+  Object.keys(state.surveys).sort().forEach(d=>{
+    const s=state.surveys[d];
+    const avgMood=(state.moods[d]||[]).length?Math.round(state.moods[d].reduce((sum,m)=>sum+m.val,0)/state.moods[d].length):'';
+    const soc=s.social?.contact===true?'да':s.social?.contact===false?'нет':'';
+    csv+=`${d},${avgMood},${s.mental?.productivity||''},${s.emotions?.anxiety||''},${s.physical?.energy||''},${s.mental?.meaning||''},${s.physical?.sleepHours||''},${s.physical?.sleepStart||''},${s.physical?.sleepEnd||''},${s.physical?.movement||''},${soc},${s.screen?.totalHours||''},"${(s.reflection?.gratitude||'').replace(/"/g,'""')}"\n`;
+  });
+  const blob=new Blob(["\uFEFF"+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`cantilena-data-${todayStr()}.csv`;a.click();
+}
 function importData(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{try{const data=JSON.parse(ev.target.result);if(!data||!Array.isArray(data.habits))throw new Error('Неверный формат');if(!confirm('Заменить данные?'))return;state=migrateState(data);save();applyTheme();renderAll();alert('Импорт успешно!')}catch(err){alert('Ошибка: '+err.message)}};reader.readAsText(file);e.target.value=''}
 
 try {
