@@ -114,34 +114,25 @@ window.addEventListener('error', function(event) {
         <div id="tasks-content"></div>
       </section>
 
-      <!-- НОВЫЙ ЭКРАН ФОКУСА -->
       <section id="screen-focus" class="screen">
         <div class="card" style="text-align:center; padding:32px 16px;">
           <h2 style="font-size:56px; font-weight:800; font-variant-numeric:tabular-nums; margin-bottom:8px; color:var(--text);" id="focus-display">25:00</h2>
           <div style="font-size:14px; color:var(--text-sec); margin-bottom:24px; font-weight:600;" id="focus-status">Готов к работе</div>
-          
           <div style="display:flex; gap:12px; justify-content:center; margin-bottom:24px;">
             <button onclick="setFocusTime(25)" class="filter-pill" style="background:var(--chip-bg); border:none;">25 мин</button>
             <button onclick="setFocusTime(45)" class="filter-pill" style="background:var(--chip-bg); border:none;">45 мин</button>
             <button onclick="setFocusTime(60)" class="filter-pill" style="background:var(--chip-bg); border:none;">60 мин</button>
           </div>
-
           <div class="field" style="text-align:left; max-width:400px; margin:0 auto 16px;">
             <label>Связать с задачей (необязательно)</label>
-            <select id="focus-task-select" style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--separator-med); background:var(--input-bg); color:var(--text); font-size:15px; outline:none;">
-              <option value="">Без задачи</option>
-            </select>
+            <select id="focus-task-select" style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--separator-med); background:var(--input-bg); color:var(--text); font-size:15px; outline:none;"><option value="">Без задачи</option></select>
           </div>
-
           <div class="field" style="text-align:left; max-width:400px; margin:0 auto 24px;">
             <label>Звук окончания</label>
             <select id="focus-sound-select" style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--separator-med); background:var(--input-bg); color:var(--text); font-size:15px; outline:none;">
-              <option value="chime">Мягкий колокольчик</option>
-              <option value="beep">Звонок будильника</option>
-              <option value="ping">Космический пинг</option>
+              <option value="chime">Мягкий колокольчик</option><option value="beep">Звонок будильника</option><option value="ping">Космический пинг</option>
             </select>
           </div>
-
           <button class="btn-primary" style="max-width:300px; margin:0 auto; font-size:18px; padding:16px; border-radius:16px;" onclick="toggleFocusTimer()" id="focus-main-btn">Начать фокус</button>
         </div>
       </section>
