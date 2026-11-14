@@ -33,14 +33,11 @@ window.addEventListener('error', function(event) {
   <div class="splash-title">Cantilena</div>
 </div>
 
-<!-- Плавающий таймер -->
 <div class="floating-timer" id="floating-timer">
   <div style="font-variant-numeric:tabular-nums;" id="float-time">25:00</div>
   <div style="font-size:12px;color:var(--text-sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px;" id="float-task">Фокус</div>
   <button onclick="toggleFocusTimer()" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" id="float-play-icon">
-      <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
-    </svg>
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" id="float-play-icon"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
   </button>
   <button onclick="stopFocusTimer()" style="background:none;border:none;color:var(--red);cursor:pointer;padding:0;"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
 </div>
@@ -62,21 +59,18 @@ window.addEventListener('error', function(event) {
       <div class="topbar-info">
         <div style="display:flex; align-items:center;">
           <h1 id="topbar-title">Доброе утро</h1>
-          <div class="save-indicator" id="save-indicator">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg> Сохранено
-          </div>
+          <div class="save-indicator" id="save-indicator"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg> Сохранено</div>
         </div>
         <div class="topbar-meta"><span class="time-mono" id="clock">--:--:--</span><span>·</span><span id="datestr">—</span></div>
       </div>
       <button class="icon-btn" onclick="manualSyncWithUI(this)" title="Синхронизировать">
         <svg class="sync-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
       </button>
-      <button class="icon-btn" onclick="openSettings()" title="Настройки">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      </button>
+      <button class="icon-btn" onclick="openSettings()" title="Настройки"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
 
     <main>
+      <!-- ... Экран Сегодня, Задачи, Заметки, Статистика оставляем как было ... -->
       <section id="screen-today" class="screen active">
         <div class="date-nav"><button class="nav-arrow" onclick="changeDay(-1)">‹</button><div class="date-nav-center" id="date-nav-label"></div><button class="nav-arrow" onclick="changeDay(1)">›</button></div>
         <div class="card rings-card">
@@ -114,26 +108,48 @@ window.addEventListener('error', function(event) {
         <div id="tasks-content"></div>
       </section>
 
+      <!-- НОВЫЙ ЭКРАН ФОКУСА (Дзен-режим) -->
       <section id="screen-focus" class="screen">
-        <div class="card" style="text-align:center; padding:32px 16px;">
-          <h2 style="font-size:56px; font-weight:800; font-variant-numeric:tabular-nums; margin-bottom:8px; color:var(--text);" id="focus-display">25:00</h2>
+        <div class="card" style="text-align:center; padding:32px 16px; position: relative;">
+          
+          <!-- Дерево -->
+          <div class="tree-container" id="tree-container">
+            <svg class="tree-svg" viewBox="0 0 100 100">
+              <path class="tree-path" id="tree-path" d="M50 95 L50 45 C 20 45, 10 20, 30 10 C 45 0, 55 0, 70 10 C 90 20, 80 45, 50 45" />
+            </svg>
+          </div>
+
+          <h2 style="font-size:56px; font-weight:800; font-variant-numeric:tabular-nums; margin-bottom:8px; color:var(--text); transition: all 0.3s;" id="focus-display">25:00</h2>
           <div style="font-size:14px; color:var(--text-sec); margin-bottom:24px; font-weight:600;" id="focus-status">Готов к работе</div>
-          <div style="display:flex; gap:12px; justify-content:center; margin-bottom:24px;">
-            <button onclick="setFocusTime(25)" class="filter-pill" style="background:var(--chip-bg); border:none;">25 мин</button>
-            <button onclick="setFocusTime(45)" class="filter-pill" style="background:var(--chip-bg); border:none;">45 мин</button>
-            <button onclick="setFocusTime(60)" class="filter-pill" style="background:var(--chip-bg); border:none;">60 мин</button>
+          
+          <div class="focus-controls" style="transition: opacity 0.3s;">
+            <div style="display:flex; gap:12px; justify-content:center; margin-bottom:16px;">
+              <input type="number" id="focus-custom-mins" value="${state.focusSettings.customMins}" min="1" max="180" style="width:80px; padding:12px; border-radius:10px; border:1px solid var(--separator-med); background:var(--input-bg); color:var(--text); font-size:16px; font-weight:700; text-align:center; outline:none;">
+              <button onclick="setFocusTime(25)" class="filter-pill" style="background:var(--chip-bg); border:none;">25</button>
+              <button onclick="setFocusTime(45)" class="filter-pill" style="background:var(--chip-bg); border:none;">45</button>
+            </div>
+
+            <div class="field" style="text-align:left; max-width:400px; margin:0 auto 16px;">
+              <label>Связать с задачей</label>
+              <select id="focus-task-select" style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--separator-med); background:var(--input-bg); color:var(--text); font-size:15px; outline:none;"></select>
+            </div>
+
+            <div class="field" style="text-align:left; max-width:400px; margin:0 auto 16px;">
+              <label>Описание (если без задачи)</label>
+              <input type="text" id="focus-desc" placeholder="Например: Читать статью" style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--separator-med); background:var(--input-bg); color:var(--text); font-size:15px; outline:none;">
+            </div>
+
+            <div style="display:flex; justify-content:center; gap:16px; margin-bottom:24px; font-size:13px; color:var(--text-sec);">
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="focus-auto-complete" ${state.focusSettings.autoComplete ? 'checked' : ''}> Выполнить задачу
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="focus-auto-break" ${state.focusSettings.autoBreak ? 'checked' : ''}> Авто-перерыв
+              </label>
+            </div>
+
+            <button class="btn-primary" style="max-width:300px; margin:0 auto; font-size:18px; padding:16px; border-radius:16px;" onclick="toggleFocusTimer()" id="focus-main-btn">Начать фокус</button>
           </div>
-          <div class="field" style="text-align:left; max-width:400px; margin:0 auto 16px;">
-            <label>Связать с задачей (необязательно)</label>
-            <select id="focus-task-select" style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--separator-med); background:var(--input-bg); color:var(--text); font-size:15px; outline:none;"><option value="">Без задачи</option></select>
-          </div>
-          <div class="field" style="text-align:left; max-width:400px; margin:0 auto 24px;">
-            <label>Звук окончания</label>
-            <select id="focus-sound-select" style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--separator-med); background:var(--input-bg); color:var(--text); font-size:15px; outline:none;">
-              <option value="chime">Мягкий колокольчик</option><option value="beep">Звонок будильника</option><option value="ping">Космический пинг</option>
-            </select>
-          </div>
-          <button class="btn-primary" style="max-width:300px; margin:0 auto; font-size:18px; padding:16px; border-radius:16px;" onclick="toggleFocusTimer()" id="focus-main-btn">Начать фокус</button>
         </div>
       </section>
 
@@ -144,6 +160,11 @@ window.addEventListener('error', function(event) {
 
       <section id="screen-stats" class="screen">
         <div id="stats-summary" class="card" style="padding:12px 16px;text-align:center;color:var(--text-sec);font-size:13px;"></div>
+        
+        <!-- НОВЫЙ БЛОК: АНАЛИТИКА ФОКУСА -->
+        <div class="section-title">🧠 Аналитика Фокуса</div>
+        <div class="card" id="focus-analytics"></div>
+
         <div class="section-title">🎯 Инсайты о тебе</div><div class="card" id="auto-insights"></div><div class="section-title">🌟 Прогресс к мечте</div><div class="card" id="dream-progress"></div>
         <div class="section-title">📊 Аналитика (14 дней)</div><div class="card"><div id="chart-mood-prod"></div><div class="chart-legend" style="display:flex;gap:16px;justify-content:center;font-size:12px;color:var(--text-sec);margin-top:6px;flex-wrap:wrap;"><span><span class="dot" style="background:var(--td-orange)"></span>Настроение</span><span><span class="dot" style="background:var(--td-blue)"></span>Продуктивность</span><span><span class="dot" style="background:var(--pink)"></span>Тревога</span></div></div>
         <div class="section-title">📈 Тренды (4 недели)</div><div class="card" id="trends-4w"></div><div class="section-title">Ключевые метрики (7 дней)</div><div class="stat-grid" id="stats-grid"></div><div class="section-title">Паттерны по дням недели</div><div class="card" id="weekday-patterns"></div><div class="section-title">Матрица корреляций</div><div class="card" id="corr-matrix"></div><div class="section-title">🧠 Психологический профиль</div><div class="card" id="psy-profile"></div><div class="section-title">🎓 Педагогические рекомендации</div><div class="card" id="ped-recommendations"></div><div class="section-title">Год в пикселях</div><div class="card"><div class="year-grid" id="year-grid"></div><div style="font-size:11px;color:var(--text-sec);margin-top:8px;text-align:center;">Каждый квадрат — один день.</div></div>
