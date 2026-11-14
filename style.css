@@ -412,3 +412,25 @@ input:checked + .slider:before{transform:translateX(18px)}
 .mini-cal-day.has-tasks { background: var(--input-bg); color: var(--text); font-weight: 700; }
 .mini-cal-day.today { background: var(--accent); color: #fff; }
 .mini-cal-day.selected { outline: 2px solid var(--accent); }
+
+/* Дзен-режим */
+body.zen-active .topbar,
+body.zen-active .tabbar,
+body.zen-active .sidebar,
+body.zen-active .fab,
+body.zen-active .floating-timer { display: none !important; }
+body.zen-active { background: #121214 !important; color: #fff !important; }
+body.zen-active .main-area { background: #121214 !important; }
+body.zen-active main { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; }
+body.zen-active .screen-focus .card { background: transparent; border: none; box-shadow: none; width: 100%; max-width: 600px; margin: 0 auto; }
+body.zen-active .screen-focus h2 { color: #fff; font-size: 96px; margin-bottom: 0; }
+body.zen-active .screen-focus .focus-controls { opacity: 0; transition: opacity 0.3s; }
+body.zen-active .screen-focus:hover .focus-controls { opacity: 1; }
+body.zen-active #focus-status { color: #8E8E93; }
+
+/* Анимация дерева */
+.tree-container { width: 150px; height: 150px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: center; transition: all 1s ease; }
+.tree-svg { width: 100%; height: 100%; overflow: visible; }
+.tree-path { stroke: var(--green); stroke-width: 6; fill: none; stroke-linecap: round; stroke-dasharray: 0 300; transition: stroke-dasharray 1s linear; }
+.tree-dead .tree-path { stroke: #555; }
+.tree-completed .tree-path { stroke: #34C759; filter: drop-shadow(0 0 10px rgba(52,199,89,0.5)); }
