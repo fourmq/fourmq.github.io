@@ -1,20 +1,70 @@
 import { todayStr, haptic, escapeHtml, svgIcon, APP_VERSION, playSound, showToast, uid, PALETTE, WEEKDAYS_SHORT, WEEKDAYS_LONG, formatDateHuman, stripHtml, ICONS } from './utils.js';
-import { state, save, initSupabase, pullFromCloud, pushToCloud, migrateState } from './db.js';
+import { state, save, initSupabase, pullFromCloud, pushToCloud, migrateState, supabaseClient, currentUser } from './db.js';
 import * as Tasks from './tasks.js';
 import * as Surveys from './surveys.js';
 
-// ============ ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ============
+// ============ 1. ПРИВЯЗКА МОДУЛЕЙ К WINDOW ============
 window.currentDate = todayStr();
 window.taskWeekOffset = 0;
 window.haptic = haptic;
 window.playSound = playSound;
 window.showToast = showToast;
 
+// Привязываем задачи (теперь HTML их увидит)
+window.openTaskEditor = Tasks.openTaskEditor;
+window.toggleTask = Tasks.toggleTask;
+window.removeTask = Tasks.removeTask;
+window.changeTaskWeek = (dir) => { window.taskWeekOffset += dir; haptic(); Tasks.renderTasks(); };
+window.setTaskFilter = (f) => { state.taskFilter = f; haptic(); save(); Tasks.renderTasks(); };
+window.setAllFilter = (f) => { state.taskAllFilter = f; haptic(); save(); Tasks.renderTasks(); };
+
+// Привязываем опросы
+window.openDailySurvey = Surveys.openDailySurvey;
+window.openChangelog = Surveys.openChangelog;
+
+// ============ 2. БАЗОВЫЕ UI ФУНКЦИИ ============
 window.openSheet = (html) => { document.getElementById('sheet-content').innerHTML = html; document.getElementById('sheet').classList.add('open'); document.getElementById('backdrop').classList.add('open'); };
 window.closeSheet = () => { const s = document.getElementById('sheet'); s.classList.remove('open'); document.getElementById('backdrop').classList.remove('open'); window.closePopover(); };
 window.closePopover = () => { document.getElementById('popover-overlay').classList.remove('open'); };
 
-// ============ НАВИГАЦИЯ ПО ДАТАМ ============
+// ============ 3. ЧАСЫ И ПРИВЕТСТВИЕ ============
+window.getGreeting = function() {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 12) return 'Доброе утро';
+  if (h >= 12 && h < 18) return 'Добрый день';
+  if (h >= 18 && h < 23) return 'Добрый вечер';
+  return 'Доброй ночи';
+};
+
+window.getDynamicTitle = function() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const target = new Date(window.currentDate + 'T12:00:00'); target.setHours(0,0,0,0);
+  const diffDays = Math.round((target - today) / 86400000);
+  if (diffDays === 0) return window.getGreeting();
+  if (diffDays === -1) return 'Вчера';
+  if (diffDays === 1) return 'Завтра';
+  return target.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+};
+
+window.updateTopbar = function() {
+  const active = document.querySelector('.screen.active');
+  const id = active ? active.id.replace('screen-', '') : 'today';
+  const titleEl = document.getElementById('topbar-title');
+  const TITLES = { today: 'Сегодня', tasks: 'Задачи', notes: 'Заметки', calendar: 'Календарь', stats: 'Статистика' };
+  if (id === 'today') titleEl.textContent = window.getDynamicTitle();
+  else titleEl.textContent = TITLES[id];
+};
+
+window.tickClock = function() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  document.getElementById('datestr').textContent = now.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' });
+  window.updateTopbar();
+};
+setInterval(window.tickClock, 1000);
+window.tickClock();
+
+// ============ 4. НАВИГАЦИЯ ПО ДАТАМ ============
 window.changeDay = function(offset) {
   const d = new Date(window.currentDate + 'T12:00:00');
   d.setDate(d.getDate() + offset);
@@ -32,7 +82,7 @@ window.updateDateNav = function() {
   }
 };
 
-// ============ ПРИВЫЧКИ ============
+// ============ 5. ПРИВЫЧКИ (полный код) ============
 window.isScheduledOn = function(h, dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
   const sch = h.schedule || { type: 'daily' };
@@ -229,7 +279,7 @@ window.saveHabit = function() {
   haptic('success'); playSound('success'); save(); window.closeSheet(); window.renderAll();
 };
 
-// ============ ПУЛЬС ДНЯ ============
+// ============ 6. ПУЛЬС ДНЯ ============
 let moodTimerInterval = null;
 window.quickMood = function(value) {
   const t = window.currentDate; if (!state.moods[t]) state.moods[t] = [];
@@ -262,7 +312,7 @@ window.renderQuickMoodUI = function() {
   }
 };
 
-// ============ ЗАМЕТКИ ============
+// ============ 7. ЗАМЕТКИ ============
 let currentNoteId = null, noteSaveTimer = null;
 window.scheduleNoteSave = function() { clearTimeout(noteSaveTimer); noteSaveTimer = setTimeout(window.saveCurrentNote, 1500); };
 window.saveCurrentNote = function() {
@@ -307,7 +357,7 @@ window.togglePinNote = function() { const n = state.notes.find(x => x.id === cur
 window.closeNoteEditor = function() { window.saveCurrentNote(); currentNoteId = null; document.getElementById('notes-list-view').style.display = 'block'; document.getElementById('note-edit-view').style.display = 'none'; window.renderNotes(); };
 window.deleteCurrentNote = function() { if (!currentNoteId || !confirm('Удалить?')) return; state.notes = state.notes.filter(n => n.id !== currentNoteId); save(); currentNoteId = null; document.getElementById('notes-list-view').style.display = 'block'; document.getElementById('note-edit-view').style.display = 'none'; window.renderNotes(); };
 
-// ============ КАЛЕНДАРЬ ============
+// ============ 8. КАЛЕНДАРЬ ============
 let calDate = new Date();
 window.renderCalendar = function() {
   const y = calDate.getFullYear(), m = calDate.getMonth();
@@ -330,7 +380,7 @@ window.goToDate = function(dateStr) { window.currentDate = dateStr; window.switc
 window.prevMonth = function() { calDate.setMonth(calDate.getMonth() - 1); haptic(); window.renderCalendar(); };
 window.nextMonth = function() { calDate.setMonth(calDate.getMonth() + 1); haptic(); window.renderCalendar(); };
 
-// ============ СТАТИСТИКА И МЕЧТА ============
+// ============ 9. СТАТИСТИКА И МЕЧТА ============
 function lastNDates(n){const a=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);a.push(d.toISOString().slice(0,10))}return a}
 function avgOf(a){const v=a.filter(x=>x!=null&&!isNaN(x));return v.length?v.reduce((x,y)=>x+y,0)/v.length:null}
 function corr(xs,ys){const p=xs.map((x,i)=>[x,ys[i]]).filter(([x,y])=>x!=null&&y!=null&&!isNaN(x)&&!isNaN(y));const n=p.length;if(n<3)return null;const mx=p.reduce((a,q)=>a+q[0],0)/n,my=p.reduce((a,q)=>a+q[1],0)/n;let num=0,dx=0,dy=0;for(const[x,y]of p){num+=(x-mx)*(y-my);dx+=(x-mx)**2;dy+=(y-my)**2}const den=Math.sqrt(dx*dy);return den?num/den:null}
@@ -482,18 +532,72 @@ window.saveWeeklySurvey = function(wk) {
   state.weeklySurveys[wk] = { goal, progress, dreamStep, lesson, ts: Date.now() }; haptic('success'); playSound('success'); save(); window.closeSheet(); window.renderAll();
 };
 
-// ============ НАСТРОЙКИ ============
+// ============ 10. НАСТРОЙКИ И СИНХРОНИЗАЦИЯ ============
 window.manualSyncWithUI = async function(btn) { const icon = btn.querySelector('.sync-icon'); if (icon) icon.classList.add('spinning'); await pullFromCloud(false, false); await pushToCloud(); if (icon) icon.classList.remove('spinning'); window.showToast('🔄 Обновлено'); };
-window.openSettings = function() {
-  window.openSheet(`<h2>Настройки</h2><div class="settings-header">Синхронизация</div><div class="settings-group"><div class="settings-row" onclick="window.manualSyncWithUI(this)" style="cursor:pointer;"><div class="left"><div class="icon" style="background:var(--green);">${svgIcon('refresh', '#fff', 16)}</div>Синхронизировать</div></div></div><div class="settings-header">О приложении</div><div class="settings-group"><div class="settings-row" onclick="window.openChangelog()" style="cursor:pointer;"><div class="left"><div class="icon" style="background:var(--text-tert);">${svgIcon('info', '#fff', 16)}</div><span>Версия ${APP_VERSION}</span></div><div style="color:var(--accent);font-size:14px;font-weight:600;">Что нового? →</div></div></div><div style="margin-top:20px;"><button class="btn-cancel" onclick="window.closeSheet()">Закрыть</button></div>`);
-};
 
-// ============ ЭКСПОРТ / ИМПОРТ ============
+window.openSettings = function() {
+  const sb = state.supabase;
+  const loggedIn = !!currentUser;
+  const email = currentUser?.email || sb.email || '';
+  const notifPermission = (typeof Notification !== 'undefined') ? Notification.permission : 'unsupported';
+
+  window.openSheet(`
+    <h2>Настройки</h2>
+    ${loggedIn ? `
+      <div class="profile-header">
+        <div class="profile-avatar">${email.charAt(0).toUpperCase()}</div>
+        <div style="font-size:18px;font-weight:700;">${escapeHtml(email)}</div>
+        <div style="font-size:13px;color:var(--green-text);margin-top:4px;">✅ Синхронизация включена</div>
+      </div>
+    ` : `
+      <div class="profile-header" style="background:var(--pink-soft);">
+        <div class="profile-avatar" style="background:var(--red);color:#fff;">!</div>
+        <div style="font-size:16px;font-weight:600;color:var(--red);">Вы не авторизованы</div>
+        <div style="font-size:13px;color:var(--text-sec);margin-top:4px;">Данные не сохраняются в облако</div>
+      </div>
+    `}
+
+    <div class="settings-header">Синхронизация</div>
+    <div class="settings-group">
+      <div class="settings-row"><div class="left"><div class="icon" style="background:var(--accent);">${svgIcon('cloud', '#fff', 16)}</div>Supabase URL</div></div>
+      <div style="padding:0 16px 12px;"><input type="text" id="sb-url" value="${escapeHtml(sb.url)}" placeholder="https://xxx.supabase.co" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--input-bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
+      <div class="settings-row"><div class="left"><div class="icon" style="background:var(--accent);">${svgIcon('key', '#fff', 16)}</div>Anon Key</div></div>
+      <div style="padding:0 16px 12px;"><input type="password" id="sb-key" value="${escapeHtml(sb.key)}" placeholder="eyJhbGciOi..." style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--input-bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
+
+      ${!loggedIn ? `
+        <div class="settings-row"><div class="left"><div class="icon" style="background:var(--green);">${svgIcon('mail', '#fff', 16)}</div>Ваш Email</div></div>
+        <div style="padding:0 16px 12px;"><input type="email" id="sb-email" placeholder="you@mail.com" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--input-bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
+        <div class="settings-row"><div class="left"><div class="icon" style="background:var(--green);">${svgIcon('lock', '#fff', 16)}</div>Пароль</div></div>
+        <div style="padding:0 16px 12px;"><input type="password" id="sb-password" placeholder="••••••••" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--input-bg);color:var(--text);outline:none;font-size:16px;height:44px;"></div>
+        <div style="padding:12px 16px;display:flex;gap:8px;">
+          <button onclick="window.loginWithPassword()" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--accent-soft);color:var(--accent);font-weight:600;cursor:pointer;font-family:inherit;">Войти</button>
+          <button onclick="window.registerWithPassword()" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;font-family:inherit;">Регистрация</button>
+        </div>
+      ` : `
+        <div class="settings-row" onclick="window.manualSync()" style="cursor:pointer;"><div class="left"><div class="icon" style="background:var(--green);">${svgIcon('refresh', '#fff', 16)}</div>Синхронизировать сейчас</div><div style="color:var(--text-tert);">›</div></div>
+        <div class="settings-row" onclick="window.signOut()" style="cursor:pointer;"><div class="left"><div class="icon" style="background:var(--red);">${svgIcon('logout', '#fff', 16)}</div>Выйти</div></div>
+      `}
+    </div>
+
+    <div class="settings-header">О приложении</div>
+    <div class="settings-group">
+      <div class="settings-row" onclick="window.openChangelog()" style="cursor:pointer;">
+        <div class="left"><div class="icon" style="background:var(--text-tert);">${svgIcon('info', '#fff', 16)}</div><span>Версия ${APP_VERSION}</span></div>
+        <div style="color:var(--accent);font-size:14px;font-weight:600;">Что нового? →</div>
+      </div>
+    </div>
+    <div style="margin-top:20px;"><button class="btn-cancel" onclick="window.closeSheet()">Закрыть</button></div>
+  `);
+};
+window.manualSync = async function() { await pullFromCloud(false, false); await pushToCloud(); window.showToast('🔄 Синхронизировано'); window.closeSheet(); };
+window.signOut = async function() { if (window.supabaseClient) await window.supabaseClient.auth.signOut(); window.currentUser = null; window.updateSyncStatus('online', 'Не вошли'); window.closeSheet(); window.showToast('Вы вышли из аккаунта'); };
+
+// ============ 11. ЭКСПОРТ / ИМПОРТ ============
 window.exportData = function() { const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `cantilena-backup-${todayStr()}.json`; a.click(); URL.revokeObjectURL(url); };
 window.exportCSV = function() { let csv = "Дата,Настроение,Продуктивность,Тревога,Энергия,Смысл,Сон_ч\n"; Object.keys(state.surveys).sort().forEach(d => { const s = state.surveys[d]; const avg = (state.moods[d] || []).length ? Math.round(state.moods[d].reduce((sum, m) => sum + m.val, 0) / state.moods[d].length) : ''; csv += `${d},${avg},${s.mental?.productivity || ''},${s.emotions?.anxiety || ''},${s.physical?.energy || ''},${s.mental?.meaning || ''},${s.physical?.sleepHours || ''}\n`; }); const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `cantilena-data-${todayStr()}.csv`; a.click(); };
 window.importData = function(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = ev => { try { const data = JSON.parse(ev.target.result); if (!data || !Array.isArray(data.habits)) throw new Error('Неверный формат'); if (!confirm('Заменить данные?')) return; const newState = migrateState(data); Object.keys(state).forEach(k => delete state[k]); Object.assign(state, newState); save(); window.renderAll(); alert('Импорт успешно!'); } catch (err) { alert('Ошибка: ' + err.message); } }; reader.readAsText(file); e.target.value = ''; };
 
-// ============ ПОМОДОРО ============
+// ============ 12. ПОМОДОРО ============
 let pomoTimer = null, pomoTimeLeft = 25 * 60, pomoRunning = false;
 window.togglePomodoro = function() {
   const btn = document.getElementById('pomo-btn'); const display = document.getElementById('pomo-time');
@@ -501,7 +605,7 @@ window.togglePomodoro = function() {
   else { pomoRunning = true; btn.textContent = 'Стоп'; btn.style.background = 'var(--red)'; pomoTimer = setInterval(() => { pomoTimeLeft--; const m = Math.floor(pomoTimeLeft / 60), s = pomoTimeLeft % 60; display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; if (pomoTimeLeft <= 0) { clearInterval(pomoTimer); pomoRunning = false; display.textContent = '25:00'; btn.textContent = 'Старт'; btn.style.background = 'var(--accent)'; playSound('success'); window.showToast('🍅 Время вышло!'); } }, 1000); }
 };
 
-// ============ НАВИГАЦИЯ И РЕНДЕР ============
+// ============ 13. НАВИГАЦИЯ И РЕНДЕР ============
 window.switchTab = function(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.querySelectorAll('.sidebar-nav button').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
@@ -530,7 +634,7 @@ window.updateRings = function() {
   else { btn.classList.remove('done'); btnContent.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> <span>Пройти опрос</span>`; btnTime.textContent = ''; }
 };
 
-// ============ СТАРТ ============
+// ============ 14. СТАРТ ============
 document.addEventListener('DOMContentLoaded', () => {
   window.renderAll();
   initSupabase();
