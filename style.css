@@ -393,3 +393,22 @@ input:checked + .slider:before{transform:translateX(18px)}
 .marker-del { width: 36px; height: 36px; border: none; border-radius: 8px; background: var(--input-bg); color: var(--red); cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
 .insight-icon { font-size: 18px; margin-right: 6px; }
+
+/* Стили для плавающего таймера */
+.floating-timer {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  background: var(--card); border: 1px solid var(--accent); border-radius: 20px;
+  padding: 8px 16px; display: none; align-items: center; gap: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 9000;
+  font-weight: 600; font-size: 15px; color: var(--text);
+  animation: slideDown .3s ease-out forwards;
+}
+.floating-timer.active { display: flex; }
+@keyframes slideDown { from { top: -50px; opacity: 0; } to { top: 20px; opacity: 1; } }
+
+/* Стили для мини-календаря в задачах */
+.mini-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 16px; }
+.mini-cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 13px; font-weight: 500; color: var(--text-sec); cursor: pointer; }
+.mini-cal-day.has-tasks { background: var(--input-bg); color: var(--text); font-weight: 700; }
+.mini-cal-day.today { background: var(--accent); color: #fff; }
+.mini-cal-day.selected { outline: 2px solid var(--accent); }
