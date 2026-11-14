@@ -10,25 +10,9 @@ export function matchesRecurrence(t, dateStr) {
   if (r === 'weekly') { const start = new Date(t.createdAt); return d.getDay() === start.getDay(); }
   return false;
 }
-
-export function isTaskDoneOn(t, dateStr) {
-  if (t.recurrence) return !!t.completions[dateStr];
-  return t.done;
-}
-
-export function formatDuration(min) {
-  if (min < 60) return min + ' мин';
-  const h = Math.floor(min / 60), m = min % 60;
-  return m ? `${h}ч ${m}м` : `${h}ч`;
-}
-
-export function formatTaskDate(d) {
-  const today = todayStr();
-  const tom = new Date(); tom.setDate(tom.getDate() + 1);
-  if (d === today) return 'Сегодня';
-  if (d === tom.toISOString().slice(0, 10)) return 'Завтра';
-  return new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
-}
+export function isTaskDoneOn(t, dateStr) { if (t.recurrence) return !!t.completions[dateStr]; return t.done; }
+export function formatDuration(min) { if (min < 60) return min + ' мин'; const h = Math.floor(min / 60), m = min % 60; return m ? `${h}ч ${m}м` : `${h}ч`; }
+export function formatTaskDate(d) { const today = todayStr(); const tom = new Date(); tom.setDate(tom.getDate() + 1); if (d === today) return 'Сегодня'; if (d === tom.toISOString().slice(0, 10)) return 'Завтра'; return new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }); }
 
 export function taskRowHTML(t, dateStr = window.currentDate, opts = {}) {
   const done = isTaskDoneOn(t, dateStr);
@@ -38,7 +22,6 @@ export function taskRowHTML(t, dateStr = window.currentDate, opts = {}) {
   const timeLabel = t.startTime ? '⏰ ' + t.startTime : '';
   const durLabel = t.duration ? '⏱ ' + formatDuration(t.duration) : '';
   const recurLabel = t.recurrence ? '🔁 ' + ({ daily: 'каждый день', weekdays: 'будни', weekly: 'еженед.' }[t.recurrence]) : '';
-  
   let dateClass = '';
   if (t.date) { if (t.date < todayStr()) dateClass = 'overdue'; else if (t.date === todayStr()) dateClass = 'today'; else dateClass = 'future'; }
   
@@ -256,7 +239,7 @@ export function renderTasks() {
   
   const filters = [
     { id: 'today', label: 'Сегодня', count: todayTasks.length },
-    { id: 'week', label: 'Неделя', count: null },
+    { id: 'calendar', label: 'Календарь', count: null },
     { id: 'all', label: 'Все', count: allActive.length },
     { id: 'projects', label: 'Проекты', count: state.projects.length }
   ];
@@ -290,8 +273,8 @@ export function renderTasks() {
     return;
   }
   
-  if (state.taskFilter === 'week') {
-    content.innerHTML = renderWeekView().html;
+  if (state.taskFilter === 'calendar') {
+    content.innerHTML = renderTodoistCalendar().html;
     return;
   }
   
@@ -322,38 +305,69 @@ export function renderTasks() {
   content.innerHTML = tasks.length ? `<div class="card tight">${tasks.map(t => taskRowHTML(t, today)).join('')}</div>` : `<div class="card"><div class="empty-hint">Задач нет.<br>Нажмите +, чтобы добавить.</div></div>`;
 }
 
+function renderTodoistCalendar() {
+  const realToday = todayStr();
+  const currentMonth = new Date();
+  const y = currentMonth.getFullYear(), m = currentMonth.getMonth();
+  const firstDay = (new Date(y, m, 1).getDay() + 6) % 7;
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  
+  let miniCal = `<div class="mini-cal" style="padding: 0 16px;">`;
+  const shortDays = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  shortDays.forEach(d => miniCal += `<div style="text-align:center;font-size:10px;color:var(--text-sec);margin-bottom:4px;">${d}</div>`);
+  for (let i = 0; i < firstDay; i++) miniCal += `<div></div>`;
+  
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const hasTasks = state.tasks.some(t => t.date === dateStr);
+    const isToday = dateStr === realToday;
+    miniCal += `<div class="mini-cal-day ${hasTasks ? 'has-tasks' : ''} ${isToday ? 'today' : ''}" onclick="window.goToDate('${dateStr}')">${d}</div>`;
+  }
+  miniCal += `</div>`;
+
+  let listHtml = '';
+  const startDate = new Date(); 
+  startDate.setDate(startDate.getDate() - 3);
+
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(startDate); d.setDate(startDate.getDate() + i);
+    const dateStr = d.toISOString().slice(0, 10);
+    const dayName = WEEKDAYS_LONG[d.getDay()];
+    const isToday = dateStr === realToday;
+    
+    const dayTasks = state.tasks.filter(t => t.recurrence ? matchesRecurrence(t, dateStr) : t.date === dateStr);
+    if (dayTasks.length === 0) continue;
+    
+    dayTasks.sort((a, b) => a.priority - b.priority);
+    let dateLabel = `${d.getDate()} ${['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'][d.getMonth()]}`;
+    
+    listHtml += `
+      <div style="margin-bottom: 24px; padding: 0 16px;">
+        <div style="font-size: 13px; font-weight: 700; color: ${isToday ? 'var(--td-red)' : 'var(--text)'}; margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center;">
+          <span>${dateLabel} · ${dayName} ${isToday ? '(Сегодня)' : ''}</span>
+          <button onclick="window.setCurrentDateAndOpenTask('${dateStr}')" style="background:none;border:none;color:var(--text-sec);cursor:pointer;padding:4px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+        <div class="card tight" style="margin-bottom:0;">
+          ${dayTasks.map(t => taskRowHTML(t, dateStr, { hideDate: true })).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  if (!listHtml) listHtml = '<div class="empty-hint">На ближайшие дни задач нет.</div>';
+
+  return { html: `<div style="padding: 8px 0;">${miniCal}${listHtml}</div>` };
+}
+
+window.setCurrentDateAndOpenTask = function(dateStr) {
+  window.currentDate = dateStr;
+  window.openTaskEditor();
+};
+
 export function renderTasksTodayMini() {
   const t = window.currentDate;
   const tasks = state.tasks.filter(x => x.recurrence ? matchesRecurrence(x, t) : x.date === t);
   document.getElementById('tasks-today-mini').innerHTML = tasks.length ? tasks.map(x => taskRowHTML(x, t)).join('') : '<div class="empty-hint">Задач нет. Нажмите +, чтобы добавить.</div>';
-}
-
-function renderWeekView() {
-  const realToday = todayStr();
-  const monday = new Date(); monday.setHours(0, 0, 0, 0);
-  const dow = monday.getDay() || 7;
-  monday.setDate(monday.getDate() - dow + 1 + window.taskWeekOffset * 7);
-  const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
-  
-  let label = window.taskWeekOffset === 0 ? 'Текущая неделя' : (window.taskWeekOffset === 1 ? 'Следующая неделя' : 'Прошлая неделя');
-  let html = `<div class="week-nav"><button class="week-nav-btn" onclick="window.changeTaskWeek(-1)">‹</button><div class="week-nav-label">${label}</div><button class="week-nav-btn" onclick="window.changeTaskWeek(1)">›</button></div>`;
-  const monthsShort = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
-  
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(monday); d.setDate(monday.getDate() + i);
-    const dateStr = d.toISOString().slice(0, 10);
-    const isToday = dateStr === realToday;
-    const isPast = dateStr < realToday;
-    const dayTasks = state.tasks.filter(t => t.recurrence ? matchesRecurrence(t, dateStr) : t.date === dateStr);
-    dayTasks.sort((a, b) => { const aDone = isTaskDoneOn(a, dateStr) ? 1 : 0; const bDone = isTaskDoneOn(b, dateStr) ? 1 : 0; if (aDone !== bDone) return aDone - bDone; if (a.priority !== b.priority) return a.priority - b.priority; return 0; });
-    const dayName = WEEKDAYS_LONG[d.getDay()];
-    const dayNum = d.getDate();
-    const monthName = monthsShort[d.getMonth()];
-    
-    let tasksHtml = dayTasks.length ? dayTasks.map(t => taskRowHTML(t, dateStr, { hideDate: true })).join('') : '<div class="week-day-empty">Нет задач</div>';
-    html += `<div class="week-day ${isToday ? 'today' : ''} ${isPast ? 'past' : ''}"><div class="week-day-header"><span class="week-day-name">${dayName}</span><span class="week-day-date">${dayNum} ${monthName}</span>${isToday ? '<span class="week-day-badge">Сегодня</span>' : ''}</div><div class="week-day-tasks">${tasksHtml}</div></div>`;
-  }
-  return { html };
 }
 
 export function renderFocusOfDay() {
