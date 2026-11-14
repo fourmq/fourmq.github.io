@@ -14,6 +14,7 @@ window.showToast = showToast;
 window.openTaskEditor = Tasks.openTaskEditor;
 window.toggleTask = Tasks.toggleTask;
 window.removeTask = Tasks.removeTask;
+window.focusTaskClick = Tasks.focusTaskClick;
 window.changeTaskWeek = (dir) => { window.taskWeekOffset += dir; haptic(); Tasks.renderTasks(); };
 window.setTaskFilter = (f) => { state.taskFilter = f; haptic(); save(); Tasks.renderTasks(); };
 window.setAllFilter = (f) => { state.taskAllFilter = f; haptic(); save(); Tasks.renderTasks(); };
