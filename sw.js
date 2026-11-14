@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cantilena-v21'; // Изменили версию, чтобы браузер скачал новый HTML/CSS/JS
+const CACHE_NAME = 'cantilena-v22'; // Изменили версию, чтобы браузер скачал новый HTML/CSS/JS
 const ASSETS = [
   './',
   './index.html',
