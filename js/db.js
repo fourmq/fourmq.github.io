@@ -1,6 +1,6 @@
 import { uid, ICONS, PALETTE, todayStr } from './utils.js';
 
-export const SEED_KEY = 'cantilena_seed_v4', STORAGE = 'cantilena_v19';
+export const SEED_KEY = 'cantilena_seed_v4', STORAGE = 'cantilena_v20';
 
 export function migrateState(s) {
   s.surveys = s.surveys || {};
@@ -11,6 +11,8 @@ export function migrateState(s) {
   if (s.settings.sounds === undefined) s.settings.sounds = true;
   s.reminders = s.reminders || [];
   s.moods = s.moods || {};
+  s.focusSessions = s.focusSessions || []; // <--- История фокуса
+  
   s.supabase = s.supabase || { url: '', key: '', email: '', lastSync: null };
   s.habits = (s.habits || []).map((h, i) => {
     let icon = h.icon || 'sparkle';
@@ -33,7 +35,7 @@ export function migrateState(s) {
 
 export function loadState() {
   let raw = null;
-  for (const key of [STORAGE, 'cantilena_v18', 'cantilena_v17']) {
+  for (const key of [STORAGE, 'cantilena_v19', 'cantilena_v18']) {
     try { const s = JSON.parse(localStorage.getItem(key)); if (s && Array.isArray(s.habits)) { raw = s; break; } } catch (e) {}
   }
   const s = migrateState(raw || {});
@@ -102,8 +104,7 @@ export async function pullFromCloud(force = false, askBeforeOverwrite = false) {
         }
       }
       const newState = migrateState(data.data);
-      // Правильное обновление стейта без потери ссылок
-      Object.keys(state).forEach(key => delete state[key]);
+      Object.keys(state).forEach(k => delete state[k]);
       Object.assign(state, newState);
       
       lastCloudUpdate = new Date(data.updated_at).getTime();
