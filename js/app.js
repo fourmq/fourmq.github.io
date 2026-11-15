@@ -3,7 +3,7 @@ import { state, save, initSupabase, pullFromCloud, pushToCloud, migrateState, su
 import * as Tasks from './tasks.js';
 import * as Surveys from './surveys.js';
 
-// ============ 1. ПРИВЯЗКА МОДУЛЕЙ К WINDOW ============
+// ============ 1. ПРИВЯЗКА МОДУЛЕЙ К WINDOW (чтобы HTML видел функции) ============
 window.currentDate = todayStr();
 window.taskWeekOffset = 0;
 window.haptic = haptic;
@@ -13,7 +13,10 @@ window.showToast = showToast;
 window.openTaskEditor = Tasks.openTaskEditor;
 window.toggleTask = Tasks.toggleTask;
 window.removeTask = Tasks.removeTask;
-window.focusTaskClick = Tasks.focusTaskClick;
+window.postponeTask = Tasks.postponeTask;
+window.openProject = Tasks.openProject;
+window.addProject = Tasks.addProject;
+window.deleteProject = Tasks.deleteProject;
 window.changeTaskWeek = (dir) => { window.taskWeekOffset += dir; haptic(); Tasks.renderTasks(); };
 window.setTaskFilter = (f) => { state.taskFilter = f; haptic(); save(); Tasks.renderTasks(); };
 window.setAllFilter = (f) => { state.taskAllFilter = f; haptic(); save(); Tasks.renderTasks(); };
@@ -27,13 +30,86 @@ window.addMarker = Surveys.addMarker;
 window.removeMarker = Surveys.removeMarker;
 window.saveDream = Surveys.saveDream;
 window.saveMonthlyReview = Surveys.saveMonthlyReview;
+window.saveDailySurvey = Surveys.saveDailySurvey;
+window.saveWeeklySurvey = Surveys.saveWeeklySurvey;
 
 // ============ 2. БАЗОВЫЕ UI ФУНКЦИИ ============
 window.openSheet = (html) => { document.getElementById('sheet-content').innerHTML = html; document.getElementById('sheet').classList.add('open'); document.getElementById('backdrop').classList.add('open'); };
 window.closeSheet = () => { const s = document.getElementById('sheet'); s.classList.remove('open'); document.getElementById('backdrop').classList.remove('open'); window.closePopover(); };
 window.closePopover = () => { document.getElementById('popover-overlay').classList.remove('open'); };
 
-// ============ 3. ЧАСЫ И ПРИВЕТСТВИЕ ============
+// ============ 3. СВАЙПЫ (Навигация и действия со строками) ============
+let touchStartX = 0, touchStartY = 0;
+let touchEndX = 0, touchEndY = 0;
+let swipingRow = null, isSwiping = false;
+
+document.addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
+  
+  const content = e.target.closest('.swipe-content');
+  if (content) {
+    document.querySelectorAll('.swipe-content').forEach(el => {
+      if (el !== content && el.style.transform !== '') el.style.transform = 'translateX(0)';
+    });
+    swipingRow = content;
+    isSwiping = false;
+  }
+}, { passive: true });
+
+document.addEventListener('touchmove', e => {
+  if (!swipingRow) return;
+  const currentX = e.changedTouches[0].screenX;
+  const currentY = e.changedTouches[0].screenY;
+  const dx = currentX - touchStartX;
+  const dy = currentY - touchStartY;
+  
+  if (!isSwiping && Math.abs(dx) > Math.abs(dy) + 10) isSwiping = true;
+  
+  if (isSwiping) {
+    e.preventDefault();
+    let moveX = dx;
+    if (moveX > 0) moveX = 0; 
+    if (moveX < -140) moveX = -140; 
+    swipingRow.style.transform = `translateX(${moveX}px)`;
+  }
+}, { passive: false });
+
+document.addEventListener('touchend', e => {
+  touchEndX = e.changedTouches[0].screenX;
+  touchEndY = e.changedTouches[0].screenY;
+  
+  if (swipingRow) {
+    const dx = touchEndX - touchStartX;
+    if (isSwiping) {
+      if (dx < -60) swipingRow.style.transform = `translateX(-140px)`;
+      else swipingRow.style.transform = `translateX(0)`;
+    }
+    swipingRow = null; isSwiping = false;
+    return;
+  }
+  
+  // Навигация свайпами (если не по элементам)
+  const dx = touchEndX - touchStartX;
+  const dy = touchEndY - touchStartY;
+  
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
+    const activeScreen = document.querySelector('.screen.active').id;
+    
+    if (activeScreen === 'screen-today') {
+      if (dx > 0) window.changeDay(-1);
+      else window.changeDay(1);
+    } else if (activeScreen === 'screen-tasks') {
+      const tabs = ['today', 'calendar', 'all', 'projects'];
+      const cur = state.taskFilter || 'today';
+      let idx = tabs.indexOf(cur);
+      if (dx > 0 && idx > 0) window.setTaskFilter(tabs[idx - 1]);
+      else if (dx < 0 && idx < tabs.length - 1) window.setTaskFilter(tabs[idx + 1]);
+    }
+  }
+}, { passive: true });
+
+// ============ 4. ЧАСЫ И ПРИВЕТСТВИЕ ============
 window.getGreeting = function() {
   const h = new Date().getHours();
   if (h >= 5 && h < 12) return 'Доброе утро';
@@ -70,7 +146,7 @@ window.tickClock = function() {
 setInterval(window.tickClock, 1000);
 window.tickClock();
 
-// ============ 4. НАВИГАЦИЯ ПО ДАТАМ ============
+// ============ 5. НАВИГАЦИЯ ============
 window.changeDay = function(offset) {
   const d = new Date(window.currentDate + 'T12:00:00');
   d.setDate(d.getDate() + offset);
@@ -88,7 +164,26 @@ window.updateDateNav = function() {
   }
 };
 
-// ============ 5. ТЕМА И НАСТРОЙКИ ============
+window.switchTab = function(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.sidebar-nav button').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === 'screen-' + name));
+  document.querySelector('main').scrollTop = 0;
+  document.getElementById('fab-tasks').classList.toggle('visible', name === 'tasks');
+  document.getElementById('fab-notes').classList.toggle('visible', name === 'notes');
+  
+  if (name === 'focus') {
+    window.populateFocusTasks();
+    document.getElementById('floating-timer').classList.remove('active');
+  } else if (focusRunning) {
+    document.getElementById('floating-timer').classList.add('active');
+  }
+  
+  window.renderAll();
+};
+document.querySelectorAll('.tab, .sidebar-nav button').forEach(tab => tab.onclick = () => window.switchTab(tab.dataset.tab));
+
+// ============ 6. ТЕМА И НАСТРОЙКИ ============
 window.applyTheme = function() {
   const sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   const dark = state.theme === 'dark' || (state.theme === 'auto' && sysDark);
@@ -153,7 +248,7 @@ window.openSettings = function() {
   `);
 };
 
-// ============ 6. ПРИВЫЧКИ ============
+// ============ 7. ПРИВЫЧКИ ============
 window.isScheduledOn = function(h, dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
   const sch = h.schedule || { type: 'daily' };
@@ -221,10 +316,16 @@ window.renderHabitsToday = function() {
     let checkContent = skipped ? '⏸' : (isCounter && !done ? pillText : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/></svg>');
     
     html += `
-      <div class="habit-row ${skipped ? 'skipped' : ''}" data-habit-id="${h.id}">
-        <div class="check-circle ${done ? 'done' : ''} ${isCounter && cnt > 0 && !done ? 'partial' : ''}" onclick="window.toggleHabit(${h.id},this)">${checkContent}</div>
-        <div class="habit-icon-badge" style="background:${h.color}20;" onclick="window.openHabitDetail(${h.id})">${svgIcon(h.icon, h.color, 20)}</div>
-        <div class="habit-info" onclick="window.openHabitDetail(${h.id})"><div class="habit-name ${done ? 'done' : ''}">${escapeHtml(h.name)}</div><div class="habit-sub">${sub}</div></div>
+      <div class="swipe-row-container">
+        <div class="swipe-actions">
+          <button class="swipe-btn edit" onclick="event.stopPropagation();window.openHabitEditor(${h.id})">Изменить</button>
+          <button class="swipe-btn delete" onclick="event.stopPropagation();window.deleteHabit(${h.id})">Удалить</button>
+        </div>
+        <div class="swipe-content" data-habit-id="${h.id}">
+          <div class="check-circle ${done ? 'done' : ''} ${isCounter && cnt > 0 && !done ? 'partial' : ''}" onclick="event.stopPropagation();window.toggleHabit(${h.id},this)">${checkContent}</div>
+          <div class="habit-icon-badge" style="background:${h.color}20;" onclick="window.openHabitDetail(${h.id})">${svgIcon(h.icon, h.color, 20)}</div>
+          <div class="habit-info" onclick="window.openHabitDetail(${h.id})"><div class="habit-name ${done ? 'done' : ''}">${escapeHtml(h.name)}</div><div class="habit-sub">${sub}</div></div>
+        </div>
       </div>`;
   });
   el.innerHTML = html;
@@ -242,7 +343,7 @@ window.toggleHabit = function(id, el) {
   const nowDone = window.isHabitDoneForDate(h, t);
   if (nowDone && !wasDone) {
     haptic('success'); playSound('success');
-    if (el) { el.classList.add('checking'); const row = el.closest('.habit-row'); if (row) row.classList.add('completing'); }
+    if (el) { el.classList.add('checking'); const row = el.closest('.swipe-content'); if (row) row.classList.add('completing'); }
     save(); setTimeout(() => { window.renderAll(); }, 500); return;
   }
   if (el) { el.classList.add('checking'); setTimeout(() => el.classList.remove('checking'), 400); }
@@ -306,7 +407,6 @@ window.moveHabit = function(id, dir) {
   [sorted[idx], sorted[newIdx]] = [sorted[newIdx], sorted[idx]]; sorted.forEach((h, i) => h.order = i);
   haptic(); save(); window.openHabitSettings();
 };
-
 window.deleteHabit = function(id) { if (!confirm('Удалить привычку?')) return; state.habits = state.habits.filter(h => h.id !== id); save(); window.openHabitSettings(); window.renderAll(); };
 
 let editingHabitId = null, habitDraft = null;
@@ -351,40 +451,41 @@ window.saveHabit = function() {
   haptic('success'); playSound('success'); save(); window.closeSheet(); window.renderAll();
 };
 
-// ============ 7. ПУЛЬС ДНЯ ============
+// ============ 8. ПУЛЬС ДНЯ ============
 let moodTimerInterval = null;
 window.quickMood = function(value) {
   const t = window.currentDate; if (!state.moods[t]) state.moods[t] = [];
   const now = Date.now(); const lastMood = state.moods[t][state.moods[t].length - 1];
-  if (lastMood && (now - lastMood.ts < 1800000)) { window.showToast(`⏳ Следующая отметка через ${Math.ceil((1800000 - (now - lastMood.ts)) / 60000)} мин.`); return; }
+  if (lastMood && (now - lastMood.ts < 3600000)) { window.showToast(`⏳ Следующая отметка через ${Math.ceil((3600000 - (now - lastMood.ts)) / 60000)} мин.`); return; }
   
   const timeStr = new Date(now).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
   state.moods[t].push({ time: timeStr, val: value, ts: now });
   if (!state.surveys[t]) state.surveys[t] = {}; if (!state.surveys[t].emotions) state.surveys[t].emotions = {};
   state.surveys[t].emotions.joy = Math.round(state.moods[t].reduce((sum, m) => sum + m.val, 0) / state.moods[t].length);
-  haptic('success'); playSound('success'); save(); window.renderAll(); window.showToast(`✓ Настроение (${value}) сохранено в ${timeStr}`);
+  haptic('success'); playSound('success'); save(); window.renderAll(); window.showToast(`✓ Настроение (${value}) сохранено`);
 };
 
 window.renderQuickMoodUI = function() {
-  const t = window.currentDate; const moods = state.moods[t] || []; const countEl = document.getElementById('mood-count');
+  const t = window.currentDate; const moods = state.moods[t] || []; 
+  const countEl = document.getElementById('mood-count');
+  const container = document.getElementById('quick-mood-card');
+  
   clearInterval(moodTimerInterval);
-  const lastMood = moods[moods.length - 1]; const now = Date.now(); const cooldown = 30 * 60 * 1000;
+  const lastMood = moods[moods.length - 1]; const now = Date.now(); const cooldown = 3600000; // 1 час
   
   if (lastMood && (now - lastMood.ts < cooldown)) {
-    const updateButtons = () => {
-      const left = cooldown - (Date.now() - lastMood.ts);
-      if (left <= 0) { clearInterval(moodTimerInterval); document.querySelectorAll('#quick-mood-row button').forEach(b => { b.style.opacity = '1'; b.style.pointerEvents = 'auto'; }); if (countEl) countEl.textContent = `Отметок: ${moods.length}`; return; }
-      if (countEl) countEl.textContent = `⏳ ${Math.floor(left / 60000)}:${String(Math.floor((left % 60000) / 1000)).padStart(2, '0')} до следующей`;
-      document.querySelectorAll('#quick-mood-row button').forEach(b => { b.style.opacity = '0.3'; b.style.pointerEvents = 'none'; });
-    };
-    updateButtons(); moodTimerInterval = setInterval(updateButtons, 1000);
+    container.style.display = 'none'; // Скрываем полностью
+    const timeLeft = cooldown - (now - lastMood.ts);
+    moodTimerInterval = setTimeout(() => { window.renderQuickMoodUI(); }, timeLeft);
   } else {
+    container.style.display = 'block';
+    container.classList.add('pulse-glow'); // Добавляем свечение
     if (countEl) countEl.textContent = `Отметок: ${moods.length}`;
     document.querySelectorAll('#quick-mood-row button').forEach(b => { b.style.opacity = '1'; b.style.pointerEvents = 'auto'; });
   }
 };
 
-// ============ 8. ЗАМЕТКИ ============
+// ============ 9. ЗАМЕТКИ ============
 let currentNoteId = null, noteSaveTimer = null;
 window.scheduleNoteSave = function() { clearTimeout(noteSaveTimer); noteSaveTimer = setTimeout(window.saveCurrentNote, 1500); };
 window.saveCurrentNote = function() {
@@ -413,9 +514,25 @@ window.renderNotes = function() {
   let notesHtml = '';
   notes.forEach(n => {
     const preview = stripHtml(n.body).slice(0, 80); const dateStr = new Date(n.updatedAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }); const pinIcon = n.pinned ? '<span style="color:var(--orange);font-size:12px;margin-top:3px;">📌</span>' : '';
-    notesHtml += `<div style="padding:12px 4px;border-bottom:.5px solid var(--separator);cursor:pointer;display:flex;align-items:flex-start;gap:8px;" onclick="window.openNote(${n.id})">${pinIcon}<div style="flex:1;min-width:0;"><h4 style="font-size:15px;font-weight:600;margin-bottom:2px;">${escapeHtml(n.title || 'Без названия')}</h4><p style="font-size:13px;color:var(--text-sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">${escapeHtml(preview) || 'Пустая'}</p></div><span style="font-size:11px;color:var(--text-sec);margin-left:auto;white-space:nowrap;">${dateStr}</span></div>`;
+    notesHtml += `
+      <div class="swipe-row-container">
+        <div class="swipe-actions">
+          <button class="swipe-btn delete" onclick="event.stopPropagation();window.deleteNoteById(${n.id})">Удалить</button>
+        </div>
+        <div class="swipe-content" onclick="window.openNote(${n.id})">
+          ${pinIcon}
+          <div style="flex:1;min-width:0;"><h4 style="font-size:15px;font-weight:600;margin-bottom:2px;">${escapeHtml(n.title || 'Без названия')}</h4><p style="font-size:13px;color:var(--text-sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">${escapeHtml(preview) || 'Пустая'}</p></div>
+          <span style="font-size:11px;color:var(--text-sec);margin-left:auto;white-space:nowrap;">${dateStr}</span>
+        </div>
+      </div>`;
   });
   el.innerHTML = notesHtml;
+};
+
+window.deleteNoteById = function(id) {
+  if (!confirm('Удалить?')) return;
+  state.notes = state.notes.filter(n => n.id !== id);
+  save(); window.renderNotes();
 };
 
 window.onFolderChip = function(id, isCustom) { if (isCustom && state.selectedFolder === id) { window.openFolderEditor(id); return; } state.selectedFolder = id; haptic(); save(); window.renderNotes(); };
@@ -429,7 +546,7 @@ window.togglePinNote = function() { const n = state.notes.find(x => x.id === cur
 window.closeNoteEditor = function() { window.saveCurrentNote(); currentNoteId = null; document.getElementById('notes-list-view').style.display = 'block'; document.getElementById('note-edit-view').style.display = 'none'; window.renderNotes(); };
 window.deleteCurrentNote = function() { if (!currentNoteId || !confirm('Удалить?')) return; state.notes = state.notes.filter(n => n.id !== currentNoteId); save(); currentNoteId = null; document.getElementById('notes-list-view').style.display = 'block'; document.getElementById('note-edit-view').style.display = 'none'; window.renderNotes(); };
 
-// ============ 9. СТАТИСТИКА И ГРАФИКИ ============
+// ============ 10. СТАТИСТИКА И ГРАФИКИ ============
 function lastNDates(n){const a=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);a.push(d.toISOString().slice(0,10))}return a}
 function avgOf(a){const v=a.filter(x=>x!=null&&!isNaN(x));return v.length?v.reduce((x,y)=>x+y,0)/v.length:null}
 function corr(xs,ys){const p=xs.map((x,i)=>[x,ys[i]]).filter(([x,y])=>x!=null&&y!=null&&!isNaN(x)&&!isNaN(y));const n=p.length;if(n<3)return null;const mx=p.reduce((a,q)=>a+q[0],0)/n,my=p.reduce((a,q)=>a+q[1],0)/n;let num=0,dx=0,dy=0;for(const[x,y]of p){num+=(x-mx)*(y-my);dx+=(x-mx)**2;dy+=(y-my)**2}const den=Math.sqrt(dx*dy);return den?num/den:null}
@@ -443,8 +560,7 @@ window.renderStats = function() {
   else if (daysWithData < 3) summaryEl.innerHTML = `📊 Данных пока мало (${daysWithData} дн.). Пройди ещё ${3 - daysWithData} опроса — появятся графики и паттерны.`;
   else summaryEl.innerHTML = `📊 Статистика на основе <b>${daysWithData}</b> дней опросов.`;
 
-  renderFocusAnalytics();
-  renderAutoInsights(); renderDreamProgress();
+  renderFocusAnalytics(); renderAutoInsights(); renderDreamProgress();
   renderChart([{ color: 'var(--td-orange)', data: d14.map(d => surveyMetric(d, 'emotions.joy')) }, { color: 'var(--td-blue)', data: d14.map(d => surveyMetric(d, 'mental.productivity')) }, { color: 'var(--pink)', data: d14.map(d => surveyMetric(d, 'emotions.anxiety')) }]);
   renderTrends4W(); renderStatsGrid(); renderWeekdayPatterns(); renderCorrMatrix(); renderPsyProfile(); renderPedRecommendations(); renderYearInPixels();
 };
@@ -457,7 +573,6 @@ function renderFocusAnalytics() {
   const totalHours = (totalMins / 60).toFixed(1);
   const treesGrown = sessions.length;
   
-  // По проектам
   const projStats = {};
   sessions.forEach(s => {
     if (!s.taskId) return;
@@ -590,40 +705,29 @@ window.renderDreamCard = function() {
 
 window.renderWeeklyCard = function() {
   const container = document.getElementById('weekly-survey-container'); if (!container) return; const wk = window.isoWeek(); const s = state.weeklySurveys[wk]; const passed = s && s.ts;
-  let cardContent = ''; if (passed) { cardContent = `<div class="compass-goal">${escapeHtml(s.goal || 'Цель не указана')}</div><div class="compass-meta">Прогресс: ${s.progress}/10 · Шаг к мечте: ${s.dreamStep ? '✓' : '—'}</div><div class="compass-status passed">✅ Опрос пройден</div>`; } else { cardContent = `<div class="compass-goal">Определи цель недели →</div><div class="compass-meta">10 вопросов. Фокус, шаг к мечте, рефлексия.</div>`; }
+  
+  let goal = s?.goal || 'Цель не указана';
+  let progress = s?.progress !== undefined ? s.progress : '—';
+  
+  let cardContent = ''; 
+  if (passed) { 
+    cardContent = `<div class="compass-goal">${escapeHtml(goal)}</div><div class="compass-meta">Прогресс: ${progress}/10 · Шаг к мечте: ${s.dreamStep ? '✓' : '—'}</div><div class="compass-status passed">✅ Опрос пройден</div>`; 
+  } else { 
+    cardContent = `<div class="compass-goal">Определи цель недели →</div><div class="compass-meta">10 вопросов. Фокус, шаг к мечте, рефлексия.</div>`; 
+  }
   container.innerHTML = `<div class="card compass-card" onclick="window.openWeeklySurvey('${wk}')" style="cursor:pointer;"><div class="compass-label">${svgIcon('target', 'currentColor', 14)} Компас недели</div>${cardContent}</div>`;
 };
 
 window.isoWeek = function(d = new Date()) { const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const dayNum = dt.getUTCDay() || 7; dt.setUTCDate(dt.getUTCDate() + 4 - dayNum); const yearStart = new Date(Date.UTC(dt.getUTCFullYear(), 0, 1)); const weekNo = Math.ceil((((dt - yearStart) / 86400000) + 1) / 7); return `${dt.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`; };
 
-// ============ 10. НАВИГАЦИЯ И РЕНДЕР ============
-window.switchTab = function(name) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
-  document.querySelectorAll('.sidebar-nav button').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
-  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === 'screen-' + name));
-  document.querySelector('main').scrollTop = 0;
-  document.getElementById('fab-tasks').classList.toggle('visible', name === 'tasks');
-  document.getElementById('fab-notes').classList.toggle('visible', name === 'notes');
-  
-  if (name === 'focus') {
-    window.populateFocusTasks();
-    document.getElementById('floating-timer').classList.remove('active');
-    document.body.classList.remove('zen-active'); // Выходим из дзен-режима при переходе
-  } else if (focusRunning) {
-    document.getElementById('floating-timer').classList.add('active');
-  }
-  
-  window.renderAll();
-};
-document.querySelectorAll('.tab, .sidebar-nav button').forEach(tab => tab.onclick = () => window.switchTab(tab.dataset.tab));
-
+// ============ 11. РЕНДЕР ============
 window.renderAll = function() {
   window.updateDateNav(); 
   window.renderHabitsToday(); 
   window.renderQuickMoodUI();
   Tasks.renderTasksTodayMini(); 
   Tasks.renderTasks(); 
-  Tasks.renderFocusOfDay();
+  // Убрали Tasks.renderFocusOfDay()
   window.renderNotes(); 
   window.updateRings();
   window.renderStats(); 
@@ -641,12 +745,12 @@ window.updateRings = function() {
   else { btn.classList.remove('done'); btnContent.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> <span>Пройти опрос</span>`; btnTime.textContent = ''; }
 };
 
-// ============ 11. ЭКСПОРТ / ИМПОРТ ============
+// ============ 12. ЭКСПОРТ / ИМПОРТ ============
 window.exportData = function() { const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `cantilena-backup-${todayStr()}.json`; a.click(); URL.revokeObjectURL(url); };
 window.exportCSV = function() { let csv = "Дата,Настроение,Продуктивность,Тревога,Энергия,Смысл,Сон_ч\n"; Object.keys(state.surveys).sort().forEach(d => { const s = state.surveys[d]; const avg = (state.moods[d] || []).length ? Math.round(state.moods[d].reduce((sum, m) => sum + m.val, 0) / state.moods[d].length) : ''; csv += `${d},${avg},${s.mental?.productivity || ''},${s.emotions?.anxiety || ''},${s.physical?.energy || ''},${s.mental?.meaning || ''},${s.physical?.sleepHours || ''}\n`; }); const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `cantilena-data-${todayStr()}.csv`; a.click(); };
 window.importData = function(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = ev => { try { const data = JSON.parse(ev.target.result); if (!data || !Array.isArray(data.habits)) throw new Error('Неверный формат'); if (!confirm('Заменить данные?')) return; const newState = migrateState(data); Object.keys(state).forEach(k => delete state[k]); Object.assign(state, newState); save(); window.renderAll(); alert('Импорт успешно!'); } catch (err) { alert('Ошибка: ' + err.message); } }; reader.readAsText(file); e.target.value = ''; };
 
-// ============ 12. ФОКУС-ТАЙМЕР (С ДЗЕН-РЕЖИМОМ И ДЕРЕВОМ) ============
+// ============ 13. ФОКУС-ТАЙМЕР (Без Zen) ============
 let focusInterval = null, focusRunning = false, focusTimeLeft = 25 * 60, focusTotalTime = 25 * 60, focusMode = 'focus';
 
 window.setFocusTime = function(mins) { 
@@ -667,14 +771,27 @@ function updateFocusDisplay() {
   if (status && focusRunning) status.textContent = focusMode === 'break' ? 'Отдых...' : 'В процессе...'; 
   else if (status && !focusRunning && focusTimeLeft < focusTotalTime) status.textContent = 'На паузе'; 
   
-  // Анимация дерева
   const treePath = document.getElementById('tree-path');
   if (treePath && focusMode === 'focus') {
     const progress = 1 - (focusTimeLeft / focusTotalTime);
-    const dashLen = 150 * progress; // Примерная длина пути
+    const dashLen = 150 * progress; 
     treePath.style.strokeDasharray = `${dashLen} 300`;
   }
 }
+
+window.startFocusTimer = function() {
+  document.getElementById('focus-setup-controls').style.display = 'none';
+  document.getElementById('focus-start-btn-container').style.display = 'none';
+  document.getElementById('focus-active-controls').style.display = 'flex';
+  
+  const taskSelect = document.getElementById('focus-task-select'); 
+  let taskName = document.getElementById('focus-desc').value.trim() || 'Фокус';
+  if (taskSelect && taskSelect.value) { const t = state.tasks.find(x => x.id == taskSelect.value); if (t) taskName = t.title; }
+  
+  const floatTask = document.getElementById('float-task'); if (floatTask) floatTask.textContent = taskName;
+  
+  toggleFocusTimer(); 
+};
 
 window.toggleFocusTimer = function() {
   const btn = document.getElementById('focus-main-btn'); const floatBtn = document.getElementById('float-play-icon');
@@ -685,23 +802,11 @@ window.toggleFocusTimer = function() {
     if (floatBtn) floatBtn.innerHTML = `<path d="m5 3 14 9-14 9V3z"/>`; 
     updateFocusDisplay(); 
   } else {
-    if (focusTimeLeft <= 0) { 
-      focusTimeLeft = focusTotalTime; 
-      focusMode = 'focus';
-      document.body.classList.add('zen-active');
-    } else {
-      document.body.classList.add('zen-active');
-    }
-    
-    const taskSelect = document.getElementById('focus-task-select'); 
-    let taskName = document.getElementById('focus-desc').value.trim() || 'Фокус';
-    if (taskSelect && taskSelect.value) { const t = state.tasks.find(x => x.id == taskSelect.value); if (t) taskName = t.title; }
-    
-    const floatTask = document.getElementById('float-task'); if (floatTask) floatTask.textContent = taskName;
+    if (focusTimeLeft <= 0) focusTimeLeft = focusTotalTime;
     focusRunning = true; 
     if (btn) btn.textContent = 'Пауза'; 
     if (floatBtn) floatBtn.innerHTML = `<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>`;
-    document.getElementById('floating-timer').classList.remove('active'); // Скрываем плавающий виджет на экране фокуса
+    document.getElementById('floating-timer').classList.remove('active'); 
     document.getElementById('focus-status').textContent = focusMode === 'break' ? 'Отдых...' : 'В процессе...';
     
     focusInterval = setInterval(() => { 
@@ -716,24 +821,39 @@ window.stopFocusTimer = function() {
   clearInterval(focusInterval); focusRunning = false; focusTimeLeft = focusTotalTime; 
   updateFocusDisplay(); 
   document.getElementById('floating-timer').classList.remove('active'); 
-  document.body.classList.remove('zen-active');
-  const btn = document.getElementById('focus-main-btn'); if (btn) btn.textContent = 'Начать фокус'; 
+  
+  document.getElementById('focus-setup-controls').style.display = 'block';
+  document.getElementById('focus-start-btn-container').style.display = 'block';
+  document.getElementById('focus-active-controls').style.display = 'none';
+  
   const status = document.getElementById('focus-status'); if (status) status.textContent = 'Готов к работе'; 
   
-  // Вялое дерево
   const treePath = document.getElementById('tree-path');
   if (treePath) treePath.style.stroke = '#555';
   setTimeout(() => { if(treePath) treePath.style.stroke = ''; }, 2000);
 };
 
+window.finishFocusTimer = function() {
+  clearInterval(focusInterval); 
+  focusRunning = false; 
+  
+  const elapsed = focusTotalTime - focusTimeLeft;
+  if (elapsed >= 60) { 
+    completeFocusSession();
+  } else {
+    stopFocusTimer();
+  }
+};
+
 function completeFocusSession() {
   clearInterval(focusInterval); focusRunning = false; 
   document.getElementById('floating-timer').classList.remove('active'); 
-  document.body.classList.remove('zen-active');
   document.getElementById('focus-status').textContent = focusMode === 'break' ? 'Отдых завершен!' : 'Сессия завершена! 🎉'; 
-  const btn = document.getElementById('focus-main-btn'); if (btn) btn.textContent = 'Начать снова';
   
-  // Оставляем дерево зеленым
+  document.getElementById('focus-setup-controls').style.display = 'block';
+  document.getElementById('focus-start-btn-container').style.display = 'block';
+  document.getElementById('focus-active-controls').style.display = 'none';
+  
   const treePath = document.getElementById('tree-path');
   if (treePath) treePath.classList.add('tree-completed');
   setTimeout(() => { if(treePath) treePath.classList.remove('tree-completed'); }, 3000);
@@ -750,20 +870,17 @@ function completeFocusSession() {
     save(); 
     showToast('🔥 Отличная работа! Дерево выращено.');
     
-    // Автозавершение
     if (document.getElementById('focus-auto-complete').checked && taskId) {
       Tasks.completeTaskFromFocus(taskId);
       save(); showToast('✅ Задача выполнена!');
     }
     
-    // Авто-перерыв
     if (document.getElementById('focus-auto-break').checked) {
       focusMode = 'break';
       focusTotalTime = 5 * 60;
       focusTimeLeft = focusTotalTime;
       document.getElementById('focus-status').textContent = 'Перерыв 5 минут...';
-      // Автоматически стартуем перерыв
-      window.toggleFocusTimer();
+      window.startFocusTimer(); // Запускаем перерыв
       return;
     }
   }
@@ -788,7 +905,6 @@ window.populateFocusTasks = function() {
   activeTasks.forEach(t => { const opt = document.createElement('option'); opt.value = t.id; opt.textContent = t.title; sel.appendChild(opt); }); 
 };
 
-// Привязка автоперерыва к настройкам
 document.addEventListener('change', (e) => {
   if (e.target.id === 'focus-auto-break') { state.focusSettings.autoBreak = e.target.checked; save(); }
   if (e.target.id === 'focus-auto-complete') { state.focusSettings.autoComplete = e.target.checked; save(); }
@@ -800,7 +916,7 @@ document.addEventListener('change', (e) => {
   }
 });
 
-// ============ 13. СИНХРОНИЗАЦИЯ ============
+// ============ 14. СИНХРОНИЗАЦИЯ ============
 window.loginWithPassword = async function() { const email = document.getElementById('sb-email').value.trim(); const password = document.getElementById('sb-password').value; const url = document.getElementById('sb-url').value.trim(); const key = document.getElementById('sb-key').value.trim(); if (!email || !password || !url || !key) { alert('Заполните все поля'); return; } state.supabase.url = url; state.supabase.key = key; state.supabase.email = email; save(); try { if (!supabaseClient) supabaseClient = window.supabase.createClient(url, key); const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password }); if (error) throw error; currentUser = data.user; window.closeSheet(); window.renderAll(); } catch (e) { alert('Ошибка: ' + e.message); } };
 window.registerWithPassword = async function() { const email = document.getElementById('sb-email').value.trim(); const password = document.getElementById('sb-password').value; const url = document.getElementById('sb-url').value.trim(); const key = document.getElementById('sb-key').value.trim(); if (!email || !password || !url || !key) { alert('Заполните все поля'); return; } state.supabase.url = url; state.supabase.key = key; state.supabase.email = email; save(); try { if (!supabaseClient) supabaseClient = window.supabase.createClient(url, key); const { data, error } = await supabaseClient.auth.signUp({ email, password }); if (error) throw error; currentUser = data.user; window.closeSheet(); window.renderAll(); } catch (e) { alert('Ошибка: ' + e.message); } };
 window.manualSync = async function() { await pullFromCloud(false, false); await pushToCloud(); window.showToast('🔄 Синхронизировано'); window.closeSheet(); };
