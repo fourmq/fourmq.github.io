@@ -1,9 +1,9 @@
-import { todayStr, haptic, escapeHtml, svgIcon, APP_VERSION, playSound, showToast, uid, PALETTE, WEEKDAYS_SHORT, WEEKDAYS_LONG, formatDateHuman, stripHtml, ICONS } from './utils.js';
+import { todayStr, haptic, escapeHtml, svgIcon, APP_VERSION, playSound, playTick, showToast, uid, PALETTE, WEEKDAYS_SHORT, WEEKDAYS_LONG, formatDateHuman, stripHtml, ICONS } from './utils.js';
 import { state, save, initSupabase, pullFromCloud, pushToCloud, migrateState, supabaseClient, currentUser } from './db.js';
 import * as Tasks from './tasks.js';
 import * as Surveys from './surveys.js';
 
-// ============ 1. ПРИВЯЗКА МОДУЛЕЙ К WINDOW (чтобы HTML видел функции) ============
+// ============ 1. ПРИВЯЗКА МОДУЛЕЙ К WINDOW ============
 window.currentDate = todayStr();
 window.taskWeekOffset = 0;
 window.haptic = haptic;
@@ -42,6 +42,7 @@ window.closePopover = () => { document.getElementById('popover-overlay').classLi
 let touchStartX = 0, touchStartY = 0;
 let touchEndX = 0, touchEndY = 0;
 let swipingRow = null, isSwiping = false;
+let swipeDirection = 'left';
 
 document.addEventListener('touchstart', e => {
   touchStartX = e.changedTouches[0].screenX;
@@ -70,7 +71,7 @@ document.addEventListener('touchmove', e => {
     e.preventDefault();
     let moveX = dx;
     if (moveX > 0) moveX = 0; 
-    if (moveX < -140) moveX = -140; 
+    if (moveX < -160) moveX = -160; 
     swipingRow.style.transform = `translateX(${moveX}px)`;
   }
 }, { passive: false });
@@ -82,7 +83,7 @@ document.addEventListener('touchend', e => {
   if (swipingRow) {
     const dx = touchEndX - touchStartX;
     if (isSwiping) {
-      if (dx < -60) swipingRow.style.transform = `translateX(-140px)`;
+      if (dx < -60) swipingRow.style.transform = `translateX(-160px)`;
       else swipingRow.style.transform = `translateX(0)`;
     }
     swipingRow = null; isSwiping = false;
@@ -95,6 +96,7 @@ document.addEventListener('touchend', e => {
   
   if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
     const activeScreen = document.querySelector('.screen.active').id;
+    swipeDirection = dx > 0 ? 'right' : 'left';
     
     if (activeScreen === 'screen-today') {
       if (dx > 0) window.changeDay(-1);
@@ -152,6 +154,9 @@ window.changeDay = function(offset) {
   d.setDate(d.getDate() + offset);
   window.currentDate = d.toISOString().slice(0, 10);
   haptic(); window.renderAll();
+  document.getElementById('screen-today').classList.remove('slide-in-right', 'slide-in-left');
+  void document.getElementById('screen-today').offsetWidth;
+  document.getElementById('screen-today').classList.add(offset > 0 ? 'slide-in-right' : 'slide-in-left');
 };
 window.goToday = function() { window.currentDate = todayStr(); haptic(); window.renderAll(); };
 window.updateDateNav = function() {
@@ -167,13 +172,24 @@ window.updateDateNav = function() {
 window.switchTab = function(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.querySelectorAll('.sidebar-nav button').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
-  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === 'screen-' + name));
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('slide-in-right', 'slide-in-left');
+    s.classList.toggle('active', s.id === 'screen-' + name);
+  });
+  
+  const targetScreen = document.getElementById('screen-' + name);
+  if (targetScreen) {
+    void targetScreen.offsetWidth;
+    targetScreen.classList.add(swipeDirection === 'left' ? 'slide-in-right' : 'slide-in-left');
+  }
+  
   document.querySelector('main').scrollTop = 0;
   document.getElementById('fab-tasks').classList.toggle('visible', name === 'tasks');
   document.getElementById('fab-notes').classList.toggle('visible', name === 'notes');
   
   if (name === 'focus') {
     window.populateFocusTasks();
+    window.renderFocusHistory();
     document.getElementById('floating-timer').classList.remove('active');
   } else if (focusRunning) {
     document.getElementById('floating-timer').classList.add('active');
@@ -181,7 +197,10 @@ window.switchTab = function(name) {
   
   window.renderAll();
 };
-document.querySelectorAll('.tab, .sidebar-nav button').forEach(tab => tab.onclick = () => window.switchTab(tab.dataset.tab));
+document.querySelectorAll('.tab, .sidebar-nav button').forEach(tab => tab.onclick = () => {
+  swipeDirection = 'left'; // По умолчанию свайп влево
+  window.switchTab(tab.dataset.tab);
+});
 
 // ============ 6. ТЕМА И НАСТРОЙКИ ============
 window.applyTheme = function() {
@@ -315,17 +334,12 @@ window.renderHabitsToday = function() {
     let sub = skipped ? '⏸ Пропущено' : (h.schedule.type === 'weekly' ? `${window.weekCount(h, t)}/${h.schedule.interval || 3} на неделе` : (isCounter ? `${cnt}/${h.target} · ${streak > 0 ? '🔥 ' + streak : ''}` : (streak > 0 ? '🔥 ' + streak + ' дн.' : 'Каждый день')));
     let checkContent = skipped ? '⏸' : (isCounter && !done ? pillText : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/></svg>');
     
+    // Свайпы убраны, обычная строка
     html += `
-      <div class="swipe-row-container">
-        <div class="swipe-actions">
-          <button class="swipe-btn edit" onclick="event.stopPropagation();window.openHabitEditor(${h.id})">Изменить</button>
-          <button class="swipe-btn delete" onclick="event.stopPropagation();window.deleteHabit(${h.id})">Удалить</button>
-        </div>
-        <div class="swipe-content" data-habit-id="${h.id}">
-          <div class="check-circle ${done ? 'done' : ''} ${isCounter && cnt > 0 && !done ? 'partial' : ''}" onclick="event.stopPropagation();window.toggleHabit(${h.id},this)">${checkContent}</div>
-          <div class="habit-icon-badge" style="background:${h.color}20;" onclick="window.openHabitDetail(${h.id})">${svgIcon(h.icon, h.color, 20)}</div>
-          <div class="habit-info" onclick="window.openHabitDetail(${h.id})"><div class="habit-name ${done ? 'done' : ''}">${escapeHtml(h.name)}</div><div class="habit-sub">${sub}</div></div>
-        </div>
+      <div class="habit-row ${skipped ? 'skipped' : ''}" data-habit-id="${h.id}">
+        <div class="check-circle ${done ? 'done' : ''} ${isCounter && cnt > 0 && !done ? 'partial' : ''}" onclick="window.toggleHabit(${h.id},this)">${checkContent}</div>
+        <div class="habit-icon-badge" style="background:${h.color}20;" onclick="window.openHabitDetail(${h.id})">${svgIcon(h.icon, h.color, 20)}</div>
+        <div class="habit-info" onclick="window.openHabitDetail(${h.id})"><div class="habit-name ${done ? 'done' : ''}">${escapeHtml(h.name)}</div><div class="habit-sub">${sub}</div></div>
       </div>`;
   });
   el.innerHTML = html;
@@ -343,7 +357,7 @@ window.toggleHabit = function(id, el) {
   const nowDone = window.isHabitDoneForDate(h, t);
   if (nowDone && !wasDone) {
     haptic('success'); playSound('success');
-    if (el) { el.classList.add('checking'); const row = el.closest('.swipe-content'); if (row) row.classList.add('completing'); }
+    if (el) { el.classList.add('checking'); const row = el.closest('.habit-row'); if (row) row.classList.add('completing'); }
     save(); setTimeout(() => { window.renderAll(); }, 500); return;
   }
   if (el) { el.classList.add('checking'); setTimeout(() => el.classList.remove('checking'), 400); }
@@ -727,7 +741,6 @@ window.renderAll = function() {
   window.renderQuickMoodUI();
   Tasks.renderTasksTodayMini(); 
   Tasks.renderTasks(); 
-  // Убрали Tasks.renderFocusOfDay()
   window.renderNotes(); 
   window.updateRings();
   window.renderStats(); 
@@ -750,15 +763,17 @@ window.exportData = function() { const blob = new Blob([JSON.stringify(state, nu
 window.exportCSV = function() { let csv = "Дата,Настроение,Продуктивность,Тревога,Энергия,Смысл,Сон_ч\n"; Object.keys(state.surveys).sort().forEach(d => { const s = state.surveys[d]; const avg = (state.moods[d] || []).length ? Math.round(state.moods[d].reduce((sum, m) => sum + m.val, 0) / state.moods[d].length) : ''; csv += `${d},${avg},${s.mental?.productivity || ''},${s.emotions?.anxiety || ''},${s.physical?.energy || ''},${s.mental?.meaning || ''},${s.physical?.sleepHours || ''}\n`; }); const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `cantilena-data-${todayStr()}.csv`; a.click(); };
 window.importData = function(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = ev => { try { const data = JSON.parse(ev.target.result); if (!data || !Array.isArray(data.habits)) throw new Error('Неверный формат'); if (!confirm('Заменить данные?')) return; const newState = migrateState(data); Object.keys(state).forEach(k => delete state[k]); Object.assign(state, newState); save(); window.renderAll(); alert('Импорт успешно!'); } catch (err) { alert('Ошибка: ' + err.message); } }; reader.readAsText(file); e.target.value = ''; };
 
-// ============ 13. ФОКУС-ТАЙМЕР (Без Zen) ============
+// ============ 13. ФОКУС-ТАЙМЕР ============
 let focusInterval = null, focusRunning = false, focusTimeLeft = 25 * 60, focusTotalTime = 25 * 60, focusMode = 'focus';
 
-window.setFocusTime = function(mins) { 
-  if (focusRunning) return; 
-  focusTotalTime = mins * 60; 
-  focusTimeLeft = focusTotalTime; 
-  document.getElementById('focus-custom-mins').value = mins;
-  updateFocusDisplay(); 
+window.setFocusTime = function() {
+  if (focusRunning) return;
+  const mins = Math.max(0, Math.min(180, parseInt(document.getElementById('focus-mins').value) || 0));
+  const secs = Math.max(0, Math.min(59, parseInt(document.getElementById('focus-secs').value) || 0));
+  focusTotalTime = mins * 60 + secs;
+  focusTimeLeft = focusTotalTime;
+  if (focusTotalTime <= 0) focusTotalTime = focusTimeLeft = 60; // min 1 min
+  updateFocusDisplay();
 };
 
 function updateFocusDisplay() { 
@@ -774,12 +789,15 @@ function updateFocusDisplay() {
   const treePath = document.getElementById('tree-path');
   if (treePath && focusMode === 'focus') {
     const progress = 1 - (focusTimeLeft / focusTotalTime);
-    const dashLen = 150 * progress; 
+    const dashLen = 200 * progress; 
     treePath.style.strokeDasharray = `${dashLen} 300`;
   }
 }
 
 window.startFocusTimer = function() {
+  setFocusTime();
+  playTick();
+  
   document.getElementById('focus-setup-controls').style.display = 'none';
   document.getElementById('focus-start-btn-container').style.display = 'none';
   document.getElementById('focus-active-controls').style.display = 'flex';
@@ -833,16 +851,8 @@ window.stopFocusTimer = function() {
   setTimeout(() => { if(treePath) treePath.style.stroke = ''; }, 2000);
 };
 
-window.finishFocusTimer = function() {
-  clearInterval(focusInterval); 
-  focusRunning = false; 
-  
-  const elapsed = focusTotalTime - focusTimeLeft;
-  if (elapsed >= 60) { 
-    completeFocusSession();
-  } else {
-    stopFocusTimer();
-  }
+window.exitFocusMode = function() {
+  stopFocusTimer();
 };
 
 function completeFocusSession() {
@@ -887,6 +897,7 @@ function completeFocusSession() {
   
   focusTimeLeft = focusTotalTime; 
   updateFocusDisplay();
+  window.renderFocusHistory();
 }
 
 function playFocusSound(type) {
@@ -905,15 +916,26 @@ window.populateFocusTasks = function() {
   activeTasks.forEach(t => { const opt = document.createElement('option'); opt.value = t.id; opt.textContent = t.title; sel.appendChild(opt); }); 
 };
 
+window.renderFocusHistory = function() {
+  const el = document.getElementById('focus-history-list');
+  if (!el) return;
+  const sessions = (state.focusSessions || []).slice().sort((a,b) => b.ts - a.ts).slice(0, 5);
+  if (!sessions.length) { el.innerHTML = '<div class="empty-hint">Пока нет завершенных сессий</div>'; return; }
+  
+  el.innerHTML = sessions.map(s => {
+    const time = new Date(s.ts).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    const task = s.taskId ? state.tasks.find(t => t.id == s.taskId) : null;
+    const name = task ? task.title : (s.desc || 'Фокус');
+    return `<div style="display:flex; justify-content:space-between; align-items:center; padding: 8px 0; border-bottom: .5px solid var(--separator); font-size:13px;">
+      <div><span style="color:var(--text-sec); font-size:11px; margin-right:8px;">${time}</span><span>${escapeHtml(name)}</span></div>
+      <b style="color:var(--green);">${s.duration} мин 🌳</b>
+    </div>`;
+  }).join('');
+};
+
 document.addEventListener('change', (e) => {
   if (e.target.id === 'focus-auto-break') { state.focusSettings.autoBreak = e.target.checked; save(); }
   if (e.target.id === 'focus-auto-complete') { state.focusSettings.autoComplete = e.target.checked; save(); }
-  if (e.target.id === 'focus-custom-mins') {
-    const val = Math.max(1, Math.min(180, parseInt(e.target.value) || 25));
-    state.focusSettings.customMins = val;
-    if (!focusRunning) { setFocusTime(val); }
-    save();
-  }
 });
 
 // ============ 14. СИНХРОНИЗАЦИЯ ============
@@ -928,4 +950,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initSupabase();
   const splash = document.getElementById('splash'); if (splash) setTimeout(() => splash.classList.add('hidden'), 1500);
   document.getElementById('splash').addEventListener('click', () => document.getElementById('splash').classList.add('hidden'));
+  
+  // Подгружаем настройки фокуса в инпуты при старте
+  document.getElementById('focus-mins').value = state.focusSettings.customMins || 25;
+  document.getElementById('focus-secs').value = state.focusSettings.customSecs || 0;
+  document.getElementById('focus-auto-break').checked = state.focusSettings.autoBreak;
+  document.getElementById('focus-auto-complete').checked = state.focusSettings.autoComplete;
 });
