@@ -111,6 +111,31 @@ export function openWeeklySurvey(wk) {
   `);
 }
 
+export function saveDailySurvey() {
+  const dateStr = window.currentDate;
+  if (!state.surveys[dateStr]) state.surveys[dateStr] = {};
+  const s = state.surveys[dateStr];
+  s.evening = true;
+  s.eveningTime = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  
+  s.mental = s.mental || {}; s.mental.productivity = +document.getElementById('d-prod').value; s.mental.meaning = +document.getElementById('d-meaning').value;
+  s.emotions = s.emotions || {}; s.emotions.anxiety = +document.getElementById('d-anx').value;
+  s.physical = s.physical || {}; s.physical.energy = +document.getElementById('d-energy').value;
+  s.physical.sleepStart = document.getElementById('d-sleep-start').value || null;
+  s.physical.sleepEnd = document.getElementById('d-sleep-end').value || null;
+  s.physical.sleepHours = window.computeSleepHours ? window.computeSleepHours(s.physical.sleepStart, s.physical.sleepEnd) : null;
+  s.physical.movement = parseFloat(document.getElementById('d-movement').value) || 0;
+  
+  s.reflection = s.reflection || {}; s.reflection.gratitude = document.getElementById('d-gratitude').value.trim();
+  s.contextTags = window.tempContextTags || [];
+  
+  const moods = state.moods[dateStr] || [];
+  if (moods.length) s.emotions.joy = Math.round(moods.reduce((sum, m) => sum + m.val, 0) / moods.length);
+  
+  window.haptic('success'); window.playSound('success'); save(); window.closeSheet(); window.renderAll();
+}
+window.saveDailySurvey = saveDailySurvey;
+
 export function saveWeeklySurvey(wk) {
   wk = wk || window.isoWeek();
   const goal = document.getElementById('w-goal').value.trim();
@@ -123,6 +148,7 @@ export function saveWeeklySurvey(wk) {
   state.weeklySurveys[wk] = { goal, progress, dreamStep, obstacle, wellbeing, lesson, ts: Date.now() };
   window.haptic('success'); window.playSound('success'); save(); window.closeSheet(); window.renderAll();
 }
+window.saveWeeklySurvey = saveWeeklySurvey;
 
 export function hasDream() {
   return state.dream && (state.dream.vision || (state.dream.markers && state.dream.markers.length));
