@@ -107,9 +107,11 @@ window.addEventListener('error', function(event) {
 
       <section id="screen-focus" class="screen">
         <div class="card" style="text-align:center; padding:32px 16px; position: relative;">
+          
           <div class="tree-container" id="tree-container">
             <svg class="tree-svg" viewBox="0 0 100 100">
-              <path class="tree-path" id="tree-path" d="M50 95 L50 45 C 20 45, 10 20, 30 10 C 45 0, 55 0, 70 10 C 90 20, 80 45, 50 45" />
+              <!-- Нормальное дерево (ствол и ветви) -->
+              <path class="tree-path" id="tree-path" d="M50 95 L50 55 M50 70 C 40 65, 30 50, 25 35 M50 65 C 60 60, 70 50, 75 35 M35 50 C 30 45, 25 40, 20 30 M65 50 C 70 45, 75 40, 80 30" />
             </svg>
           </div>
 
@@ -118,9 +120,14 @@ window.addEventListener('error', function(event) {
           
           <div id="focus-setup-controls" style="transition: opacity 0.3s;">
             <div style="display:flex; gap:12px; justify-content:center; margin-bottom:16px;">
-              <input type="number" id="focus-custom-mins" value="25" min="1" max="180" style="width:80px; padding:12px; border-radius:10px; border:1px solid var(--separator-med); background:var(--input-bg); color:var(--text); font-size:16px; font-weight:700; text-align:center; outline:none;">
-              <button onclick="setFocusTime(25)" class="filter-pill" style="background:var(--chip-bg); border:none;">25</button>
-              <button onclick="setFocusTime(45)" class="filter-pill" style="background:var(--chip-bg); border:none;">45</button>
+              <div style="display:flex; align-items:center; gap:4px;">
+                <input type="number" id="focus-mins" value="25" min="0" max="180" style="width:60px; padding:12px; border-radius:10px; border:1px solid var(--separator-med); background:var(--input-bg); color:var(--text); font-size:16px; font-weight:700; text-align:center; outline:none;">
+                <span style="font-size:14px; font-weight:600; color:var(--text-sec);">мин</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:4px;">
+                <input type="number" id="focus-secs" value="0" min="0" max="59" style="width:60px; padding:12px; border-radius:10px; border:1px solid var(--separator-med); background:var(--input-bg); color:var(--text); font-size:16px; font-weight:700; text-align:center; outline:none;">
+                <span style="font-size:14px; font-weight:600; color:var(--text-sec);">сек</span>
+              </div>
             </div>
 
             <div class="field" style="text-align:left; max-width:400px; margin:0 auto 16px;">
@@ -146,7 +153,9 @@ window.addEventListener('error', function(event) {
           <div id="focus-active-controls" style="display:none; gap:12px; justify-content:center; margin-top:24px;">
             <button class="btn-primary" style="max-width:120px; margin:0;" onclick="toggleFocusTimer()" id="focus-main-btn">Пауза</button>
             <button class="btn-cancel" style="max-width:120px; margin:0;" onclick="stopFocusTimer()">Сброс</button>
-            <button class="btn-primary" style="max-width:120px; margin:0; background:var(--green);" onclick="finishFocusTimer()">Завершить</button>
+            <button onclick="exitFocusMode()" style="background:none; border:none; color:var(--red); cursor:pointer; padding:8px; display:flex; align-items:center; justify-content:center;">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
           </div>
           
           <div id="focus-start-btn-container" style="margin-top:24px;">
@@ -154,6 +163,10 @@ window.addEventListener('error', function(event) {
           </div>
 
         </div>
+        
+        <!-- История фокуса -->
+        <div class="section-title">Последние сессии</div>
+        <div class="card tight" id="focus-history-list" style="margin-bottom:20px;"></div>
       </section>
 
       <section id="screen-notes" class="screen">
