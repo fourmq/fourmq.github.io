@@ -1,8 +1,8 @@
-export const APP_VERSION = '2.4.0';
+export const APP_VERSION = '2.5.0';
 export const CHANGELOG = [
-  { v: '2.4.0', date: 'Сегодня', items: ['Дзен-режим (огромный таймер)', 'Геймификация (выращивание дерева)', 'Настройки таймера (авто-перерыв)', 'Автозавершение задач', 'Аналитика фокуса (время, деревья)', 'Кастомное время и описание'] },
-  { v: '2.3.0', date: 'Ранее', items: ['Внедрен инновационный таймер Фокуса', 'Связка задач с таймером', 'Плавающий виджет таймера поверх окон', 'Новый Календарь в Задачах (как в Todoist)', 'Смена тем вернулась в настройки'] },
-  { v: '2.2.0', date: 'Ранее', items: ['Переход на модули (файлы)', 'Помодоро-таймер в фокусе дня', 'Повторяющиеся задачи', 'Умный дневник', 'Теги контекста'] }
+  { v: '2.5.0', date: 'Сегодня', items: ['Свайпы задач исправлены', 'Свайпы привычек убраны', 'Анимация переходов страниц', 'Складной календарь', 'Drag & Drop в календаре', 'Красивое дерево фокуса', 'Тиканье часов при старте', 'История фокуса', 'Выход из фокуса крестиком', 'Настройка минут и секунд'] },
+  { v: '2.4.0', date: 'Ранее', items: ['Дзен-режим (огромный таймер)', 'Геймификация (выращивание дерева)', 'Настройки таймера (авто-перерыв)', 'Автозавершение задач', 'Аналитика фокуса (время, деревья)', 'Кастомное время и описание'] },
+  { v: '2.3.0', date: 'Ранее', items: ['Внедрен инновационный таймер Фокуса', 'Связка задач с таймером', 'Плавающий виджет таймера поверх окон', 'Новый Календарь в Задачах (как в Todoist)', 'Смена тем вернулась в настройки'] }
 ];
 
 export const DAILY_PROMPTS = [
@@ -58,6 +58,18 @@ export function playSound(type) {
     if (type === 'success') { osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); }
     else { osc.type = 'sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime); gain.gain.setValueAtTime(0.05, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); }
     osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+  } catch (e) {}
+}
+
+export function playTick() {
+  if (!window.state || !window.state.settings || !window.state.settings.sounds) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.type = 'square'; osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.05, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.05);
   } catch (e) {}
 }
 
