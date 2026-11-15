@@ -26,6 +26,8 @@ export function taskRowHTML(t, dateStr = window.currentDate, opts = {}) {
   let dateClass = '';
   if (t.date) { if (t.date < todayStr()) dateClass = 'overdue'; else if (t.date === todayStr()) dateClass = 'today'; else dateClass = 'future'; }
   
+  let dragAttr = opts.draggable ? `draggable="true" ondragstart="window.dragTask(event, ${t.id})"` : '';
+  
   return `
     <div class="swipe-row-container">
       <div class="swipe-actions">
@@ -33,7 +35,7 @@ export function taskRowHTML(t, dateStr = window.currentDate, opts = {}) {
         <button class="swipe-btn edit" onclick="event.stopPropagation();window.openTaskEditor(${t.id})">Изменить</button>
         <button class="swipe-btn delete" onclick="event.stopPropagation();window.removeTask(${t.id})">Удалить</button>
       </div>
-      <div class="swipe-content" onclick="window.openTaskEditor(${t.id})">
+      <div class="swipe-content task-row ${opts.draggable ? 'draggable-task' : ''}" data-task-id="${t.id}" ${dragAttr} onclick="window.openTaskEditor(${t.id})">
         <div class="check-circle ${done ? 'done' : ''} p${t.priority}" onclick="event.stopPropagation();window.toggleTask(${t.id},'${dateStr}',this)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
@@ -93,6 +95,24 @@ export function postponeTask(id) {
   }
 }
 window.postponeTask = postponeTask;
+
+// DRAG & DROP
+window.dragTask = function(event, id) {
+  event.dataTransfer.setData('taskId', id);
+  event.target.classList.add('dragging');
+};
+window.dropTask = function(event, dateStr) {
+  event.preventDefault();
+  const id = event.dataTransfer.getData('taskId');
+  if (!id) return;
+  const t = state.tasks.find(x => x.id == id);
+  if (t) {
+    t.date = dateStr;
+    save(); window.renderAll(); window.showToast('Задача перенесена');
+  }
+  document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
+  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+};
 
 export function openTaskEditor(id) {
   const editingTaskId = id || null;
@@ -253,6 +273,12 @@ window.saveTask = function() {
   haptic('success'); playSound('success'); save(); window.closeSheet(); window.renderAll();
 };
 
+let calendarExpanded = false;
+window.toggleCalendarExpand = function() {
+  calendarExpanded = !calendarExpanded;
+  renderTasks();
+};
+
 export function renderTasks() {
   const filtersEl = document.getElementById('task-filters');
   const content = document.getElementById('tasks-content');
@@ -332,57 +358,88 @@ export function renderTasks() {
 
 function renderTodoistCalendar() {
   const realToday = todayStr();
-  const currentMonth = new Date();
-  const y = currentMonth.getFullYear(), m = currentMonth.getMonth();
-  const firstDay = (new Date(y, m, 1).getDay() + 6) % 7;
-  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const todayObj = new Date();
+  const y = todayObj.getFullYear(), m = todayObj.getMonth();
   
-  let miniCal = `<div class="mini-cal" style="padding: 0 16px;">`;
+  // Складной календарь
+  let miniCal = `
+    <div class="mini-cal-wrapper">
+      <div class="mini-cal-header" onclick="window.toggleCalendarExpand()">
+        <span>${todayObj.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</span>
+        <span>${calendarExpanded ? '▲' : '▼'}</span>
+      </div>
+      <div class="mini-cal-grid">
+  `;
+  
   const shortDays = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-  shortDays.forEach(d => miniCal += `<div style="text-align:center;font-size:10px;color:var(--text-sec);margin-bottom:4px;">${d}</div>`);
-  for (let i = 0; i < firstDay; i++) miniCal += `<div></div>`;
+  shortDays.forEach(d => miniCal += `<div class="mini-cal-dow">${d}</div>`);
   
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const hasTasks = state.tasks.some(t => t.date === dateStr);
-    const isToday = dateStr === realToday;
-    miniCal += `<div class="mini-cal-day ${hasTasks ? 'has-tasks' : ''} ${isToday ? 'today' : ''}" onclick="window.goToDate('${dateStr}')">${d}</div>`;
+  if (calendarExpanded) {
+    const firstDay = (new Date(y, m, 1).getDay() + 6) % 7;
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    for (let i = 0; i < firstDay; i++) miniCal += `<div></div>`;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const hasTasks = state.tasks.some(t => t.date === dateStr);
+      const isToday = dateStr === realToday;
+      miniCal += `<div class="mini-cal-day ${hasTasks ? 'has-tasks' : ''} ${isToday ? 'today' : ''}" onclick="event.stopPropagation();window.goToDate('${dateStr}')">${d}</div>`;
+    }
+  } else {
+    // Показываем только текущую неделю
+    const currentDayOfWeek = (todayObj.getDay() + 6) % 7; // 0 - пн
+    const startOfWeek = new Date(todayObj);
+    startOfWeek.setDate(todayObj.getDate() - currentDayOfWeek);
+    
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + i);
+      const dateStr = d.toISOString().slice(0, 10);
+      const hasTasks = state.tasks.some(t => t.date === dateStr);
+      const isToday = dateStr === realToday;
+      miniCal += `<div class="mini-cal-day ${hasTasks ? 'has-tasks' : ''} ${isToday ? 'today' : ''}" onclick="event.stopPropagation();window.goToDate('${dateStr}')">${d.getDate()}</div>`;
+    }
   }
-  miniCal += `</div>`;
+  miniCal += `</div></div>`;
 
+  // Все дни недели (или месяца)
   let listHtml = '';
   const startDate = new Date(); 
-  startDate.setDate(startDate.getDate() - 3);
+  startDate.setDate(startDate.getDate() - 3); // Смотрим на 3 дня назад
+  
+  const daysToRender = calendarExpanded ? 31 : 7;
+  const listStart = calendarExpanded ? new Date(y, m, 1) : new Date(startDate);
 
-  for (let i = 0; i < 30; i++) {
-    const d = new Date(startDate); d.setDate(startDate.getDate() + i);
+  for (let i = 0; i < daysToRender; i++) {
+    const d = new Date(listStart); d.setDate(listStart.getDate() + i);
     const dateStr = d.toISOString().slice(0, 10);
     const dayName = WEEKDAYS_LONG[d.getDay()];
     const isToday = dateStr === realToday;
     
     const dayTasks = state.tasks.filter(t => t.recurrence ? matchesRecurrence(t, dateStr) : t.date === dateStr);
-    if (dayTasks.length === 0) continue;
-    
     dayTasks.sort((a, b) => a.priority - b.priority);
     let dateLabel = `${d.getDate()} ${['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'][d.getMonth()]}`;
     
     listHtml += `
-      <div style="margin-bottom: 24px; padding: 0 16px;">
+      <div style="margin-bottom: 24px;">
         <div style="font-size: 13px; font-weight: 700; color: ${isToday ? 'var(--td-red)' : 'var(--text)'}; margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center;">
           <span>${dateLabel} · ${dayName} ${isToday ? '(Сегодня)' : ''}</span>
           <button onclick="window.setCurrentDateAndOpenTask('${dateStr}')" style="background:none;border:none;color:var(--text-sec);cursor:pointer;padding:4px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         </div>
-        <div class="card tight" style="margin-bottom:0;">
-          ${dayTasks.map(t => taskRowHTML(t, dateStr, { hideDate: true })).join('')}
+        <div class="card tight" style="margin-bottom:0; min-height: 40px;" ondragover="event.preventDefault(); this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="window.dropTask(event, '${dateStr}'); this.classList.remove('drag-over')">
+          ${dayTasks.length ? dayTasks.map(t => taskRowHTML(t, dateStr, { hideDate: true, draggable: true })).join('') : '<div style="font-size:12px;color:var(--text-tert);text-align:center;padding:8px;">Нет задач</div>'}
         </div>
       </div>
     `;
   }
 
-  if (!listHtml) listHtml = '<div class="empty-hint">На ближайшие дни задач нет.</div>';
-
   return { html: `<div style="padding: 8px 0;">${miniCal}${listHtml}</div>` };
 }
+
+window.goToDate = function(dateStr) {
+  window.currentDate = dateStr;
+  haptic();
+  window.renderAll();
+};
 
 window.setCurrentDateAndOpenTask = function(dateStr) {
   window.currentDate = dateStr;
