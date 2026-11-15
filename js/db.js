@@ -1,6 +1,6 @@
 import { uid, ICONS, PALETTE, todayStr } from './utils.js';
 
-export const SEED_KEY = 'cantilena_seed_v4', STORAGE = 'cantilena_v21'; // Обновил версию хранилища
+export const SEED_KEY = 'cantilena_seed_v4', STORAGE = 'cantilena_v21';
 
 export function migrateState(s) {
   s.surveys = s.surveys || {};
