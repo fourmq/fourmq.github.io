@@ -12,7 +12,7 @@ export function migrateState(s) {
   s.reminders = s.reminders || [];
   s.moods = s.moods || {};
   s.focusSessions = s.focusSessions || []; 
-  s.focusSettings = s.focusSettings || { autoBreak: false, autoComplete: true, customMins: 25 };
+  s.focusSettings = s.focusSettings || { autoBreak: false, autoComplete: true, customMins: 25, customSecs: 0 };
   
   s.supabase = s.supabase || { url: '', key: '', email: '', lastSync: null };
   s.habits = (s.habits || []).map((h, i) => {
