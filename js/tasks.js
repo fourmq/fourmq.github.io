@@ -22,25 +22,32 @@ export function taskRowHTML(t, dateStr = window.currentDate, opts = {}) {
   const timeLabel = t.startTime ? '⏰ ' + t.startTime : '';
   const durLabel = t.duration ? '⏱ ' + formatDuration(t.duration) : '';
   const recurLabel = t.recurrence ? '🔁 ' + ({ daily: 'каждый день', weekdays: 'будни', weekly: 'еженед.' }[t.recurrence]) : '';
+  
   let dateClass = '';
   if (t.date) { if (t.date < todayStr()) dateClass = 'overdue'; else if (t.date === todayStr()) dateClass = 'today'; else dateClass = 'future'; }
   
   return `
-    <div class="task-row" data-task-id="${t.id}">
-      <div class="check-circle ${done ? 'done' : ''} p${t.priority}" onclick="event.stopPropagation();window.toggleTask(${t.id},'${dateStr}',this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="swipe-row-container">
+      <div class="swipe-actions">
+        <button class="swipe-btn post" onclick="event.stopPropagation();window.postponeTask(${t.id})">Завтра</button>
+        <button class="swipe-btn edit" onclick="event.stopPropagation();window.openTaskEditor(${t.id})">Изменить</button>
+        <button class="swipe-btn delete" onclick="event.stopPropagation();window.removeTask(${t.id})">Удалить</button>
       </div>
-      <div class="task-body" onclick="window.openTaskEditor(${t.id})">
-        <div class="task-title ${done ? 'done' : ''}">${escapeHtml(t.title)}</div>
-        <div class="task-meta">
-          ${dateLabel ? `<span class="date-tag ${dateClass}">${svgIcon('calendar', 'currentColor', 12)} ${dateLabel}</span>` : ''}
-          ${timeLabel ? `<span>${timeLabel}</span>` : ''}
-          ${durLabel ? `<span>${durLabel}</span>` : ''}
-          ${project ? `<span class="project-tag"><span class="project-dot" style="background:${project.color}"></span>${escapeHtml(project.name)}</span>` : ''}
-          ${recurLabel ? `<span style="color:var(--text-sec);font-size:11px;">${recurLabel}</span>` : ''}
+      <div class="swipe-content" onclick="window.openTaskEditor(${t.id})">
+        <div class="check-circle ${done ? 'done' : ''} p${t.priority}" onclick="event.stopPropagation();window.toggleTask(${t.id},'${dateStr}',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="task-body">
+          <div class="task-title ${done ? 'done' : ''}">${escapeHtml(t.title)}</div>
+          <div class="task-meta">
+            ${dateLabel ? `<span class="date-tag ${dateClass}">${svgIcon('calendar', 'currentColor', 12)} ${dateLabel}</span>` : ''}
+            ${timeLabel ? `<span>${timeLabel}</span>` : ''}
+            ${durLabel ? `<span>${durLabel}</span>` : ''}
+            ${project ? `<span class="project-tag"><span class="project-dot" style="background:${project.color}"></span>${escapeHtml(project.name)}</span>` : ''}
+            ${recurLabel ? `<span style="color:var(--text-sec);font-size:11px;">${recurLabel}</span>` : ''}
+          </div>
         </div>
       </div>
-      <button class="del-x" onclick="event.stopPropagation();window.removeTask(${t.id})">${svgIcon('x', 'currentColor', 18)}</button>
     </div>
   `;
 }
@@ -52,7 +59,7 @@ export function toggleTask(id, dateStr = window.currentDate, el) {
   const nowDone = isTaskDoneOn(t, dateStr);
   if (nowDone && !wasDone) {
     haptic('success'); playSound('success');
-    if (el) { el.classList.add('checking'); const row = el.closest('.task-row'); if (row) row.classList.add('completing'); }
+    if (el) { el.classList.add('checking'); const row = el.closest('.swipe-content'); if (row) row.classList.add('completing'); }
     save(); setTimeout(() => { window.renderAll(); }, 500); return;
   }
   if (el) { el.classList.add('checking'); setTimeout(() => el.classList.remove('checking'), 400); }
@@ -60,7 +67,6 @@ export function toggleTask(id, dateStr = window.currentDate, el) {
 }
 window.toggleTask = toggleTask;
 
-// Функция для автозавершения из таймера
 export function completeTaskFromFocus(id) {
   const t = state.tasks.find(x => x.id === id);
   if (t && !t.done) {
@@ -77,6 +83,16 @@ export function removeTask(id) {
   haptic(); save(); window.renderAll();
 }
 window.removeTask = removeTask;
+
+export function postponeTask(id) {
+  const t = state.tasks.find(x => x.id === id);
+  if (t) {
+    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+    t.date = tomorrow.toISOString().slice(0, 10);
+    save(); window.renderAll(); window.showToast('Задача перенесена на завтра');
+  }
+}
+window.postponeTask = postponeTask;
 
 export function openTaskEditor(id) {
   const editingTaskId = id || null;
@@ -96,12 +112,10 @@ export function openTaskEditor(id) {
           <span id="chip-date-text">${t.date ? formatTaskDate(t.date) : 'Дата'}</span>
           <input type="date" id="t-date" value="${t.date || ''}" onchange="window.updateTaskChipDate(this.value)">
         </button>
-        
         <button type="button" class="td-btn" id="chip-recur" onclick="window.openRecurrencePicker()">
           ${svgIcon('refresh', 'currentColor', 14)}
           <span id="chip-recur-text">${recurLabel}</span>
         </button>
-
         <button type="button" class="td-btn prio-btn ${prioClass}" id="chip-prio" onclick="window.openPriorityPicker()">
           ${svgIcon('flag', 'currentColor', 14)}
           <span id="chip-prio-text">${prioLabel}</span>
@@ -381,30 +395,35 @@ export function renderTasksTodayMini() {
   document.getElementById('tasks-today-mini').innerHTML = tasks.length ? tasks.map(x => taskRowHTML(x, t)).join('') : '<div class="empty-hint">Задач нет. Нажмите +, чтобы добавить.</div>';
 }
 
-export function renderFocusOfDay() {
-  const t = window.currentDate;
-  const tasks = state.tasks.filter(x => x.recurrence ? (matchesRecurrence(x, t) && !isTaskDoneOn(x, t)) : (x.date === t && !x.done));
-  const focusCard = document.getElementById('focus-card');
-  if (!tasks.length) { focusCard.style.display = 'none'; focusCard.dataset.taskId = ''; return; }
-  tasks.sort((a, b) => a.priority - b.priority);
-  const top = tasks[0];
-  focusCard.style.display = 'block';
-  focusCard.dataset.taskId = top.id;
-  document.getElementById('focus-title').innerHTML = escapeHtml(top.title);
-  document.getElementById('focus-meta').innerText = top.priority === 1 ? "Высокий приоритет · Нажмите, чтобы найти" : "Следующая задача · Нажмите, чтобы найти";
+export function openProject(id) {
+  const p = state.projects.find(x => x.id === id);
+  const tasks = state.tasks.filter(t => t.projectId === id);
+  let tasksHtml = tasks.length ? tasks.map(t => taskRowHTML(t, t.date || todayStr())).join('') : '<div class="empty-hint">Задач нет</div>';
+  window.openSheet(`
+    <h2>${escapeHtml(p.name)}</h2>
+    <div class="card tight" style="margin-bottom:12px;">${tasksHtml}</div>
+    <div class="sheet-actions">
+      <button class="btn-cancel" onclick="window.closeSheet()">Закрыть</button>
+      <button class="btn-danger" onclick="window.deleteProject(${id})">Удалить</button>
+    </div>
+  `);
 }
+window.openProject = openProject;
 
-export function focusTaskClick() {
-  const id = document.getElementById('focus-card').dataset.taskId;
-  if (!id) return;
-  haptic();
-  if (!document.getElementById('screen-today').classList.contains('active')) window.switchTab('today');
-  setTimeout(() => {
-    const el = document.querySelector(`.task-row[data-task-id="${id}"]`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => { el.classList.add('highlight-pulse'); setTimeout(() => el.classList.remove('highlight-pulse'), 2100); }, 200);
-    }
-  }, 200);
+export function addProject() {
+  const inp = document.getElementById('new-project');
+  const name = inp.value.trim();
+  if (!name) return;
+  state.projects.push({ id: uid(), name, color: PALETTE[state.projects.length % PALETTE.length] });
+  inp.value = '';
+  save(); renderTasks();
 }
-window.focusTaskClick = focusTaskClick;
+window.addProject = addProject;
+
+export function deleteProject(id) {
+  if (!confirm('Удалить проект?')) return;
+  state.projects = state.projects.filter(p => p.id !== id);
+  state.tasks.forEach(t => { if (t.projectId === id) t.projectId = null; });
+  save(); window.closeSheet(); renderTasks();
+}
+window.deleteProject = deleteProject;
