@@ -70,7 +70,6 @@ window.addEventListener('error', function(event) {
     </div>
 
     <main>
-      <!-- ... Экран Сегодня, Задачи, Заметки, Статистика оставляем как было ... -->
       <section id="screen-today" class="screen active">
         <div class="date-nav"><button class="nav-arrow" onclick="changeDay(-1)">‹</button><div class="date-nav-center" id="date-nav-label"></div><button class="nav-arrow" onclick="changeDay(1)">›</button></div>
         <div class="card rings-card">
@@ -81,16 +80,14 @@ window.addEventListener('error', function(event) {
           </svg>
           <div class="rings-legend"><div><span class="dot" style="background:var(--pink)"></span>Опрос <b id="pct-survey">0%</b></div><div><span class="dot" style="background:var(--green)"></span>Привычки <b id="pct-habits">0%</b></div><div><span class="dot" style="background:var(--td-red)"></span>Задачи <b id="pct-tasks">0%</b></div></div>
         </div>
-        <div class="card focus-card" id="focus-card" style="display:none;" onclick="focusTaskClick()">
-          <div class="focus-label"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>Фокус дня</div>
-          <div class="focus-title" id="focus-title"></div><div class="focus-meta" id="focus-meta"></div>
-        </div>
-        <div class="card quick-mood-card">
+        
+        <div class="card quick-mood-card" id="quick-mood-card">
           <div class="quick-mood-label"><span>Пульс дня</span><span id="mood-count" style="color:var(--text-tert);text-transform:none;font-size:11px;">Отметок: 0</span></div>
           <div class="quick-mood" id="quick-mood-row">
             <button data-val="2" onclick="quickMood(2)">😞</button><button data-val="4" onclick="quickMood(4)">😐</button><button data-val="6" onclick="quickMood(6)">🙂</button><button data-val="8" onclick="quickMood(8)">😄</button><button data-val="10" onclick="quickMood(10)">😍</button>
           </div>
         </div>
+        
         <button class="survey-btn" id="survey-btn" onclick="openDailySurvey()">
           <div class="left" id="survey-btn-content"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span>Опрос</span></div>
           <div class="right" id="survey-btn-time"></div>
@@ -108,11 +105,8 @@ window.addEventListener('error', function(event) {
         <div id="tasks-content"></div>
       </section>
 
-      <!-- НОВЫЙ ЭКРАН ФОКУСА (Дзен-режим) -->
       <section id="screen-focus" class="screen">
         <div class="card" style="text-align:center; padding:32px 16px; position: relative;">
-          
-          <!-- Дерево -->
           <div class="tree-container" id="tree-container">
             <svg class="tree-svg" viewBox="0 0 100 100">
               <path class="tree-path" id="tree-path" d="M50 95 L50 45 C 20 45, 10 20, 30 10 C 45 0, 55 0, 70 10 C 90 20, 80 45, 50 45" />
@@ -122,9 +116,9 @@ window.addEventListener('error', function(event) {
           <h2 style="font-size:56px; font-weight:800; font-variant-numeric:tabular-nums; margin-bottom:8px; color:var(--text); transition: all 0.3s;" id="focus-display">25:00</h2>
           <div style="font-size:14px; color:var(--text-sec); margin-bottom:24px; font-weight:600;" id="focus-status">Готов к работе</div>
           
-          <div class="focus-controls" style="transition: opacity 0.3s;">
+          <div id="focus-setup-controls" style="transition: opacity 0.3s;">
             <div style="display:flex; gap:12px; justify-content:center; margin-bottom:16px;">
-              <input type="number" id="focus-custom-mins" value="${state.focusSettings.customMins}" min="1" max="180" style="width:80px; padding:12px; border-radius:10px; border:1px solid var(--separator-med); background:var(--input-bg); color:var(--text); font-size:16px; font-weight:700; text-align:center; outline:none;">
+              <input type="number" id="focus-custom-mins" value="25" min="1" max="180" style="width:80px; padding:12px; border-radius:10px; border:1px solid var(--separator-med); background:var(--input-bg); color:var(--text); font-size:16px; font-weight:700; text-align:center; outline:none;">
               <button onclick="setFocusTime(25)" class="filter-pill" style="background:var(--chip-bg); border:none;">25</button>
               <button onclick="setFocusTime(45)" class="filter-pill" style="background:var(--chip-bg); border:none;">45</button>
             </div>
@@ -141,15 +135,24 @@ window.addEventListener('error', function(event) {
 
             <div style="display:flex; justify-content:center; gap:16px; margin-bottom:24px; font-size:13px; color:var(--text-sec);">
               <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                <input type="checkbox" id="focus-auto-complete" ${state.focusSettings.autoComplete ? 'checked' : ''}> Выполнить задачу
+                <input type="checkbox" id="focus-auto-complete"> Выполнить задачу
               </label>
               <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                <input type="checkbox" id="focus-auto-break" ${state.focusSettings.autoBreak ? 'checked' : ''}> Авто-перерыв
+                <input type="checkbox" id="focus-auto-break"> Авто-перерыв
               </label>
             </div>
-
-            <button class="btn-primary" style="max-width:300px; margin:0 auto; font-size:18px; padding:16px; border-radius:16px;" onclick="toggleFocusTimer()" id="focus-main-btn">Начать фокус</button>
           </div>
+
+          <div id="focus-active-controls" style="display:none; gap:12px; justify-content:center; margin-top:24px;">
+            <button class="btn-primary" style="max-width:120px; margin:0;" onclick="toggleFocusTimer()" id="focus-main-btn">Пауза</button>
+            <button class="btn-cancel" style="max-width:120px; margin:0;" onclick="stopFocusTimer()">Сброс</button>
+            <button class="btn-primary" style="max-width:120px; margin:0; background:var(--green);" onclick="finishFocusTimer()">Завершить</button>
+          </div>
+          
+          <div id="focus-start-btn-container" style="margin-top:24px;">
+             <button class="btn-primary" style="max-width:300px; margin:0 auto; font-size:18px; padding:16px; border-radius:16px;" onclick="startFocusTimer()">Начать фокус</button>
+          </div>
+
         </div>
       </section>
 
@@ -160,11 +163,7 @@ window.addEventListener('error', function(event) {
 
       <section id="screen-stats" class="screen">
         <div id="stats-summary" class="card" style="padding:12px 16px;text-align:center;color:var(--text-sec);font-size:13px;"></div>
-        
-        <!-- НОВЫЙ БЛОК: АНАЛИТИКА ФОКУСА -->
-        <div class="section-title">🧠 Аналитика Фокуса</div>
-        <div class="card" id="focus-analytics"></div>
-
+        <div class="section-title">🧠 Аналитика Фокуса</div><div class="card" id="focus-analytics"></div>
         <div class="section-title">🎯 Инсайты о тебе</div><div class="card" id="auto-insights"></div><div class="section-title">🌟 Прогресс к мечте</div><div class="card" id="dream-progress"></div>
         <div class="section-title">📊 Аналитика (14 дней)</div><div class="card"><div id="chart-mood-prod"></div><div class="chart-legend" style="display:flex;gap:16px;justify-content:center;font-size:12px;color:var(--text-sec);margin-top:6px;flex-wrap:wrap;"><span><span class="dot" style="background:var(--td-orange)"></span>Настроение</span><span><span class="dot" style="background:var(--td-blue)"></span>Продуктивность</span><span><span class="dot" style="background:var(--pink)"></span>Тревога</span></div></div>
         <div class="section-title">📈 Тренды (4 недели)</div><div class="card" id="trends-4w"></div><div class="section-title">Ключевые метрики (7 дней)</div><div class="stat-grid" id="stats-grid"></div><div class="section-title">Паттерны по дням недели</div><div class="card" id="weekday-patterns"></div><div class="section-title">Матрица корреляций</div><div class="card" id="corr-matrix"></div><div class="section-title">🧠 Психологический профиль</div><div class="card" id="psy-profile"></div><div class="section-title">🎓 Педагогические рекомендации</div><div class="card" id="ped-recommendations"></div><div class="section-title">Год в пикселях</div><div class="card"><div class="year-grid" id="year-grid"></div><div style="font-size:11px;color:var(--text-sec);margin-top:8px;text-align:center;">Каждый квадрат — один день.</div></div>
