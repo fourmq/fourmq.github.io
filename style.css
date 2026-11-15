@@ -84,6 +84,16 @@ main{flex:1;overflow-y:auto;padding-bottom:100px;-webkit-overflow-scrolling:touc
 .quick-mood button{flex:1;aspect-ratio:1;max-width:48px;border-radius:50%;background:var(--input-bg);border:2px solid transparent;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:all .25s cubic-bezier(.2,.9,.3,1)}
 .quick-mood button:active{transform:scale(0.9);}
 
+/* Пульс дня (свечение) */
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(219,76,63,0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(219,76,63,0); }
+  100% { box-shadow: 0 0 0 0 rgba(219,76,63,0); }
+}
+.pulse-glow {
+  animation: pulseGlow 2s infinite;
+}
+
 .survey-btn{width:100%;padding:12px;border-radius:12px;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;align-items:center;justify-content:space-between;background:var(--card);color:var(--text);border:1px solid var(--separator);margin-bottom:10px;}
 .survey-btn.done{background:var(--green-soft);border-color:rgba(5,133,39,0.2);color:var(--green-text);}
 .survey-btn .left{display:flex;align-items:center;gap:8px;}
@@ -394,7 +404,17 @@ input:checked + .slider:before{transform:translateX(18px)}
 
 .insight-icon { font-size: 18px; margin-right: 6px; }
 
-/* Стили для плавающего таймера */
+/* Свайпы */
+.swipe-row-container { position: relative; overflow: hidden; border-bottom: .5px solid var(--separator); }
+.swipe-row-container:last-child { border-bottom: none; }
+.swipe-content { background: var(--card); position: relative; z-index: 2; transition: transform 0.2s; display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; }
+.swipe-actions { position: absolute; top: 0; right: 0; bottom: 0; display: flex; z-index: 1; }
+.swipe-btn { border: none; color: #fff; padding: 0 16px; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.swipe-btn.delete { background: var(--red); }
+.swipe-btn.edit { background: var(--td-blue); }
+.swipe-btn.post { background: var(--td-orange); }
+
+/* Плавающий таймер */
 .floating-timer {
   position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
   background: var(--card); border: 1px solid var(--accent); border-radius: 20px;
@@ -406,27 +426,12 @@ input:checked + .slider:before{transform:translateX(18px)}
 .floating-timer.active { display: flex; }
 @keyframes slideDown { from { top: -50px; opacity: 0; } to { top: 20px; opacity: 1; } }
 
-/* Стили для мини-календаря в задачах */
+/* Мини-календарь в задачах */
 .mini-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 16px; }
 .mini-cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 13px; font-weight: 500; color: var(--text-sec); cursor: pointer; }
 .mini-cal-day.has-tasks { background: var(--input-bg); color: var(--text); font-weight: 700; }
 .mini-cal-day.today { background: var(--accent); color: #fff; }
 .mini-cal-day.selected { outline: 2px solid var(--accent); }
-
-/* Дзен-режим */
-body.zen-active .topbar,
-body.zen-active .tabbar,
-body.zen-active .sidebar,
-body.zen-active .fab,
-body.zen-active .floating-timer { display: none !important; }
-body.zen-active { background: #121214 !important; color: #fff !important; }
-body.zen-active .main-area { background: #121214 !important; }
-body.zen-active main { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; }
-body.zen-active .screen-focus .card { background: transparent; border: none; box-shadow: none; width: 100%; max-width: 600px; margin: 0 auto; }
-body.zen-active .screen-focus h2 { color: #fff; font-size: 96px; margin-bottom: 0; }
-body.zen-active .screen-focus .focus-controls { opacity: 0; transition: opacity 0.3s; }
-body.zen-active .screen-focus:hover .focus-controls { opacity: 1; }
-body.zen-active #focus-status { color: #8E8E93; }
 
 /* Анимация дерева */
 .tree-container { width: 150px; height: 150px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: center; transition: all 1s ease; }
