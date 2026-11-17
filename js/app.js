@@ -824,6 +824,8 @@ window.renderStats = function() {
       </div>`;
   }
 
+  renderStatBlocks(d7);
+  renderStatsAdvice(d7);
   renderFocusAnalytics();
   renderAutoInsights();
   renderChart([
@@ -935,6 +937,41 @@ function renderCorrMatrix() {
   let html = '<div class="corr-grid"><div class="corr-cell header"></div>' + metrics.map(m => `<div class="corr-cell header">${m.label}</div>`).join('');
   metrics.forEach((m1, i) => { html += `<div class="corr-cell header corr-row-label">${m1.label}</div>`; metrics.forEach((m2, j) => { if (i === j) { html += '<div class="corr-cell diag">—</div>'; return; } const v = corr(data[i], data[j]); html += `<div class="corr-cell ${cellClass(v)}">${v != null ? v.toFixed(2) : '·'}</div>`; }); });
   html += '</div><div style="font-size:11px;color:var(--text-sec);margin-top:8px;text-align:center;">r Пирсона. Ярче = сильнее связь. Требуется ≥ 3 дней.</div>'; el.innerHTML = html;
+}
+
+
+function renderStatBlocks(days) {
+  const el = document.getElementById('stat-blocks'); if (!el) return;
+  const mood = avgOf(days.map(d => surveyMetric(d, 'emotions.joy')));
+  const energy = avgOf(days.map(d => surveyMetric(d, 'physical.energy')));
+  const anx = avgOf(days.map(d => surveyMetric(d, 'emotions.anxiety')));
+  const prod = avgOf(days.map(d => surveyMetric(d, 'mental.productivity')));
+  const fmt = v => v == null ? '—' : v.toFixed(1);
+  const arrow = (v, goodHigh = true) => {
+    if (v == null) return '';
+    if (goodHigh) return v >= 7 ? '↑' : v <= 4 ? '↓' : '→';
+    return v >= 7 ? '↓' : v <= 4 ? '↑' : '→';
+  };
+  el.innerHTML = `
+    <div class="stat-block"><div class="sb-emoji">😊</div><div class="sb-val">${fmt(mood)}</div><div class="sb-label">Настроение ${arrow(mood)}</div></div>
+    <div class="stat-block"><div class="sb-emoji">⚡</div><div class="sb-val">${fmt(energy)}</div><div class="sb-label">Энергия ${arrow(energy)}</div></div>
+    <div class="stat-block"><div class="sb-emoji">🫧</div><div class="sb-val">${fmt(anx)}</div><div class="sb-label">Тревога ${arrow(anx, false)}</div></div>
+    <div class="stat-block"><div class="sb-emoji">✅</div><div class="sb-val">${fmt(prod)}</div><div class="sb-label">Дела ${arrow(prod)}</div></div>
+  `;
+}
+
+function renderStatsAdvice(days) {
+  const el = document.getElementById('stats-advice'); if (!el) return;
+  const anx = avgOf(days.map(d => surveyMetric(d, 'emotions.anxiety')));
+  const energy = avgOf(days.map(d => surveyMetric(d, 'physical.energy')));
+  const prod = avgOf(days.map(d => surveyMetric(d, 'mental.productivity')));
+  let text = 'Продолжай отмечать дни — картина станет точнее.';
+  let emoji = '🌱';
+  if (anx != null && anx >= 7) { emoji = '🫧'; text = 'Тревога высокая. Сегодня лучше 2–3 задачи и короткая пауза.'; }
+  else if (energy != null && energy <= 4) { emoji = '😴'; text = 'Сил мало. Посмотри на сон и не планируй плотный день.'; }
+  else if (prod != null && prod >= 7 && (anx == null || anx <= 5)) { emoji = '🚀'; text = 'Хороший ритм. Зафиксируй, что помогло, и повтори.'; }
+  else if (energy != null && energy >= 7) { emoji = '⚡'; text = 'Энергии хватает. Можно взять одно важное дело в фокус.'; }
+  el.innerHTML = `<div class="advice-row"><span class="advice-emoji">${emoji}</span><div>${text}</div></div>`;
 }
 
 function renderAutoInsights() {
