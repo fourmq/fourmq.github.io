@@ -5,14 +5,19 @@ export function matchesRecurrence(t, dateStr) {
   const r = t.recurrence;
   if (!r) return t.date === dateStr;
   const d = new Date(dateStr + 'T12:00:00');
+  const startStr = t.date || (t.createdAt ? new Date(t.createdAt).toISOString().slice(0,10) : dateStr);
+  if (dateStr < startStr) return false;
   if (r === 'daily') return true;
   if (r === 'weekdays') return d.getDay() >= 1 && d.getDay() <= 5;
-  if (r === 'weekly') { const start = new Date(t.createdAt); return d.getDay() === start.getDay(); }
+  if (r === 'weekly') {
+    const start = t.date ? new Date(t.date + 'T12:00:00') : new Date(t.createdAt);
+    return d.getDay() === start.getDay();
+  }
   return false;
 }
 export function isTaskDoneOn(t, dateStr) { if (t.recurrence) return !!t.completions[dateStr]; return t.done; }
 export function formatDuration(min) { if (min < 60) return min + ' мин'; const h = Math.floor(min / 60), m = min % 60; return m ? `${h}ч ${m}м` : `${h}ч`; }
-export function formatTaskDate(d) { const today = todayStr(); const tom = new Date(); tom.setDate(tom.getDate() + 1); if (d === today) return 'Сегодня'; if (d === tom.toISOString().slice(0, 10)) return 'Завтра'; return new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }); }
+export function formatTaskDate(d) { const today = todayStr(); const tom = new Date(); tom.setDate(tom.getDate() + 1); const tomStr = `${tom.getFullYear()}-${String(tom.getMonth()+1).padStart(2,'0')}-${String(tom.getDate()).padStart(2,'0')}`; if (d === today) return 'Сегодня'; if (d === tomStr) return 'Завтра'; return new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }); }
 
 export function taskRowHTML(t, dateStr = window.currentDate, opts = {}) {
   const done = isTaskDoneOn(t, dateStr);
