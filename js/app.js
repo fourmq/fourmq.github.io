@@ -1456,7 +1456,6 @@ function updateFocusDisplay() {
       container.style.transform = `scale(${1 + Math.sin(progress * Math.PI) * 0.06})`;
     }
     // Gentle leaf sway
-    const leaves = document.getElementById('tree-leaves');
     if (leaves && progress > 0.5) leaves.style.transform = `rotate(${Math.sin(Date.now() / 800) * 2}deg)`;
   }
 }
