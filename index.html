@@ -96,7 +96,8 @@ window.addEventListener('error', function(event) {
         <div class="card tight" id="tasks-today-mini"></div>
         <div class="section-title"><span>Привычки на сегодня</span><div class="actions"><button onclick="openHabitSettings()" style="background:transparent;color:var(--text-sec);width:auto;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button onclick="openHabitEditor()" style="background:transparent;color:var(--text-sec);width:auto;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
         <div class="card tight" id="habits-today"></div>
-        <div id="dream-card-container"></div><div id="weekly-survey-container"></div>
+        
+        <div id="weekly-survey-container"></div>
         <div class="card quote-card" style="padding:16px;text-align:center;font-style:italic;color:var(--text-sec);font-size:13px;line-height:1.5;"><div class="quote-text" id="quote-text" style="margin-bottom:4px;"></div><div class="quote-author" id="quote-author" style="font-size:11px;font-weight:600;font-style:normal;color:var(--text-tert);"></div></div>
       </section>
 
@@ -110,8 +111,8 @@ window.addEventListener('error', function(event) {
           
           <div class="tree-container" id="tree-container">
             <svg class="tree-svg" viewBox="0 0 100 100">
-              <!-- Нормальное дерево (ствол и ветви) -->
-              <path class="tree-path" id="tree-path" d="M50 95 L50 55 M50 70 C 40 65, 30 50, 25 35 M50 65 C 60 60, 70 50, 75 35 M35 50 C 30 45, 25 40, 20 30 M65 50 C 70 45, 75 40, 80 30" />
+              <!-- Нормальное дерево (ствол и крона) -->
+              <path class="tree-path" id="tree-path" d="M50 95 L50 45 M50 55 C 40 50, 30 40, 25 25 M50 60 C 60 55, 70 45, 75 25 M35 45 C 25 35, 20 25, 15 15 M65 45 C 75 35, 80 25, 85 15" />
             </svg>
           </div>
 
@@ -137,7 +138,7 @@ window.addEventListener('error', function(event) {
 
             <div class="field" style="text-align:left; max-width:400px; margin:0 auto 16px;">
               <label>Описание (если без задачи)</label>
-              <input type="text" id="focus-desc" placeholder="Например: Читать статью" style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--separator-med); background:var(--input-bg); color:var(--text); font-size:15px; outline:none;">
+              <input type="text" id="focus-desc" placeholder="Например: Читать статью" onkeydown="if(event.key==='Enter') startFocusTimer()" style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--separator-med); background:var(--input-bg); color:var(--text); font-size:15px; outline:none;">
             </div>
 
             <div style="display:flex; justify-content:center; gap:16px; margin-bottom:24px; font-size:13px; color:var(--text-sec);">
@@ -150,11 +151,11 @@ window.addEventListener('error', function(event) {
             </div>
           </div>
 
-          <div id="focus-active-controls" style="display:none; gap:12px; justify-content:center; margin-top:24px;">
+          <div id="focus-active-controls" style="display:none; gap:12px; justify-content:center; margin-top:24px; align-items:center;">
             <button class="btn-primary" style="max-width:120px; margin:0;" onclick="toggleFocusTimer()" id="focus-main-btn">Пауза</button>
-            <button class="btn-cancel" style="max-width:120px; margin:0;" onclick="stopFocusTimer()">Сброс</button>
-            <button onclick="exitFocusMode()" style="background:none; border:none; color:var(--red); cursor:pointer; padding:8px; display:flex; align-items:center; justify-content:center;">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            <button class="btn-cancel" style="max-width:120px; margin:0;" onclick="confirmStopFocus()">Сброс</button>
+            <button onclick="exitFocusMode()" style="background:none; border:none; color:var(--red); cursor:pointer; padding:8px; display:flex; align-items:center; justify-content:center; position:relative; top:-4px;">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
           </div>
           
@@ -169,15 +170,47 @@ window.addEventListener('error', function(event) {
         <div class="card tight" id="focus-history-list" style="margin-bottom:20px;"></div>
       </section>
 
-      <section id="screen-notes" class="screen">
-        <div id="notes-list-view"><div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;"><input id="notes-search" placeholder="Поиск" style="flex:1;padding:10px;border-radius:10px;border:none;background:var(--chip-bg);color:var(--text);outline:none;font-size:16px;height:42px;"></div><div class="folder-chips" id="folder-chips" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;"></div><div class="card tight" id="notes-list"></div></div>
-        <div id="note-edit-view" style="display:none;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><button onclick="closeNoteEditor()" style="padding:8px 14px;border-radius:18px;background:var(--card);border:none;font-weight:600;color:var(--text-sec);">← Все</button><div style="display:flex;gap:6px;"><button id="pin-btn" onclick="togglePinNote()" style="padding:8px;border-radius:10px;border:none;background:var(--chip-bg);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg></button><button onclick="deleteCurrentNote()" style="padding:8px;border-radius:10px;border:none;background:var(--chip-bg);color:var(--red);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button></div></div><div class="card"><input id="edit-note-title" placeholder="Заголовок" oninput="scheduleNoteSave()"><div class="note-toolbar"><button onmousedown="event.preventDefault();document.execCommand('bold')"><b>Ж</b></button><button onmousedown="event.preventDefault();document.execCommand('italic')"><i>К</i></button><button onmousedown="event.preventDefault();document.execCommand('underline')"><u>Ч</u></button><button onmousedown="event.preventDefault();document.execCommand('formatBlock',false,'h1')">H1</button><button onmousedown="event.preventDefault();document.execCommand('formatBlock',false,'h2')">H2</button><button onmousedown="event.preventDefault();document.execCommand('insertUnorderedList')">•</button><button onmousedown="event.preventDefault();document.execCommand('insertOrderedList')">1.</button></div><div id="edit-note-body" contenteditable="true" oninput="scheduleNoteSave()"></div></div></div>
+      <section id="screen-notes" class="screen" style="height: calc(100vh - 150px); display: flex; flex-direction: column;">
+        <div id="notes-list-view" style="flex:1; overflow-y:auto;">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+            <input id="notes-search" placeholder="Поиск" style="flex:1;padding:10px;border-radius:10px;border:none;background:var(--chip-bg);color:var(--text);outline:none;font-size:16px;height:42px;">
+          </div>
+          <div class="folder-chips" id="folder-chips" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;"></div>
+          <div class="card tight" id="notes-list"></div>
+        </div>
+        
+        <div id="note-edit-view" style="display:none; flex-direction:column; height:100%;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px; flex-shrink:0;">
+            <button onclick="closeNoteEditor()" style="padding:8px 14px;border-radius:18px;background:var(--card);border:none;font-weight:600;color:var(--text-sec);">← Все</button>
+            <div style="display:flex;gap:6px;">
+              <button id="pin-btn" onclick="togglePinNote()" style="padding:8px;border-radius:10px;border:none;background:var(--chip-bg);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg></button>
+              <button onclick="deleteCurrentNote()" style="padding:8px;border-radius:10px;border:none;background:var(--chip-bg);color:var(--red);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
+            </div>
+          </div>
+          <div class="card" style="flex:1; display:flex; flex-direction:column; overflow:hidden; margin-bottom:0; padding-bottom:0;">
+            <div id="note-last-modified" style="font-size:11px; color:var(--text-sec); margin-bottom:4px; text-align:center;"></div>
+            <input id="edit-note-title" placeholder="Заголовок" oninput="scheduleNoteSave()" style="flex-shrink:0;">
+            
+            <div id="edit-note-body" contenteditable="true" oninput="scheduleNoteSave()" style="flex:1; overflow-y:auto; min-height: 200px;"></div>
+            
+            <!-- Панель инструментов зафиксирована внизу -->
+            <div class="note-toolbar-ios" id="note-toolbar-ios">
+              <button onmousedown="event.preventDefault();document.execCommand('bold')"><b>Ж</b></button>
+              <button onmousedown="event.preventDefault();document.execCommand('italic')"><i>К</i></button>
+              <button onmousedown="event.preventDefault();document.execCommand('underline')"><u>Ч</u></button>
+              <button onmousedown="event.preventDefault();document.execCommand('formatBlock',false,'h1')">H1</button>
+              <button onmousedown="event.preventDefault();document.execCommand('formatBlock',false,'h2')">H2</button>
+              <button onmousedown="event.preventDefault();document.execCommand('insertUnorderedList')">•</button>
+              <button onmousedown="event.preventDefault();document.execCommand('insertOrderedList')">1.</button>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section id="screen-stats" class="screen">
         <div id="stats-summary" class="card" style="padding:12px 16px;text-align:center;color:var(--text-sec);font-size:13px;"></div>
         <div class="section-title">🧠 Аналитика Фокуса</div><div class="card" id="focus-analytics"></div>
-        <div class="section-title">🎯 Инсайты о тебе</div><div class="card" id="auto-insights"></div><div class="section-title">🌟 Прогресс к мечте</div><div class="card" id="dream-progress"></div>
+        <div class="section-title">🎯 Инсайты о тебе</div><div class="card" id="auto-insights"></div>
         <div class="section-title">📊 Аналитика (14 дней)</div><div class="card"><div id="chart-mood-prod"></div><div class="chart-legend" style="display:flex;gap:16px;justify-content:center;font-size:12px;color:var(--text-sec);margin-top:6px;flex-wrap:wrap;"><span><span class="dot" style="background:var(--td-orange)"></span>Настроение</span><span><span class="dot" style="background:var(--td-blue)"></span>Продуктивность</span><span><span class="dot" style="background:var(--pink)"></span>Тревога</span></div></div>
         <div class="section-title">📈 Тренды (4 недели)</div><div class="card" id="trends-4w"></div><div class="section-title">Ключевые метрики (7 дней)</div><div class="stat-grid" id="stats-grid"></div><div class="section-title">Паттерны по дням недели</div><div class="card" id="weekday-patterns"></div><div class="section-title">Матрица корреляций</div><div class="card" id="corr-matrix"></div><div class="section-title">🧠 Психологический профиль</div><div class="card" id="psy-profile"></div><div class="section-title">🎓 Педагогические рекомендации</div><div class="card" id="ped-recommendations"></div><div class="section-title">Год в пикселях</div><div class="card"><div class="year-grid" id="year-grid"></div><div style="font-size:11px;color:var(--text-sec);margin-top:8px;text-align:center;">Каждый квадрат — один день.</div></div>
         <div class="section-title">Данные</div><div class="card" style="display:flex;gap:10px;flex-wrap:wrap;"><button class="btn-cancel" style="flex:1;" onclick="exportCSV()">📄 CSV</button><button class="btn-cancel" style="flex:1;" onclick="exportData()">⬇️ JSON</button><button class="btn-cancel" style="flex:1;" onclick="document.getElementById('import-file').click()">⬆️ Импорт</button><input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)"></div>
