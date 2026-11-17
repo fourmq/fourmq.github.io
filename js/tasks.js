@@ -312,11 +312,13 @@ window.saveTask = function() {
   const projectId = projVal ? parseInt(projVal) : null;
   const recurrence = document.getElementById('t-recurrence').value || null;
   
-  const subs = (window._draftTask?.subtasks || []).filter(s => s.title.trim());
+  let subs = [];
   if (editingTaskId) {
     const t = state.tasks.find(x => x.id == editingTaskId);
+    subs = (t?.subtasks || []).filter(s => s.title && s.title.trim());
     Object.assign(t, { title, description, date, startTime, duration, priority, projectId, recurrence, subtasks: subs });
   } else {
+    subs = (window._draftTask?.subtasks || []).filter(s => s.title && s.title.trim());
     state.tasks.push({ id: uid(), title, description, done: false, date, startTime, duration, priority, projectId, recurrence, subtasks: subs, tags: [], completions: {}, createdAt: Date.now() });
   }
   window._draftTask = null;
