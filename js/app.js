@@ -484,31 +484,48 @@ window.saveCurrentNote = function() {
 window.renderNotes = function() {
   const chips = document.getElementById('folder-chips');
   if (chips) {
-    const folders = [{ id: 'all', name: 'Все', icon: '📚' }, ...state.noteFolders]; let chipsHtml = '';
-    folders.forEach(f => { const isActive = state.selectedFolder === f.id; const isCustom = f.id !== 'all'; chipsHtml += `<button class="folder-chip" style="padding:7px 13px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:${isActive ? 'var(--orange)' : 'var(--chip-bg)'};color:${isActive ? '#fff' : 'var(--text)'};white-space:nowrap;cursor:pointer;font-family:inherit;" onclick="window.onFolderChip('${f.id}',${isCustom})">${f.icon || ''} ${escapeHtml(f.name)}</button>`; });
-    chipsHtml += `<button class="folder-chip" style="padding:7px 10px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;" onclick="window.openFolderEditor()">＋</button>`;
+    const trashCount = (state.notes || []).filter(n => n.deletedAt).length;
+    const folders = [{ id: 'all', name: 'Все', icon: '📚' }, ...state.noteFolders, { id: 'trash', name: trashCount ? `Корзина (${trashCount})` : 'Корзина', icon: '🗑' }];
+    let chipsHtml = '';
+    folders.forEach(f => {
+      const isActive = state.selectedFolder === f.id;
+      const isCustom = f.id !== 'all' && f.id !== 'trash';
+      const bg = isActive ? (f.id === 'trash' ? 'var(--red)' : 'var(--orange)') : 'var(--chip-bg)';
+      const color = isActive ? '#fff' : 'var(--text)';
+      chipsHtml += `<button class="folder-chip" style="padding:7px 13px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:${bg};color:${color};white-space:nowrap;cursor:pointer;font-family:inherit;" onclick="window.onFolderChip('${f.id}',${isCustom})">${f.icon || ''} ${escapeHtml(f.name)}</button>`;
+    });
+    if (state.selectedFolder !== 'trash') chipsHtml += `<button class="folder-chip" style="padding:7px 10px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;" onclick="window.openFolderEditor()">＋</button>`;
     chips.innerHTML = chipsHtml;
   }
   const el = document.getElementById('notes-list'); if (!el) return;
   const search = (document.getElementById('notes-search')?.value || '').toLowerCase();
-  let notes = state.notes;
-  if (state.selectedFolder !== 'all') notes = notes.filter(n => n.folderId === state.selectedFolder);
+  const isTrash = state.selectedFolder === 'trash';
+  let notes = state.notes || [];
+  if (isTrash) notes = notes.filter(n => n.deletedAt);
+  else {
+    notes = notes.filter(n => !n.deletedAt);
+    if (state.selectedFolder !== 'all') notes = notes.filter(n => n.folderId === state.selectedFolder);
+  }
   if (search) notes = notes.filter(n => (n.title || '').toLowerCase().includes(search) || stripHtml(n.body).toLowerCase().includes(search));
   notes.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (b.updatedAt || 0) - (a.updatedAt || 0));
-  if (!notes.length) { el.innerHTML = '<div class="empty-hint">Заметок нет.<br>Нажмите +, чтобы создать.</div>'; return; }
+  if (!notes.length) { el.innerHTML = isTrash ? '<div class="empty-hint">Корзина пуста</div>' : '<div class="empty-hint">Заметок нет.<br>Нажмите +, чтобы создать.</div>'; return; }
   
   let notesHtml = '';
   notes.forEach(n => {
-    const preview = stripHtml(n.body).slice(0, 80); const dateStr = new Date(n.updatedAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }); const pinIcon = n.pinned ? '<span style="color:var(--orange);font-size:12px;margin-top:3px;">📌</span>' : '';
+    const preview = stripHtml(n.body).slice(0, 80);
+    const dateStr = new Date(n.updatedAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+    const pinIcon = (!isTrash && n.pinned) ? '<span style="color:var(--orange);font-size:12px;margin-top:3px;">📌</span>' : '';
+    const actions = isTrash
+      ? `<button class="swipe-btn post" onclick="event.stopPropagation();window.restoreNote(${n.id})">${svgIcon('refresh','#fff',18)}</button>
+          <button class="swipe-btn delete" onclick="event.stopPropagation();window.permanentlyDeleteNote(${n.id})">${svgIcon('trash','#fff',18)}</button>`
+      : `<button class="swipe-btn unpin" onclick="event.stopPropagation();window.unpinNoteById(${n.id})">${svgIcon('pin','#fff',18)}</button>
+          <button class="swipe-btn delete" onclick="event.stopPropagation();window.deleteNoteById(${n.id})">${svgIcon('trash','#fff',18)}</button>`;
     notesHtml += `
       <div class="swipe-row-container">
-        <div class="swipe-actions">
-          <button class="swipe-btn unpin" onclick="event.stopPropagation();window.unpinNoteById(${n.id})">${svgIcon('pin','#fff',18)}</button>
-          <button class="swipe-btn delete" onclick="event.stopPropagation();window.deleteNoteById(${n.id})">${svgIcon('trash','#fff',18)}</button>
-        </div>
+        <div class="swipe-actions">${actions}</div>
         <div class="swipe-content" onclick="window.openNote(${n.id})">
           ${pinIcon}
-          <div style="flex:1;min-width:0;"><h4 style="font-size:15px;font-weight:600;margin-bottom:2px;">${escapeHtml(n.title || 'Без названия')}</h4><p style="font-size:13px;color:var(--text-sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">${escapeHtml(preview) || 'Пустая'}</p></div>
+          <div style="flex:1;min-width:0;"><h4 style="font-size:15px;font-weight:600;margin-bottom:2px;${isTrash?'opacity:.7;':''}">${escapeHtml(n.title || 'Без названия')}</h4><p style="font-size:13px;color:var(--text-sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">${escapeHtml(preview) || 'Пустая'}</p></div>
           <span style="font-size:11px;color:var(--text-sec);margin-left:auto;white-space:nowrap;">${dateStr}</span>
         </div>
       </div>`;
@@ -517,9 +534,24 @@ window.renderNotes = function() {
 };
 
 window.deleteNoteById = function(id) {
-  if (!confirm('Удалить?')) return;
+  const n = state.notes.find(x => x.id === id);
+  if (!n) return;
+  n.deletedAt = Date.now();
+  n.pinned = false;
+  haptic(); save(); window.renderNotes();
+  window.showToast('В корзине');
+};
+window.restoreNote = function(id) {
+  const n = state.notes.find(x => x.id === id);
+  if (!n) return;
+  n.deletedAt = null; n.updatedAt = Date.now();
+  haptic('success'); save(); window.renderNotes();
+  window.showToast('Восстановлено');
+};
+window.permanentlyDeleteNote = function(id) {
+  if (!confirm('Удалить навсегда? Это нельзя отменить.')) return;
   state.notes = state.notes.filter(n => n.id !== id);
-  save(); window.renderNotes();
+  haptic(); save(); window.renderNotes();
 };
 
 window.unpinNoteById = function(id) {
@@ -543,7 +575,24 @@ window.openNote = function(id) { if (currentNoteId && currentNoteId !== id) wind
 window.updatePinBtn = function() { const n = state.notes.find(x => x.id === currentNoteId); const btn = document.getElementById('pin-btn'); if (n && btn) { btn.style.color = n.pinned ? 'var(--orange)' : 'var(--text-sec)'; btn.style.background = n.pinned ? 'var(--accent-soft)' : 'var(--chip-bg)'; } };
 window.togglePinNote = function() { const n = state.notes.find(x => x.id === currentNoteId); if (!n) return; n.pinned = !n.pinned; n.updatedAt = Date.now(); haptic(); save(); window.updatePinBtn(); window.renderNotes(); };
 window.closeNoteEditor = function() { window.saveCurrentNote(); currentNoteId = null; document.getElementById('notes-list-view').style.display = 'block'; document.getElementById('note-edit-view').style.display = 'none'; window.renderNotes(); };
-window.deleteCurrentNote = function() { if (!currentNoteId || !confirm('Удалить?')) return; state.notes = state.notes.filter(n => n.id !== currentNoteId); save(); currentNoteId = null; document.getElementById('notes-list-view').style.display = 'block'; document.getElementById('note-edit-view').style.display = 'none'; window.renderNotes(); };
+window.deleteCurrentNote = function() {
+  if (!currentNoteId) return;
+  const n = state.notes.find(x => x.id === currentNoteId);
+  if (!n) return;
+  if (n.deletedAt) {
+    if (!confirm('Удалить навсегда?')) return;
+    state.notes = state.notes.filter(x => x.id !== currentNoteId);
+  } else {
+    n.deletedAt = Date.now();
+    n.pinned = false;
+    window.showToast('В корзине');
+  }
+  haptic(); save();
+  currentNoteId = null;
+  document.getElementById('notes-list-view').style.display = 'block';
+  document.getElementById('note-edit-view').style.display = 'none';
+  window.renderNotes();
+};
 
 // ============ 10. СТАТИСТИКА И ГРАФИКИ ============
 function lastNDates(n){const a=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);a.push(d.toISOString().slice(0,10))}return a}
@@ -734,13 +783,33 @@ window.importData = function(e) { const file = e.target.files[0]; if (!file) ret
 // ============ 13. ФОКУС-ТАЙМЕР ============
 let focusInterval = null, focusRunning = false, focusTimeLeft = 25 * 60, focusTotalTime = 25 * 60, focusMode = 'focus';
 
+window.openFocusTimePicker = function() {
+  if (focusRunning) return;
+  const curMins = parseInt(document.getElementById('focus-mins').value) || 25;
+  const presets = [5, 10, 15, 20, 25, 30, 45, 50, 60, 90];
+  const presetsHtml = presets.map(m => `<button onclick="window.pickFocusMinutes(${m})" style="padding:12px 0;border-radius:12px;border:1px solid ${curMins===m?'var(--accent)':'var(--separator-med)'};background:${curMins===m?'var(--accent-soft)':'var(--input-bg)'};color:${curMins===m?'var(--accent)':'var(--text)'};font-weight:700;font-size:16px;cursor:pointer;font-family:inherit;">${m}</button>`).join('');
+  window.openSheet(`<h2 style="text-align:center;margin-bottom:8px;">Время фокуса</h2><p style="text-align:center;font-size:13px;color:var(--text-sec);margin-bottom:16px;">Выбери минуты</p><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px;">${presetsHtml}</div><div class="field"><label>Своё время (минуты)</label><input type="number" id="custom-focus-mins" value="${curMins}" min="1" max="180" style="text-align:center;font-size:20px;font-weight:700;"></div><div class="sheet-actions" style="display:flex;gap:8px;"><button class="btn-cancel" style="flex:1;" onclick="window.closeSheet()">Отмена</button><button class="btn-primary" style="flex:1;" onclick="window.applyCustomFocusTime()">Готово</button></div>`);
+};
+window.pickFocusMinutes = function(m) {
+  document.getElementById('focus-mins').value = m;
+  document.getElementById('focus-secs').value = 0;
+  state.focusSettings.customMins = m; state.focusSettings.customSecs = 0; save();
+  window.setFocusTime(); window.closeSheet();
+};
+window.applyCustomFocusTime = function() {
+  const m = Math.max(1, Math.min(180, parseInt(document.getElementById('custom-focus-mins').value) || 25));
+  document.getElementById('focus-mins').value = m;
+  document.getElementById('focus-secs').value = 0;
+  state.focusSettings.customMins = m; state.focusSettings.customSecs = 0; save();
+  window.setFocusTime(); window.closeSheet();
+};
 window.setFocusTime = function() {
   if (focusRunning) return;
   const mins = Math.max(0, Math.min(180, parseInt(document.getElementById('focus-mins').value) || 0));
   const secs = Math.max(0, Math.min(59, parseInt(document.getElementById('focus-secs').value) || 0));
   focusTotalTime = mins * 60 + secs;
   focusTimeLeft = focusTotalTime;
-  if (focusTotalTime <= 0) focusTotalTime = focusTimeLeft = 60; // min 1 min
+  if (focusTotalTime <= 0) focusTotalTime = focusTimeLeft = 60;
   updateFocusDisplay();
 };
 
@@ -754,11 +823,16 @@ function updateFocusDisplay() {
   if (status && focusRunning) status.textContent = focusMode === 'break' ? 'Отдых...' : 'В процессе...'; 
   else if (status && !focusRunning && focusTimeLeft < focusTotalTime) status.textContent = 'На паузе'; 
   
-  const treePath = document.getElementById('tree-path');
-  if (treePath && focusMode === 'focus') {
-    const progress = 1 - (focusTimeLeft / focusTotalTime);
-    const dashOffset = 200 * (1 - progress);
-    treePath.style.strokeDashoffset = dashOffset;
+  if (focusMode === 'focus') {
+    const progress = focusTotalTime > 0 ? (1 - focusTimeLeft / focusTotalTime) : 0;
+    const trunk = document.getElementById('tree-trunk');
+    const branches = document.getElementById('tree-branches');
+    const leaves = document.getElementById('tree-leaves');
+    const seed = document.getElementById('tree-seed');
+    if (trunk) trunk.style.opacity = String(0.3 + progress * 0.7);
+    if (branches) branches.style.opacity = String(Math.max(0, (progress - 0.2) / 0.5));
+    if (leaves) leaves.style.opacity = String(Math.max(0, (progress - 0.45) / 0.55));
+    if (seed) seed.style.opacity = String(progress < 0.15 ? 1 : Math.max(0, 1 - progress * 2));
   }
 }
 
