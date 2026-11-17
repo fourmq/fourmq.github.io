@@ -1,4 +1,4 @@
-import { escapeHtml, svgIcon, todayStr, uid, DAILY_PROMPTS, CONTEXT_TAGS, WEEKDAYS_LONG, formatDateHuman, APP_VERSION, CHANGELOG } from './utils.js';
+import { escapeHtml, svgIcon, todayStr, uid, DAILY_PROMPTS, CONTEXT_TAGS, WEEKDAYS_LONG, formatDateHuman, APP_VERSION, CHANGELOG, ymdLocal } from './utils.js';
 import { state, save } from './db.js';
 
 export let tempContextTags = [];
@@ -118,7 +118,7 @@ export function openDailySurvey() {
   `).join('');
 
   // yesterday for one-tap
-  const yest = (() => { const d = new Date(dateStr + 'T12:00:00'); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); })();
+  const yest = (() => { const d = new Date(dateStr + 'T12:00:00'); d.setDate(d.getDate() - 1); return ymdLocal(d); })();
   const ys = state.surveys[yest];
   const canCopy = !!(ys && ys.evening);
 
@@ -184,7 +184,7 @@ export function openDailySurvey() {
 
 window.copyYesterdaySurvey = function() {
   const dateStr = window.currentDate;
-  const yest = (() => { const d = new Date(dateStr + 'T12:00:00'); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); })();
+  const yest = (() => { const d = new Date(dateStr + 'T12:00:00'); d.setDate(d.getDate() - 1); return ymdLocal(d); })();
   const ys = state.surveys[yest];
   if (!ys) return;
   const map = [
