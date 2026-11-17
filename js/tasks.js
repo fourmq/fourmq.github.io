@@ -445,8 +445,12 @@ function renderTodoistCalendar() {
 
 window.goToDate = function(dateStr) {
   window.currentDate = dateStr;
+  state.taskFilter = 'today';
   haptic();
   window.renderAll();
+  if (!document.getElementById('screen-tasks')?.classList.contains('active')) {
+    window.switchTab('tasks');
+  }
 };
 
 window.setCurrentDateAndOpenTask = function(dateStr) {
