@@ -1,6 +1,6 @@
 :root{
   --td-red: #db4c3f; --td-orange: #eb8909; --td-blue: #246fe0; --td-green: #058527; --td-grey: #808080;
-  --bg:#F2F2F7;--card:#fff;--input-bg:#F2F2F7;--text:#1D1D1F;--text-sec:#8E8E93;--text-tert:#C7C7CC;
+  --bg:#F2F2F7;--card:#fff;--input-bg:#F2F2F7;--text:#1D1D1F;--text-sec:#6E6E73;--text-tert:#C7C7CC;
   --separator:rgba(60,60,67,.1);--separator-med:rgba(60,60,67,.15);
   --accent:var(--td-red);--accent-soft:rgba(219,76,63,.1);
   --green:var(--td-green);--green-soft:rgba(5,133,39,.1);--green-text:var(--td-green);
@@ -11,7 +11,7 @@
   --sidebar:#FFFFFF;--sidebar-border:rgba(60,60,67,.15);--fab-bg: var(--td-red);
 }
 [data-theme=dark]{
-  --bg:#1e1e1e;--card:#252525;--input-bg:#2C2C2E;--text:#e0e0e0;--text-sec:#999999;--text-tert:#555555;
+  --bg:#1e1e1e;--card:#252525;--input-bg:#2C2C2E;--text:#e0e0e0;--text-sec:#999999;--text-tert:#888888;
   --separator:rgba(255,255,255,.1);--separator-med:rgba(255,255,255,.15);
   --accent:var(--td-red);--accent-soft:rgba(219,76,63,.2);
   --green:var(--td-green);--green-soft:rgba(5,133,39,.2);--green-text:#4ade80;
@@ -94,7 +94,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-s
 }
 
 /* Показываем сайдбар только на широких экранах */
-@media (min-width: 900px) {
+@media (min-width: 768px) {
   .sidebar {
     display: flex;
   }
@@ -110,12 +110,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-s
 }
 
 /* ЗАСТАВКА */
-#splash{position:fixed;inset:0;background:#F2F2F7;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s ease-out, visibility .6s;cursor:pointer}
+#splash{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s ease-out, visibility .6s;cursor:pointer}
 #splash.hidden{opacity:0;visibility:hidden}
 #splash { animation: forceHideSplash .4s ease 2.5s forwards; }
 @keyframes forceHideSplash { to { opacity: 0; visibility: hidden; pointer-events: none; } }
 .splash-svg{width:200px;height:200px;margin-bottom:20px;overflow:visible}
-.splash-title{color:#FF375F;font-size:28px;font-weight:700;letter-spacing:2px;opacity:0;animation:fadeIn 1s .5s forwards}
+.splash-title{color:var(--td-red);font-size:28px;font-weight:700;letter-spacing:2px;opacity:0;animation:fadeIn 1s .5s forwards}
 @keyframes fadeIn{to{opacity:1}}
 
 .main-area{flex:1;display:flex;flex-direction:column;min-width:0;position:relative;overflow:hidden}
@@ -538,7 +538,7 @@ input:checked + .slider:before{transform:translateX(18px)}
 
 
 /* ===== Desktop: единая колонка и выравнивание ===== */
-@media (min-width: 900px) {
+@media (min-width: 768px) {
   .sidebar {
     display: flex;
     flex-direction: column;
@@ -604,12 +604,12 @@ input:checked + .slider:before{transform:translateX(18px)}
   }
 }
 
-@media (max-width: 899px) {
+@media (max-width: 767px) {
   .sidebar-footer { display: none; }
 }
 
 /* Auto-hiding scrollbar on desktop */
-@media (min-width: 900px) {
+@media (min-width: 768px) {
   main, .screen, .sidebar {
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
@@ -639,7 +639,7 @@ input:checked + .slider:before{transform:translateX(18px)}
 
 
 /* Desktop: sheets become centered modals */
-@media (min-width: 900px) {
+@media (min-width: 768px) {
   .sheet {
     position: fixed;
     top: 50%;
@@ -664,7 +664,7 @@ input:checked + .slider:before{transform:translateX(18px)}
   .backdrop { position: fixed; }
 }
 
-@media (min-width: 900px) {
+@media (min-width: 768px) {
   .sheet h2 { font-size: 20px; margin: 4px 0 12px; }
   .sheet .sheet-actions { margin-top: 16px; }
   .td-editor { gap: 12px; }
@@ -746,7 +746,7 @@ input:checked + .slider:before{transform:translateX(18px)}
   padding: 10px 12px;
 }
 /* Desktop modal: slightly tighter */
-@media (min-width: 900px) {
+@media (min-width: 768px) {
   .sheet-actions { justify-content: flex-end; }
   .sheet-actions .btn-cancel, .sheet-actions .btn-primary { flex: 0 0 auto; min-width: 100px; }
 }
@@ -755,6 +755,76 @@ input:checked + .slider:before{transform:translateX(18px)}
 .check-circle { width: 28px; height: 28px; }
 .section-title .actions button { width: 32px; height: 32px; }
 .icon-btn, .tab { min-width: 44px; min-height: 44px; }
-@media (max-width: 899px) {
+@media (max-width: 767px) {
   .check-circle { width: 32px; height: 32px; }
+}
+
+/* Desktop: show actions on hover instead of swipe */
+@media (min-width: 768px) {
+  .swipe-row-container { position: relative; }
+  .swipe-actions {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    opacity: 0; pointer-events: none; transition: opacity .15s;
+    background: transparent; width: auto; gap: 4px;
+  }
+  .swipe-row-container:hover .swipe-actions { opacity: 1; pointer-events: auto; }
+  .swipe-btn {
+    width: 32px; height: 32px; border-radius: 8px !important;
+    flex: none;
+  }
+}
+
+.float-btn {
+  background: none; border: none; color: var(--accent); cursor: pointer;
+  width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+}
+.float-btn:hover { background: var(--input-bg); }
+.float-stop { color: var(--red); }
+.note-toolbar-ios button { min-width: 40px; min-height: 40px; }
+
+@media (min-width: 768px) {
+  .fab { right: calc(50% - 380px + 16px); }
+}
+[data-theme=dark] main.is-scrolling::-webkit-scrollbar-thumb,
+[data-theme=dark] .sidebar.is-scrolling::-webkit-scrollbar-thumb,
+[data-theme=dark] main:hover::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.3);
+}
+
+.sidebar-settings {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  background: none; border: none; color: var(--text-sec); cursor: pointer;
+  padding: 8px 10px; border-radius: 8px; font-family: inherit; font-size: 14px;
+  margin-bottom: 8px;
+}
+.sidebar-settings:hover { background: var(--input-bg); color: var(--text); }
+@media (min-width: 768px) {
+  .note-toolbar-ios { order: -1; border-top: none; border-bottom: 1px solid var(--separator); }
+  #screen-notes .note-ios-body { order: 1; }
+  #screen-notes > div { display: flex; flex-direction: column; }
+}
+
+/* Desktop: notes two-column */
+@media (min-width: 1100px) {
+  #screen-notes {
+    display: flex !important;
+    flex-direction: row;
+    gap: 16px;
+    height: calc(100vh - 80px);
+  }
+  #notes-list-view {
+    display: flex !important;
+    flex-direction: column;
+    width: 320px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--separator);
+    padding-right: 16px;
+  }
+  #note-edit-view {
+    display: flex !important;
+    flex: 1;
+    flex-direction: column;
+  }
+  .note-ios-back { display: none; }
 }
