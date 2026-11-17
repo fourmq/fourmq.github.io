@@ -264,11 +264,6 @@ export function openWeeklySurvey(wk) {
     </div>
 
     <div class="survey-q">
-      <div class="survey-q-title">🌟 Какой шаг к большой мечте ты сделал?</div>
-      <textarea id="w-dreamStep" rows="2" placeholder="Даже маленький шаг считается">${escapeHtml(get('dreamStep', ''))}</textarea>
-    </div>
-
-    <div class="survey-q">
       <div class="survey-q-title">Что больше всего мешало?</div>
       <div class="score-chips" id="obstacle-chips">${obsHtml}</div>
       <input type="hidden" id="w-obstacle" value="${escapeHtml(curObs)}">
@@ -341,14 +336,13 @@ export function saveWeeklySurvey(wk) {
   wk = wk || window.isoWeek();
   const goal = document.getElementById('w-goal').value.trim();
   const progress = +document.getElementById('s-w-progress').value;
-  const dreamStep = document.getElementById('w-dreamStep').value.trim();
   const obstacle = document.getElementById('w-obstacle').value;
   const wellbeing = +document.getElementById('s-w-wellbeing').value;
   const lesson = document.getElementById('w-lesson').value.trim();
 
   state.weeklySurveys[wk] = {
     ...(state.weeklySurveys[wk] || {}),
-    goal, progress, dreamStep, obstacle, wellbeing, lesson,
+    goal, progress, obstacle, wellbeing, lesson,
     ts: Date.now()
   };
   window.haptic('success'); window.playSound('success'); save(); window.closeSheet(); window.renderAll();
