@@ -396,13 +396,17 @@ input:checked + .slider:before{transform:translateX(18px)}
 /* Панель инструментов заметок (iOS стиль) */
 .note-toolbar-ios {
   display: flex;
-  gap: 4px;
-  padding: 8px 0;
-  border-top: 1px solid var(--separator);
+  gap: 6px;
+  padding: 8px 12px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  border-top: 0.5px solid var(--separator);
   background: var(--card);
   overflow-x: auto;
-  scrollbar-width: none;
   flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  -webkit-overflow-scrolling: touch;
 }
 .note-toolbar-ios::-webkit-scrollbar { display: none; }
 .note-toolbar-ios button { background: var(--chip-bg); border: none; border-radius: 6px; padding: 6px 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; color: var(--text); display:flex; align-items:center; justify-content:center;min-width:32px;min-height:32px;}
@@ -416,3 +420,88 @@ input:checked + .slider:before{transform:translateX(18px)}
 .note-ios-title{width:100%;border:none;outline:none;background:transparent;font-size:22px;font-weight:700;color:var(--text);font-family:inherit;padding:0 0 8px;letter-spacing:-.3px;}
 .note-ios-content{flex:1;overflow-y:auto;min-height:180px;font-size:17px;line-height:1.5;color:var(--text);outline:none;padding-bottom:12px;}
 .note-ios-content:empty:before{content:attr(data-placeholder);color:var(--text-tert);pointer-events:none;}
+
+#note-edit-view {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  position: relative;
+}
+.note-ios-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.note-ios-content {
+  padding-bottom: 16px;
+}
+.mini-cal-day.selected {
+  background: var(--accent) !important;
+  color: #fff !important;
+  font-weight: 700;
+}
+
+
+/* ===== Survey chips (no sliders) ===== */
+.survey-q { margin-bottom: 18px; }
+.survey-q-title { font-size: 15px; font-weight: 600; margin-bottom: 10px; color: var(--text); }
+.score-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.score-chips.compact .score-chip { flex: 1; min-width: 52px; }
+.score-chip {
+  flex: 1; min-width: 56px; max-width: 80px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 10px 4px; border-radius: 14px;
+  border: 1.5px solid var(--separator-med);
+  background: var(--input-bg); color: var(--text);
+  cursor: pointer; font-family: inherit;
+  transition: border-color .15s, background .15s, transform .1s;
+}
+.score-chip:active { transform: scale(0.96); }
+.score-chip.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.score-emoji { font-size: 22px; line-height: 1; }
+.score-label { font-size: 11px; font-weight: 600; text-align: center; line-height: 1.2; }
+.ctx-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.ctx-tag {
+  padding: 8px 12px; border-radius: 12px;
+  border: 1.5px solid var(--separator-med);
+  background: var(--input-bg); color: var(--text);
+  font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+}
+.ctx-tag.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* ===== Stats visual ===== */
+.stats-summary-card { padding: 0 !important; overflow: hidden; }
+.stats-hero {
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 16px;
+  background: linear-gradient(135deg, var(--accent-soft), transparent);
+}
+.stats-hero-emoji { font-size: 40px; line-height: 1; }
+.stats-hero-title { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.stats-hero-sub { font-size: 13px; color: var(--text-sec); line-height: 1.35; }
+.stats-details {
+  margin: 8px 0 16px;
+  border-radius: 12px;
+  background: var(--card);
+  padding: 4px 12px 12px;
+}
+.stats-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 12px 4px;
+  color: var(--text-sec);
+  list-style: none;
+}
+.stats-details summary::-webkit-details-marker { display: none; }
+.stats-details[open] summary { color: var(--text); }
