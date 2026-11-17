@@ -22,7 +22,7 @@ export function migrateState(s) {
   });
   s.tasks = (s.tasks || []).map(t => ({ ...t, id: t.id || uid(), title: t.title || '', description: t.description || '', done: t.done || false, date: t.date || null, startTime: t.startTime || null, duration: t.duration || null, priority: t.priority || 4, projectId: t.projectId || null, subtasks: t.subtasks || [], tags: t.tags || [], recurrence: t.recurrence || null, completions: t.completions || {}, createdAt: t.createdAt || Date.now() }));
   s.projects = s.projects || [{ id: 1, name: 'Личное', color: '#007AFF' }];
-  s.notes = (s.notes || []).map(n => ({ id: n.id || uid(), title: n.title || 'Без названия', body: n.body || '', folderId: n.folderId || null, pinned: n.pinned || false, createdAt: n.createdAt || Date.now(), updatedAt: n.updatedAt || Date.now(), deletedAt: n.deletedAt || null }));
+  s.notes = (s.notes || []).map(n => ({ ...n, id: n.id || uid(), title: n.title || 'Без названия', body: n.body || '', folderId: n.folderId || null, pinned: n.pinned || false, createdAt: n.createdAt || Date.now(), updatedAt: n.updatedAt || Date.now(), deletedAt: n.deletedAt || null }));
   s.noteFolders = s.noteFolders || [{ id: 'default', name: 'Заметки', icon: '📝' }];
   if (s.taskFilter === 'inbox') s.taskFilter = 'all';
   s.taskFilter = s.taskFilter || 'today';
@@ -107,14 +107,29 @@ export async function pullFromCloud(force = false, askBeforeOverwrite = false) {
     if (force || new Date(data.updated_at).getTime() > lastCloudUpdate) {
       if (askBeforeOverwrite && !askedAboutOverwrite) {
         if ((state.habits && state.habits.length > 0) || (state.tasks && state.tasks.length > 0)) {
-          if (!confirm('В облаке есть сохранённые данные.\n\nЗагрузить их?')) return;
+          if (!confirm('В облаке есть сохранённые данные.\n\nЗагрузить их?')) {
+            askedAboutOverwrite = true; // не спрашивать снова и не перезаписывать автоматически
+            return;
+          }
           askedAboutOverwrite = true;
         }
       }
+      // Сохраняем локальные device-специфичные данные
+      const localSupabase = { ...state.supabase };
+      const localSettings = { ...state.settings };
+      const localTheme = state.theme;
+      const localReminders = [...(state.reminders || [])];
+
       const newState = migrateState(data.data);
       Object.keys(state).forEach(k => delete state[k]);
       Object.assign(state, newState);
-      
+
+      // Восстанавливаем
+      state.supabase = localSupabase;
+      state.theme = localTheme;
+      state.settings = { ...state.settings, ...localSettings };
+      state.reminders = localReminders;
+
       lastCloudUpdate = new Date(data.updated_at).getTime();
       localStorage.setItem(STORAGE, JSON.stringify(state));
       if (window.applyTheme) window.applyTheme();
