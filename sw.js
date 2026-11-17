@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cantilena-v37'; // <-- Версия обновлена
+const CACHE_NAME = 'cantilena-v39'; // <-- Версия обновлена
 const ASSETS = [
   './',
   './index.html',
