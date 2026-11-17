@@ -24,11 +24,16 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
+  const url = e.request.url;
+  if (e.request.method !== 'GET') return;
+  if (url.includes('supabase.co') || url.includes('/auth/') || e.request.headers.get('range')) return;
+  if (url.includes('.mp3') && e.request.headers.get('range')) return;
   e.respondWith(
     fetch(e.request)
       .then((response) => {
+        if (response.status === 206 || !response.ok) return response;
         const responseClone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(e.request, responseClone));
+        caches.open(CACHE_NAME).then((cache) => cache.put(e.request, responseClone)).catch(() => {});
         return response;
       })
       .catch(() => caches.match(e.request))
