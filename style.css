@@ -550,3 +550,38 @@ input:checked + .slider:before{transform:translateX(18px)}
   margin-left: auto; border: none; background: transparent;
   color: var(--text-sec); font-size: 18px; cursor: pointer; padding: 0 4px;
 }
+
+/* ===== Today hero & sleep ===== */
+.today-hero { padding: 16px; margin-bottom: 12px; }
+.today-hero-row { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+.today-hero-emoji { font-size: 32px; line-height: 1; }
+.today-hero-title { font-size: 17px; font-weight: 700; margin-bottom: 2px; }
+.today-hero-sub { font-size: 13px; color: var(--text-sec); line-height: 1.35; }
+.today-hero-cta { width: 100%; margin: 0; }
+.overdue-card { margin-bottom: 12px; padding: 12px 14px; border: 1px solid rgba(219,76,63,0.25); }
+.overdue-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 0.5px solid var(--separator); font-size: 14px; cursor: pointer; }
+.overdue-row:last-child { border-bottom: none; }
+.overdue-date { color: var(--td-red); font-size: 12px; }
+.sleep-card { padding: 14px 16px; margin-bottom: 12px; }
+.sleep-card-head { display: flex; justify-content: space-between; align-items: center; font-weight: 600; margin-bottom: 8px; }
+.sleep-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
+.sleep-stats b { display: block; font-size: 16px; margin-bottom: 2px; }
+.sleep-stats span { font-size: 11px; color: var(--text-sec); }
+.weekly-report { padding: 14px 16px; margin-top: 12px; }
+.compact-rings { margin-bottom: 12px; }
+.habit-row { min-height: 52px; padding: 10px 12px !important; }
+.onboarding { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 10000; display: flex; align-items: flex-end; justify-content: center; }
+.onboarding-inner { background: var(--card); border-radius: 20px 20px 0 0; padding: 28px 20px calc(20px + env(safe-area-inset-bottom)); width: 100%; max-width: 480px; }
+.onboarding-emoji { font-size: 48px; text-align: center; margin-bottom: 12px; }
+.onboarding-inner h2 { text-align: center; margin-bottom: 8px; }
+.onboarding-inner p { text-align: center; color: var(--text-sec); font-size: 15px; line-height: 1.45; margin-bottom: 24px; }
+.onboarding-actions { display: flex; gap: 10px; }
+.onboarding-actions button { flex: 1; }
+.breath-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 10001; display: flex; align-items: center; justify-content: center; }
+.breath-inner { text-align: center; color: #fff; }
+.breath-circle { width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,0.2); margin: 0 auto 20px; transition: transform 1.5s ease; }
+.breath-inner p { font-size: 20px; font-weight: 600; margin-bottom: 24px; }
+
+:root {
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px;
+}
