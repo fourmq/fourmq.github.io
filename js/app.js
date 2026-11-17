@@ -147,8 +147,12 @@ window.updateTopbar = function() {
 
 window.tickClock = function() {
   const now = new Date();
-  document.getElementById('clock').textContent = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  document.getElementById('datestr').textContent = now.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' });
+  const time = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const date = now.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' });
+  const clock = document.getElementById('clock'); if (clock) clock.textContent = time;
+  const datestr = document.getElementById('datestr'); if (datestr) datestr.textContent = date;
+  const sc = document.getElementById('sidebar-clock'); if (sc) sc.textContent = time;
+  const sd = document.getElementById('sidebar-date'); if (sd) sd.textContent = date;
   window.updateTopbar();
 };
 setInterval(window.tickClock, 1000);
