@@ -97,6 +97,7 @@ window.addEventListener('error', function(event) {
         <div class="section-title"><span>Привычки на сегодня</span><div class="actions"><button onclick="openHabitSettings()" style="background:transparent;color:var(--text-sec);width:auto;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button onclick="openHabitEditor()" style="background:transparent;color:var(--text-sec);width:auto;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
         <div class="card tight" id="habits-today"></div>
         
+        <div id="onboard-survey-tip"></div>
         <div id="weekly-survey-container"></div>
       </section>
 
@@ -256,6 +257,7 @@ window.addEventListener('error', function(event) {
 
         <div class="section-title"><span>Данные</span></div>
         <div class="card" style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn-cancel" style="flex:1;" onclick="exportWeeklyReport()">🗓 Неделя</button>
           <button class="btn-cancel" style="flex:1;" onclick="exportCSV()">📄 CSV</button>
           <button class="btn-cancel" style="flex:1;" onclick="exportData()">⬇️ JSON</button>
           <button class="btn-cancel" style="flex:1;" onclick="document.getElementById('import-file').click()">⬆️ Импорт</button>
