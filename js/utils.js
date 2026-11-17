@@ -65,10 +65,11 @@ function playFile(name) {
     a.play().catch(() => {});
   } catch (e) {}
 }
-export function playSound(type) { playFile(type === 'success' || type === 'click' ? 'click' : 'click'); }
+export function playSound(type) { playFile('click'); }
 export function playTimerStart() { playFile('timer-start'); }
 export function playTimerEnd() { playFile('timer-end'); }
 
+let audioCtx = null;
 export function playTick() {
   if (!window.state || !window.state.settings || !window.state.settings.sounds) return;
   try {
