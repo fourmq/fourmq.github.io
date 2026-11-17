@@ -47,6 +47,7 @@ export function taskRowHTML(t, dateStr = window.currentDate, opts = {}) {
             ${durLabel ? `<span>${durLabel}</span>` : ''}
             ${project ? `<span class="project-tag"><span class="project-dot" style="background:${project.color}"></span>${escapeHtml(project.name)}</span>` : ''}
             ${recurLabel ? `<span style="color:var(--text-sec);font-size:11px;">${recurLabel}</span>` : ''}
+            ${(t.subtasks && t.subtasks.length) ? `<span class="subtask-progress">${t.subtasks.filter(s=>s.done).length}/${t.subtasks.length}</span>` : ''}
           </div>
         </div>
       </div>
@@ -126,6 +127,7 @@ export function openTaskEditor(id) {
     <div class="td-editor">
       <input type="text" id="t-title" class="td-title-input" value="${escapeHtml(t.title)}" placeholder="Название задачи" autocomplete="off">
       <input type="text" id="t-desc" class="td-desc-input" value="${escapeHtml(t.description || '')}" placeholder="Описание" autocomplete="off">
+      <div id="subtasks-container" style="margin:12px 0;"></div>
       <div class="td-toolbar">
         <button type="button" class="td-btn date-btn" id="chip-date" onclick="document.getElementById('t-date').showPicker()">
           ${svgIcon('calendar', 'currentColor', 14)}
@@ -162,6 +164,47 @@ export function openTaskEditor(id) {
   window.updateTaskChipDate(t.date || '');
   setTimeout(() => { const el = document.getElementById('t-title'); if (el) el.focus(); }, 100);
 }
+window.renderSubtasksEditor = function(task) {
+  const cont = document.getElementById('subtasks-container');
+  if (!cont) return;
+  const subs = task.subtasks || [];
+  cont.innerHTML = `
+    <div style="font-size:13px;font-weight:600;color:var(--text-sec);margin-bottom:6px;">Подзадачи</div>
+    ${subs.map((s, i) => `
+      <div class="subtask-row" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <input type="checkbox" ${s.done?'checked':''} onchange="window.toggleSubtask(${i})" style="width:18px;height:18px;">
+        <input type="text" value="${escapeHtml(s.title)}" oninput="window.updateSubtaskTitle(${i}, this.value)" placeholder="Подзадача" style="flex:1;padding:6px 8px;border:1px solid var(--separator);border-radius:8px;background:var(--input-bg);font-size:14px;">
+        <button type="button" onclick="window.removeSubtask(${i})" style="background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;">×</button>
+      </div>
+    `).join('')}
+    <button type="button" class="btn-cancel" style="width:100%;font-size:13px;padding:8px;" onclick="window.addSubtask()">+ Подзадача</button>
+  `;
+};
+window.addSubtask = function() {
+  const id = document.getElementById('t-editing-id')?.value;
+  const t = id ? state.tasks.find(x => x.id == id) : window._draftTask;
+  if (!t) return;
+  if (!t.subtasks) t.subtasks = [];
+  t.subtasks.push({ id: uid(), title: '', done: false });
+  window.renderSubtasksEditor(t);
+};
+window.toggleSubtask = function(i) {
+  const id = document.getElementById('t-editing-id')?.value;
+  const t = id ? state.tasks.find(x => x.id == id) : window._draftTask;
+  if (t && t.subtasks[i]) t.subtasks[i].done = !t.subtasks[i].done;
+};
+window.updateSubtaskTitle = function(i, val) {
+  const id = document.getElementById('t-editing-id')?.value;
+  const t = id ? state.tasks.find(x => x.id == id) : window._draftTask;
+  if (t && t.subtasks[i]) t.subtasks[i].title = val;
+};
+window.removeSubtask = function(i) {
+  const id = document.getElementById('t-editing-id')?.value;
+  const t = id ? state.tasks.find(x => x.id == id) : window._draftTask;
+  if (t) t.subtasks.splice(i, 1);
+  window.renderSubtasksEditor(t);
+};
+
 window.openTaskEditor = openTaskEditor;
 
 window.updateTaskChipDate = function(val) {
@@ -264,12 +307,14 @@ window.saveTask = function() {
   const projectId = projVal ? parseInt(projVal) : null;
   const recurrence = document.getElementById('t-recurrence').value || null;
   
+  const subs = (window._draftTask?.subtasks || []).filter(s => s.title.trim());
   if (editingTaskId) {
     const t = state.tasks.find(x => x.id == editingTaskId);
-    Object.assign(t, { title, description, date, startTime, duration, priority, projectId, recurrence });
+    Object.assign(t, { title, description, date, startTime, duration, priority, projectId, recurrence, subtasks: subs });
   } else {
-    state.tasks.push({ id: uid(), title, description, done: false, date, startTime, duration, priority, projectId, recurrence, subtasks: [], tags: [], completions: {}, createdAt: Date.now() });
+    state.tasks.push({ id: uid(), title, description, done: false, date, startTime, duration, priority, projectId, recurrence, subtasks: subs, tags: [], completions: {}, createdAt: Date.now() });
   }
+  window._draftTask = null;
   haptic('success'); playSound('success'); save(); window.closeSheet(); window.renderAll();
 };
 
@@ -447,7 +492,7 @@ function renderTodoistCalendar() {
           <button onclick="window.setCurrentDateAndOpenTask('${dateStr}')" style="background:none;border:none;color:var(--text-sec);cursor:pointer;padding:4px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         </div>
         <div class="card tight" style="margin-bottom:0; min-height: 40px;" ondragover="event.preventDefault(); this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="window.dropTask(event, '${dateStr}'); this.classList.remove('drag-over')">
-          ${dayTasks.length ? dayTasks.map(t => taskRowHTML(t, dateStr, { hideDate: true, draggable: true })).join('') : '<div style="font-size:12px;color:var(--text-tert);text-align:center;padding:8px;">Пока пусто</div>'}
+          ${dayTasks.length ? dayTasks.map(t => taskRowHTML(t, dateStr, { hideDate: true, draggable: true })).join('') : ''}
         </div>
       </div>
     `;
@@ -493,7 +538,7 @@ export function renderTasksTodayMini() {
   let html = '';
   if (open.length) html += open.map(x => taskRowHTML(x, t)).join('');
   if (done.length) {
-    html += `<div class="completed-toggle" onclick="window._showCompletedTasks=!window._showCompletedTasks;window.renderTasksTodayMini()" style="padding:10px 12px;font-size:13px;color:var(--text-sec);cursor:pointer;text-align:center;">
+    html += `<div class="completed-toggle" onclick="window.toggleCompletedTasks()" style="padding:10px 12px;font-size:13px;color:var(--text-sec);cursor:pointer;text-align:center;">
       ${showDone ? 'Скрыть' : 'Показать'} выполненные (${done.length})
     </div>`;
     if (showDone) html += done.map(x => taskRowHTML(x, t)).join('');
