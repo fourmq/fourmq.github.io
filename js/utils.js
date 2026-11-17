@@ -19,9 +19,15 @@ export const CONTEXT_TAGS = [
   { id: 'coffee', icon: '☕', label: 'Кофе' },
   { id: 'junk', icon: '🍔', label: 'Фастфуд' },
   { id: 'sport', icon: '🏃', label: 'Спорт' },
-  { id: 'conflict', icon: '👥', label: 'Конфликт' },
+  { id: 'walk', icon: '🚶', label: 'Прогулка' },
+  { id: 'conflict', icon: '💢', label: 'Конфликт' },
+  { id: 'friends', icon: '👯', label: 'Друзья' },
+  { id: 'work', icon: '💼', label: 'Работа' },
   { id: 'weather', icon: '🌧', label: 'Погода' },
-  { id: 'reading', icon: '📚', label: 'Чтение' }
+  { id: 'reading', icon: '📚', label: 'Чтение' },
+  { id: 'screen', icon: '📱', label: 'Много экрана' },
+  { id: 'rest', icon: '🛋', label: 'Отдых' },
+  { id: 'creative', icon: '🎨', label: 'Творчество' }
 ];
 
 export const todayStr = () => new Date().toISOString().slice(0, 10);
