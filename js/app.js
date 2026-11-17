@@ -127,6 +127,8 @@ window.changeDay = function(offset) {
   d.setDate(d.getDate() + offset);
   window.currentDate = d.toISOString().slice(0, 10);
   haptic(); window.renderAll();
+  window.maybeShowOnboarding && window.maybeShowOnboarding();
+  window.scheduleSurveyReminderTick && window.scheduleSurveyReminderTick();
   document.getElementById('screen-today').classList.remove('slide-in-right', 'slide-in-left');
   void document.getElementById('screen-today').offsetWidth;
   document.getElementById('screen-today').classList.add(offset > 0 ? 'slide-in-right' : 'slide-in-left');
@@ -225,6 +227,14 @@ window.openSettings = function() {
           <option value="light" ${state.theme === 'light' ? 'selected' : ''}>Светлая</option>
           <option value="dark" ${state.theme === 'dark' ? 'selected' : ''}>Тёмная</option>
         </select>
+      </div>
+    </div>
+
+    <div class="settings-header">Данные</div>
+    <div class="settings-group">
+      <div class="settings-row" onclick="window.openDataBackup()" style="cursor:pointer;">
+        <div class="left"><div class="icon" style="background:var(--accent);">💾</div><span>Бэкап и напоминания</span></div>
+        <div style="color:var(--accent);font-size:14px;font-weight:600;">→</div>
       </div>
     </div>
 
@@ -1033,9 +1043,9 @@ window.renderWeeklyCard = function() {
   
   let cardContent = ''; 
   if (passed) { 
-    cardContent = `<div class="compass-goal">${escapeHtml(goal)}</div><div class="compass-meta">Прогресс: ${progress}/10 · Шаг к мечте: ${s.dreamStep ? '✓' : '—'}</div><div class="compass-status passed">✅ Опрос пройден</div>`; 
+    cardContent = `<div class="compass-goal">${escapeHtml(goal)}</div><div class="compass-meta">Прогресс: ${progress}/10 </div><div class="compass-status passed">✅ Опрос пройден</div>`; 
   } else { 
-    cardContent = `<div class="compass-goal">Определи цель недели →</div><div class="compass-meta">10 вопросов. Фокус, шаг к мечте, рефлексия.</div>`; 
+    cardContent = `<div class="compass-goal">Определи цель недели →</div><div class="compass-meta">Цель, прогресс, что мешало, вывод.</div>`; 
   }
   container.innerHTML = `<div class="card compass-card" onclick="window.openWeeklySurvey('${wk}')" style="cursor:pointer;"><div class="compass-label">${svgIcon('target', 'currentColor', 14)} Компас недели</div>${cardContent}</div>`;
 };
@@ -1043,6 +1053,273 @@ window.renderWeeklyCard = function() {
 window.isoWeek = function(d = new Date()) { const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const dayNum = dt.getUTCDay() || 7; dt.setUTCDate(dt.getUTCDate() + 4 - dayNum); const yearStart = new Date(Date.UTC(dt.getUTCFullYear(), 0, 1)); const weekNo = Math.ceil((((dt - yearStart) / 86400000) + 1) / 7); return `${dt.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`; };
 
 // ============ 11. РЕНДЕР ============
+
+// ===== TODAY HERO (1 insight + 1 CTA) =====
+window.renderTodayHero = function() {
+  const el = document.getElementById('today-hero'); if (!el) return;
+  const t = window.currentDate;
+  const surveyDone = !!(state.surveys[t]?.evening);
+  const habits = (window.habitsScheduledForDate && window.habitsScheduledForDate(t)) || [];
+  const habitsDone = habits.filter(h => window.isHabitDoneForDate(h, t)).length;
+  const tasks = (state.tasks || []).filter(x => {
+    if (x.recurrence) return window.Tasks?.matchesRecurrence ? Tasks.matchesRecurrence(x, t) : false;
+    return x.date === t;
+  });
+  const tasksOpen = tasks.filter(x => !(window.Tasks?.isTaskDoneOn ? Tasks.isTaskDoneOn(x, t) : x.done)).length;
+  const overdue = window.getOverdueTasks ? window.getOverdueTasks() : [];
+  const anx = state.surveys[t]?.emotions?.anxiety ?? state.surveys[(() => { const d=new Date(t+'T12:00:00');d.setDate(d.getDate()-1);return d.toISOString().slice(0,10);})()]?.emotions?.anxiety;
+
+  let emoji = '☀️', title = 'Хороший день, чтобы двигаться', sub = '', cta = '', ctaFn = '';
+  if (overdue.length) {
+    emoji = '📌'; title = `${overdue.length} просроченных`; sub = 'Разбери хотя бы одну — станет легче'; cta = 'К просроченным'; ctaFn = "window.switchTab('tasks');state.taskFilter='overdue';window.setTaskFilter('overdue')";
+  } else if (!surveyDone && new Date().getHours() >= 18) {
+    emoji = '✨'; title = 'Вечерний опрос'; sub = '3 касания — и день зафиксирован'; cta = 'Пройти опрос'; ctaFn = 'window.openDailySurvey()';
+  } else if (tasksOpen > 0) {
+    emoji = '✅'; title = `${tasksOpen} задач на сегодня`; sub = anx >= 7 ? 'Тревога была высокой — лучше 2–3 дела' : 'Можно начать с фокуса на одной'; cta = 'Фокус 20 мин'; ctaFn = "window.switchTab('focus');window.prepareFocusForAnxiety && window.prepareFocusForAnxiety()";
+  } else if (habits.length && habitsDone < habits.length) {
+    emoji = '🌱'; title = `Привычки ${habitsDone}/${habits.length}`; sub = 'Отметь оставшиеся — серия продолжится'; cta = 'К привычкам'; ctaFn = "document.getElementById('habits-today')?.scrollIntoView({behavior:'smooth'})";
+  } else if (surveyDone && tasksOpen === 0) {
+    emoji = '🎉'; title = 'День закрыт'; sub = 'Опрос есть, задачи в порядке'; cta = 'Статистика'; ctaFn = "window.switchTab('stats')";
+  } else {
+    emoji = '🌿'; title = 'С чего начнём?'; sub = 'Добавь задачу или отметь пульс дня'; cta = 'Новая задача'; ctaFn = 'window.openTaskEditor()';
+  }
+  el.innerHTML = `<div class="today-hero-row"><div class="today-hero-emoji">${emoji}</div><div class="today-hero-text"><div class="today-hero-title">${title}</div><div class="today-hero-sub">${sub}</div></div></div>
+    ${cta ? `<button type="button" class="btn-primary today-hero-cta" onclick="${ctaFn}">${cta}</button>` : ''}`;
+};
+
+window.getOverdueTasks = function() {
+  const today = typeof todayStr === 'function' ? todayStr() : new Date().toISOString().slice(0,10);
+  return (state.tasks || []).filter(t => {
+    if (t.recurrence) return false;
+    if (!t.date || t.date >= today) return false;
+    if (window.Tasks?.isTaskDoneOn) return !Tasks.isTaskDoneOn(t, t.date);
+    return !t.done;
+  });
+};
+
+window.renderOverdueBlock = function() {
+  const el = document.getElementById('overdue-block'); if (!el) return;
+  const list = window.getOverdueTasks();
+  if (!list.length) { el.innerHTML = ''; return; }
+  const rows = list.slice(0, 5).map(t => {
+    const name = escapeHtml(t.title || t.name || 'Без названия');
+    return `<div class="overdue-row" onclick="window.openTaskEditor(${t.id})"><span>⚠️ ${name}</span><span class="overdue-date">${t.date}</span></div>`;
+  }).join('');
+  el.innerHTML = `<div class="card overdue-card"><div class="section-title" style="margin:0 0 8px;"><span>Просрочено (${list.length})</span><span class="link" onclick="window.switchTab('tasks');state.taskFilter='overdue';save();Tasks.renderTasks()">Все →</span></div>${rows}</div>`;
+};
+
+// ===== SLEEP =====
+window.renderSleepCard = function() {
+  const el = document.getElementById('sleep-card-body'); if (!el) return;
+  const t = window.currentDate;
+  const s = (state.sleep && state.sleep[t]) || {};
+  // also from survey
+  const fromSurvey = state.surveys[t]?.physical;
+  const hours = s.hours ?? fromSurvey?.sleepHours;
+  const quality = s.quality;
+  const bed = s.bedTime || fromSurvey?.sleepStart;
+  const wake = s.wakeTime || fromSurvey?.sleepEnd;
+  if (hours == null && !bed && !wake) {
+    el.innerHTML = 'Нет записи — нажми «Изменить»';
+    return;
+  }
+  const qEmoji = quality >= 8 ? '😊' : quality >= 5 ? '😐' : quality ? '😫' : '';
+  el.innerHTML = `<div class="sleep-stats">
+    <div><b>${hours != null ? hours.toFixed(1) + ' ч' : '—'}</b><span>длительность</span></div>
+    <div><b>${qEmoji || '—'} ${quality != null ? quality + '/10' : ''}</b><span>качество</span></div>
+    <div><b>${bed || '—'} → ${wake || '—'}</b><span>лёг · встал</span></div>
+  </div>`;
+};
+
+window.openSleepEditor = function() {
+  const t = window.currentDate;
+  const s = (state.sleep && state.sleep[t]) || {};
+  const fromSurvey = state.surveys[t]?.physical || {};
+  const hours = s.hours ?? fromSurvey.sleepHours ?? '';
+  const quality = s.quality ?? 6;
+  const bed = s.bedTime || fromSurvey.sleepStart || '';
+  const wake = s.wakeTime || fromSurvey.sleepEnd || '';
+  const qChips = [2,4,6,8,10].map(v => `<button type="button" class="score-chip ${quality==v?'active':''}" onclick="window.pickScore('sleep-quality',${v})"><span class="score-emoji">${v>=8?'😊':v>=5?'😐':'😫'}</span><span class="score-label">${v}</span></button>`).join('');
+  window.openSheet(`<h2>😴 Сон</h2>
+    <div class="field"><label>Лёг</label><input type="time" id="sleep-bed" value="${bed}"></div>
+    <div class="field"><label>Встал</label><input type="time" id="sleep-wake" value="${wake}"></div>
+    <div class="field"><label>Часы (если знаешь)</label><input type="number" id="sleep-hours" step="0.5" min="0" max="16" value="${hours}" placeholder="авто из времени"></div>
+    <div class="survey-q"><div class="survey-q-title">Качество</div><div class="score-chips" id="wrap-sleep-quality">${qChips}<input type="hidden" id="sleep-quality" value="${quality}"></div></div>
+    <div class="sheet-actions" style="display:flex;gap:8px;"><button class="btn-cancel" style="flex:1;" onclick="closeSheet()">Отмена</button><button class="btn-primary" style="flex:1;" onclick="window.saveSleep()">Сохранить</button></div>`);
+};
+
+window.saveSleep = function() {
+  const t = window.currentDate;
+  if (!state.sleep) state.sleep = {};
+  let bed = document.getElementById('sleep-bed')?.value || null;
+  let wake = document.getElementById('sleep-wake')?.value || null;
+  let hours = parseFloat(document.getElementById('sleep-hours')?.value);
+  if ((isNaN(hours) || !hours) && bed && wake && window.computeSleepHours) {
+    hours = window.computeSleepHours(bed, wake);
+  }
+  const quality = +document.getElementById('sleep-quality')?.value || null;
+  state.sleep[t] = { hours: isNaN(hours) ? null : hours, quality, bedTime: bed, wakeTime: wake };
+  // mirror into survey physical for correlations
+  if (!state.surveys[t]) state.surveys[t] = {};
+  state.surveys[t].physical = state.surveys[t].physical || {};
+  if (hours) state.surveys[t].physical.sleepHours = hours;
+  if (bed) state.surveys[t].physical.sleepStart = bed;
+  if (wake) state.surveys[t].physical.sleepEnd = wake;
+  save(); closeSheet(); window.renderSleepCard(); window.renderTodayHero();
+  window.showToast && window.showToast('Сон сохранён');
+};
+
+// ===== FOCUS + ANXIETY =====
+window.prepareFocusForAnxiety = function() {
+  const t = window.currentDate || todayStr();
+  let a = state.surveys[t]?.emotions?.anxiety;
+  if (a == null) {
+    const y = new Date(t + 'T12:00:00'); y.setDate(y.getDate() - 1);
+    a = state.surveys[y.toISOString().slice(0,10)]?.emotions?.anxiety;
+  }
+  if (a != null && a >= 7) {
+    const minsEl = document.getElementById('focus-mins');
+    if (minsEl) minsEl.value = 15;
+    if (window.setFocusTime) window.setFocusTime();
+    window.showToast && window.showToast('15 мин — мягкий режим при тревоге');
+  }
+};
+
+window.startFocusWithBreath = function() {
+  const t = window.currentDate || todayStr();
+  let a = state.surveys[t]?.emotions?.anxiety;
+  if (a == null) {
+    const y = new Date(t + 'T12:00:00'); y.setDate(y.getDate() - 1);
+    a = state.surveys[y.toISOString().slice(0,10)]?.emotions?.anxiety;
+  }
+  window.prepareFocusForAnxiety();
+  if (a != null && a >= 7) {
+    window.runBreathThenStart();
+  } else {
+    if (window.startFocusTimer) window.startFocusTimer();
+  }
+};
+
+window.runBreathThenStart = function() {
+  const ov = document.getElementById('breath-overlay');
+  const text = document.getElementById('breath-text');
+  const circle = document.getElementById('breath-circle');
+  if (!ov) { window.startFocusTimer && window.startFocusTimer(); return; }
+  ov.style.display = 'flex';
+  let step = 0;
+  const phases = [
+    { t: 'Вдох…', ms: 2000, scale: 1.2 },
+    { t: 'Ещё вдох…', ms: 800, scale: 1.35 },
+    { t: 'Длинный выдох…', ms: 3500, scale: 1 },
+    { t: 'Ещё раз', ms: 500, scale: 1 },
+    { t: 'Вдох…', ms: 2000, scale: 1.2 },
+    { t: 'Выдох…', ms: 3500, scale: 1 },
+    { t: 'Готов', ms: 600, scale: 1 },
+  ];
+  const run = () => {
+    if (step >= phases.length) {
+      ov.style.display = 'none';
+      window.startFocusTimer && window.startFocusTimer();
+      return;
+    }
+    const p = phases[step++];
+    if (text) text.textContent = p.t;
+    if (circle) circle.style.transform = `scale(${p.scale})`;
+    setTimeout(run, p.ms);
+  };
+  run();
+};
+window.skipBreathAndStart = function() {
+  const ov = document.getElementById('breath-overlay');
+  if (ov) ov.style.display = 'none';
+  window.startFocusTimer && window.startFocusTimer();
+};
+
+// ===== NOTIFICATIONS =====
+window.setupSurveyReminder = async function() {
+  if (!('Notification' in window)) { window.showToast && window.showToast('Уведомления не поддерживаются'); return; }
+  let perm = Notification.permission;
+  if (perm === 'default') perm = await Notification.requestPermission();
+  if (perm !== 'granted') { window.showToast && window.showToast('Разрешение не дано'); return; }
+  state.settings = state.settings || {};
+  state.settings.surveyRemindEnabled = true;
+  save();
+  window.showToast && window.showToast('Напоминание включено (~' + (state.settings.surveyRemindHour ?? 21) + ':00)');
+  window.scheduleSurveyReminderTick();
+};
+
+window.scheduleSurveyReminderTick = function() {
+  if (window.__surveyRemindTimer) clearInterval(window.__surveyRemindTimer);
+  window.__surveyRemindTimer = setInterval(() => {
+    if (!state.settings?.surveyRemindEnabled) return;
+    if (Notification.permission !== 'granted') return;
+    const hour = state.settings.surveyRemindHour ?? 21;
+    const now = new Date();
+    if (now.getHours() !== hour || now.getMinutes() > 2) return;
+    const t = todayStr();
+    if (state.surveys[t]?.evening) return;
+    const key = 'survey_notif_' + t;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, '1');
+    try { new Notification('Cantilena', { body: 'Вечерний опрос — 3 касания, и день в данных.', tag: 'survey' }); } catch(e) {}
+  }, 60000);
+};
+
+// ===== ONBOARDING =====
+window.maybeShowOnboarding = function() {
+  if (state.settings?.onboardingDone) return;
+  if (localStorage.getItem('cantilena_onboard_v1')) {
+    state.settings = state.settings || {};
+    state.settings.onboardingDone = true;
+    save();
+    return;
+  }
+  const el = document.getElementById('onboarding');
+  if (!el) return;
+  el.style.display = 'flex';
+  let step = 0;
+  const steps = el.querySelectorAll('.onboarding-step');
+  const show = () => steps.forEach((s, i) => { s.style.display = i === step ? 'block' : 'none'; });
+  show();
+  document.getElementById('onboard-next').onclick = () => {
+    if (step < 2) { step++; show(); document.getElementById('onboard-next').textContent = step === 2 ? 'Начать' : 'Далее'; }
+    else {
+      el.style.display = 'none';
+      localStorage.setItem('cantilena_onboard_v1', '1');
+      state.settings = state.settings || {};
+      state.settings.onboardingDone = true;
+      save();
+    }
+  };
+  document.getElementById('onboard-skip').onclick = () => {
+    el.style.display = 'none';
+    localStorage.setItem('cantilena_onboard_v1', '1');
+    state.settings = state.settings || {};
+    state.settings.onboardingDone = true;
+    save();
+  };
+};
+
+// ===== WEEKLY IN-APP REPORT =====
+window.renderWeeklyReportCard = function() {
+  const el = document.getElementById('weekly-report-card'); if (!el) return;
+  const days = lastNDates(7);
+  const rates = days.map(d => dayTaskRate(d)).filter(x => x != null);
+  const avgRate = rates.length ? Math.round(avgOf(rates) * 100) : null;
+  const joys = days.map(d => surveyMetric(d, 'emotions.joy')).filter(x => x != null);
+  const avgJoy = joys.length ? avgOf(joys).toFixed(1) : null;
+  const sleepH = days.map(d => state.sleep?.[d]?.hours ?? surveyMetric(d, 'physical.sleepHours')).filter(x => x != null);
+  const avgSleep = sleepH.length ? avgOf(sleepH).toFixed(1) : null;
+  if (avgRate == null && avgJoy == null) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="card weekly-report"><div class="section-title" style="margin:0 0 10px;"><span>🗓 Итоги 7 дней</span><span class="link" onclick="window.exportWeeklyReport()">Файл</span></div>
+    <div class="sleep-stats">
+      <div><b>${avgJoy ?? '—'}</b><span>настроение</span></div>
+      <div><b>${avgRate != null ? avgRate + '%' : '—'}</b><span>задачи</span></div>
+      <div><b>${avgSleep != null ? avgSleep + ' ч' : '—'}</b><span>сон</span></div>
+    </div></div>`;
+};
+
+
 window.renderAll = function() {
   window.updateDateNav(); 
   window.renderHabitsToday(); 
@@ -1053,6 +1330,10 @@ window.renderAll = function() {
   window.updateRings();
   window.renderStats(); 
   window.renderWeeklyCard(); window.renderOnboardTip && window.renderOnboardTip();
+  window.renderTodayHero && window.renderTodayHero();
+  window.renderOverdueBlock && window.renderOverdueBlock();
+  window.renderSleepCard && window.renderSleepCard();
+  window.renderWeeklyReportCard && window.renderWeeklyReportCard();
 };
 
 window.updateRings = function() {
@@ -1066,6 +1347,17 @@ window.updateRings = function() {
 };
 
 // ============ 12. ЭКСПОРТ / ИМПОРТ ============
+window.openDataBackup = function() {
+  window.openSheet(`<h2>Данные и бэкап</h2>
+    <p style="font-size:13px;color:var(--text-sec);margin-bottom:12px;">Скачай копию — можно восстановить на другом устройстве.</p>
+    <button class="btn-primary" style="width:100%;margin-bottom:8px;" onclick="window.exportData();window.closeSheet()">⬇️ Скачать всё (JSON)</button>
+    <button class="btn-cancel" style="width:100%;margin-bottom:8px;" onclick="window.exportWeeklyReport()">🗓 Отчёт за неделю</button>
+    <button class="btn-cancel" style="width:100%;margin-bottom:8px;" onclick="document.getElementById('import-file')?.click();window.closeSheet()">⬆️ Импорт JSON</button>
+    <hr style="border:none;border-top:1px solid var(--separator);margin:16px 0;">
+    <button class="btn-cancel" style="width:100%;margin-bottom:8px;" onclick="window.setupSurveyReminder()">🔔 Напоминание опроса</button>
+    <div class="field"><label>Час напоминания (0–23)</label><input type="number" id="remind-hour" min="0" max="23" value="${state.settings?.surveyRemindHour ?? 21}" onchange="state.settings=state.settings||{};state.settings.surveyRemindHour=+this.value;save();"></div>
+    <button class="btn-cancel" onclick="window.closeSheet()">Закрыть</button>`);
+};
 window.exportData = function() { const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `cantilena-backup-${todayStr()}.json`; a.click(); URL.revokeObjectURL(url); };
 window.exportCSV = function() { let csv = "Дата,Настроение,Продуктивность,Тревога,Энергия,Смысл,Сон_ч\n"; Object.keys(state.surveys).sort().forEach(d => { const s = state.surveys[d]; const avg = (state.moods[d] || []).length ? Math.round(state.moods[d].reduce((sum, m) => sum + m.val, 0) / state.moods[d].length) : ''; csv += `${d},${avg},${s.mental?.productivity || ''},${s.emotions?.anxiety || ''},${s.physical?.energy || ''},${s.mental?.meaning || ''},${s.physical?.sleepHours || ''}\n`; }); const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `cantilena-data-${todayStr()}.csv`; a.click(); };
 window.importData = function(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = ev => { try { const data = JSON.parse(ev.target.result); if (!data || !Array.isArray(data.habits)) throw new Error('Неверный формат'); if (!confirm('Заменить данные?')) return; const newState = migrateState(data); Object.keys(state).forEach(k => delete state[k]); Object.assign(state, newState); save(); window.renderAll(); alert('Импорт успешно!'); } catch (err) { alert('Ошибка: ' + err.message); } }; reader.readAsText(file); e.target.value = ''; };
@@ -1119,10 +1411,15 @@ function updateFocusDisplay() {
     const branches = document.getElementById('tree-branches');
     const leaves = document.getElementById('tree-leaves');
     const seed = document.getElementById('tree-seed');
-    if (trunk) trunk.style.opacity = String(0.3 + progress * 0.7);
-    if (branches) branches.style.opacity = String(Math.max(0, (progress - 0.2) / 0.5));
-    if (leaves) leaves.style.opacity = String(Math.max(0, (progress - 0.45) / 0.55));
-    if (seed) seed.style.opacity = String(progress < 0.15 ? 1 : Math.max(0, 1 - progress * 2));
+    const container = document.getElementById('tree-container');
+    if (trunk) trunk.style.opacity = String(0.25 + progress * 0.75);
+    if (branches) branches.style.opacity = String(Math.max(0, (progress - 0.18) / 0.45));
+    if (leaves) leaves.style.opacity = String(Math.max(0, (progress - 0.42) / 0.5));
+    if (seed) seed.style.opacity = String(progress < 0.12 ? 1 : Math.max(0, 1 - progress * 2.2));
+    if (container) {
+      container.classList.toggle('growing', progress > 0.05 && progress < 0.95);
+      container.style.transform = `scale(${1 + progress * 0.04})`;
+    }
   }
 }
 
