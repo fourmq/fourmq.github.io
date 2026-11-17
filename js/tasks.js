@@ -347,7 +347,7 @@ export function renderTasks() {
     else tasks = state.tasks.filter(t => t.done || (t.recurrence && Object.values(t.completions || {}).some(Boolean)));
     
     tasks.sort((a, b) => { if (a.done !== b.done) return a.done ? 1 : -1; if (a.priority !== b.priority) return a.priority - b.priority; if (a.date && b.date) return a.date.localeCompare(b.date); if (a.date) return -1; if (b.date) return 1; return 0; });
-    content.innerHTML = subchips + (tasks.length ? `<div class="card tight">${tasks.map(t => taskRowHTML(t, t.date || realToday)).join('')}</div>` : `<div class="card"><div class="empty-hint">Нет задач в этой категории.</div></div>`);
+    content.innerHTML = subchips + (tasks.length ? `<div class="card tight">${tasks.map(t => taskRowHTML(t, t.date || realToday)).join('')}</div>` : `<div class="card"><div class="empty-hint">Пока пусто в этой категории.</div></div>`);
     return;
   }
   
@@ -390,7 +390,8 @@ function renderTodoistCalendar() {
       const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
       const hasTasks = state.tasks.some(t => t.date === dateStr);
       const isToday = dateStr === realToday;
-      miniCal += `<div class="mini-cal-day ${hasTasks ? 'has-tasks' : ''} ${isToday ? 'today' : ''}" onclick="event.stopPropagation();window.goToDate('${dateStr}')">${d}</div>`;
+      const isSelected = dateStr === (window._calendarAnchor || window.currentDate);
+      miniCal += `<div class="mini-cal-day ${hasTasks ? 'has-tasks' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" onclick="event.stopPropagation();window.goToDate('${dateStr}')">${d}</div>`;
     }
   } else {
     // Показываем только текущую неделю
@@ -404,17 +405,19 @@ function renderTodoistCalendar() {
       const dateStr = d.toISOString().slice(0, 10);
       const hasTasks = state.tasks.some(t => t.date === dateStr);
       const isToday = dateStr === realToday;
-      miniCal += `<div class="mini-cal-day ${hasTasks ? 'has-tasks' : ''} ${isToday ? 'today' : ''}" onclick="event.stopPropagation();window.goToDate('${dateStr}')">${d.getDate()}</div>`;
+      const isSelected = dateStr === (window._calendarAnchor || window.currentDate);
+      miniCal += `<div class="mini-cal-day ${hasTasks ? 'has-tasks' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" onclick="event.stopPropagation();window.goToDate('${dateStr}')">${d.getDate()}</div>`;
     }
   }
   miniCal += `</div></div>`;
 
   // Все дни недели (или месяца)
   let listHtml = '';
-  const startDate = new Date(); 
-  startDate.setDate(startDate.getDate() - 3); // Смотрим на 3 дня назад
-  
+  // Якорь — выбранная дата (клик по дню в мини-календаре)
+  const anchorStr = window._calendarAnchor || window.currentDate || realToday;
+  const startDate = new Date(anchorStr + 'T12:00:00');
   const daysToRender = calendarExpanded ? 31 : 7;
+  // Свёрнутый вид: 7 дней начиная с выбранной даты
   const listStart = calendarExpanded ? new Date(y, m, 1) : new Date(startDate);
 
   for (let i = 0; i < daysToRender; i++) {
@@ -422,19 +425,20 @@ function renderTodoistCalendar() {
     const dateStr = d.toISOString().slice(0, 10);
     const dayName = WEEKDAYS_LONG[d.getDay()];
     const isToday = dateStr === realToday;
+    const isSelected = dateStr === (window._calendarAnchor || window.currentDate);
     
     const dayTasks = state.tasks.filter(t => t.recurrence ? matchesRecurrence(t, dateStr) : t.date === dateStr);
     dayTasks.sort((a, b) => a.priority - b.priority);
     let dateLabel = `${d.getDate()} ${['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'][d.getMonth()]}`;
     
     listHtml += `
-      <div style="margin-bottom: 24px;">
-        <div style="font-size: 13px; font-weight: 700; color: ${isToday ? 'var(--td-red)' : 'var(--text)'}; margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center;">
-          <span>${dateLabel} · ${dayName} ${isToday ? '(Сегодня)' : ''}</span>
+      <div style="margin-bottom: 24px;" id="cal-day-${dateStr}">
+        <div style="font-size: 13px; font-weight: 700; color: ${isSelected || isToday ? 'var(--td-red)' : 'var(--text)'}; margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center;">
+          <span>${dateLabel} · ${dayName}${isToday ? ' · Сегодня' : ''}${isSelected && !isToday ? ' · Выбрано' : ''}</span>
           <button onclick="window.setCurrentDateAndOpenTask('${dateStr}')" style="background:none;border:none;color:var(--text-sec);cursor:pointer;padding:4px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         </div>
         <div class="card tight" style="margin-bottom:0; min-height: 40px;" ondragover="event.preventDefault(); this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="window.dropTask(event, '${dateStr}'); this.classList.remove('drag-over')">
-          ${dayTasks.length ? dayTasks.map(t => taskRowHTML(t, dateStr, { hideDate: true, draggable: true })).join('') : '<div style="font-size:12px;color:var(--text-tert);text-align:center;padding:8px;">Нет задач</div>'}
+          ${dayTasks.length ? dayTasks.map(t => taskRowHTML(t, dateStr, { hideDate: true, draggable: true })).join('') : '<div style="font-size:12px;color:var(--text-tert);text-align:center;padding:8px;">Пока пусто</div>'}
         </div>
       </div>
     `;
@@ -444,8 +448,10 @@ function renderTodoistCalendar() {
 }
 
 window.goToDate = function(dateStr) {
+  // Как в Todoist: остаёмся в календаре, выбранная дата становится якорем списка
   window.currentDate = dateStr;
-  state.taskFilter = 'today';
+  state.taskFilter = 'calendar';
+  window._calendarAnchor = dateStr; // список дней начинается с этой даты
   haptic();
   window.renderAll();
   if (!document.getElementById('screen-tasks')?.classList.contains('active')) {
@@ -468,7 +474,8 @@ export function renderTasksTodayMini() {
     if (aDone !== bDone) return aDone - bDone; 
     return a.priority - b.priority; 
   });
-  document.getElementById('tasks-today-mini').innerHTML = tasks.length ? tasks.map(x => taskRowHTML(x, t)).join('') : '<div class="empty-hint">Задач нет. Нажмите +, чтобы добавить.</div>';
+  document.getElementById('tasks-today-mini').innerHTML = tasks.length ? tasks.map(x => taskRowHTML(x, t)).join('') : '<div class="empty-hint warm">🍃 Список пуст — можно выдохнуть или добавить одну важную.</div>';
+  if (window.renderAnxietyTaskHint) window.renderAnxietyTaskHint();
 }
 
 export function openProject(id) {
