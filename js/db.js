@@ -22,7 +22,7 @@ export function migrateState(s) {
   });
   s.tasks = (s.tasks || []).map(t => ({ id: t.id || uid(), title: t.title || '', description: t.description || '', done: t.done || false, date: t.date || null, startTime: t.startTime || null, duration: t.duration || null, priority: t.priority || 4, projectId: t.projectId || null, subtasks: t.subtasks || [], tags: t.tags || [], recurrence: t.recurrence || null, completions: t.completions || {}, createdAt: t.createdAt || Date.now() }));
   s.projects = s.projects || [{ id: 1, name: 'Личное', color: '#007AFF' }];
-  s.notes = (s.notes || []).map(n => ({ id: n.id || uid(), title: n.title || 'Без названия', body: n.body || '', folderId: n.folderId || null, pinned: n.pinned || false, createdAt: n.createdAt || Date.now(), updatedAt: n.updatedAt || Date.now() }));
+  s.notes = (s.notes || []).map(n => ({ id: n.id || uid(), title: n.title || 'Без названия', body: n.body || '', folderId: n.folderId || null, pinned: n.pinned || false, createdAt: n.createdAt || Date.now(), updatedAt: n.updatedAt || Date.now(), deletedAt: n.deletedAt || null }));
   s.noteFolders = s.noteFolders || [{ id: 'default', name: 'Заметки', icon: '📝' }];
   if (s.taskFilter === 'inbox') s.taskFilter = 'all';
   s.taskFilter = s.taskFilter || 'today';
