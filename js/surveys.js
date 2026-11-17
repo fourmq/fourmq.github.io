@@ -117,66 +117,100 @@ export function openDailySurvey() {
       onclick="window.toggleContextTag('${t.id}')">${t.icon} ${t.label}</button>
   `).join('');
 
-  const e = nearestChip(s.physical?.energy ?? 6, ENERGY_L);
-  const a = nearestChip(s.emotions?.anxiety ?? 4, ANX_L);
-  const m = nearestChip(s.mental?.meaning ?? 6, MEANING_L);
-  const p = nearestChip(s.mental?.productivity ?? 6, PROD_L);
+  // yesterday for one-tap
+  const yest = (() => { const d = new Date(dateStr + 'T12:00:00'); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); })();
+  const ys = state.surveys[yest];
+  const canCopy = !!(ys && ys.evening);
+
+  const e = nearestChip(s.physical?.energy ?? ys?.physical?.energy ?? 6, ENERGY_L);
+  const a = nearestChip(s.emotions?.anxiety ?? ys?.emotions?.anxiety ?? 4, ANX_L);
+  const m = nearestChip(s.mental?.meaning ?? ys?.mental?.meaning ?? 6, MEANING_L);
+  const pr = nearestChip(s.mental?.productivity ?? ys?.mental?.productivity ?? 6, PROD_L);
 
   window.openSheet(`
     <h2 style="margin-bottom:4px;">Как прошёл день?</h2>
-    <p style="font-size:13px;color:var(--text-sec);margin-bottom:16px;">
-      ${avgMood != null ? `Среднее настроение сегодня: ${avgMood}/10` : 'Пара касаний — и готово'}
+    <p style="font-size:13px;color:var(--text-sec);margin-bottom:12px;">
+      ${avgMood != null ? `Настроение сегодня: ${avgMood}/10 · ` : ''}Три ответа — уже достаточно
     </p>
+    ${canCopy ? `<button type="button" class="btn-cancel" style="width:100%;margin-bottom:14px;font-size:14px;" onclick="window.copyYesterdaySurvey()">↩ Как вчера</button>` : ''}
 
     <div class="survey-q">
-      <div class="survey-q-title">🔋 Как по энергии?</div>
+      <div class="survey-q-title">🔋 Энергия</div>
       ${scoreChips('d-energy', e, ENERGY_L)}
     </div>
-
     <div class="survey-q">
-      <div class="survey-q-title">💭 Насколько было тревожно?</div>
+      <div class="survey-q-title">💭 Тревога</div>
       ${scoreChips('d-anx', a, ANX_L)}
     </div>
-
     <div class="survey-q">
-      <div class="survey-q-title">✨ День был осмысленным?</div>
-      ${scoreChips('d-meaning', m, MEANING_L)}
+      <div class="survey-q-title">🎯 Сделал дела?</div>
+      ${scoreChips('d-prod', pr, PROD_L)}
     </div>
 
-    <div class="survey-q">
-      <div class="survey-q-title">🎯 Насколько ты «сделал дела»?</div>
-      ${scoreChips('d-prod', p, PROD_L)}
-    </div>
-
-    <div class="survey-q">
-      <div class="survey-q-title">😴 Сон</div>
-      <div style="display:flex;gap:10px;">
-        <div class="field" style="flex:1;margin:0;"><label>Лёг</label><input type="time" id="d-sleep-start" value="${s.physical?.sleepStart || ''}"></div>
-        <div class="field" style="flex:1;margin:0;"><label>Встал</label><input type="time" id="d-sleep-end" value="${s.physical?.sleepEnd || ''}"></div>
+    <details class="survey-more" id="survey-more">
+      <summary>Ещё (сон, смысл, теги…)</summary>
+      <div class="survey-q">
+        <div class="survey-q-title">✨ Смысл дня</div>
+        ${scoreChips('d-meaning', m, MEANING_L)}
       </div>
-    </div>
+      <div class="survey-q">
+        <div class="survey-q-title">😴 Сон</div>
+        <div style="display:flex;gap:10px;">
+          <div class="field" style="flex:1;margin:0;"><label>Лёг</label><input type="time" id="d-sleep-start" value="${s.physical?.sleepStart || ys?.physical?.sleepStart || ''}"></div>
+          <div class="field" style="flex:1;margin:0;"><label>Встал</label><input type="time" id="d-sleep-end" value="${s.physical?.sleepEnd || ys?.physical?.sleepEnd || ''}"></div>
+        </div>
+      </div>
+      <div class="survey-q">
+        <div class="survey-q-title">🚶 Движение</div>
+        ${moveChips(s.physical?.movement ?? ys?.physical?.movement ?? 0)}
+      </div>
+      <div class="survey-q">
+        <div class="survey-q-title">Что влияло?</div>
+        <div class="ctx-tags">${tagsHtml}</div>
+      </div>
+      <div class="survey-q">
+        <div class="survey-q-title">${todayPrompt}</div>
+        <textarea id="d-gratitude" rows="2" placeholder="По желанию…">${escapeHtml(gratitude)}</textarea>
+      </div>
+    </details>
 
-    <div class="survey-q">
-      <div class="survey-q-title">🚶 Движение сегодня</div>
-      ${moveChips(s.physical?.movement || 0)}
-    </div>
-
-    <div class="survey-q">
-      <div class="survey-q-title">Что влияло на день?</div>
-      <div class="ctx-tags">${tagsHtml}</div>
-    </div>
-
-    <div class="survey-q">
-      <div class="survey-q-title">${todayPrompt}</div>
-      <textarea id="d-gratitude" rows="3" placeholder="Можно коротко, своими словами…">${escapeHtml(gratitude)}</textarea>
-    </div>
-
-    <div class="sheet-actions" style="display:flex;gap:8px;">
+    <div class="sheet-actions" style="display:flex;gap:8px;margin-top:12px;">
       <button class="btn-cancel" style="flex:1;" onclick="window.closeSheet()">Позже</button>
       <button class="btn-primary" style="flex:1;" onclick="window.saveDailySurvey()">Готово</button>
     </div>
   `);
+  // ensure hidden meaning exists if details closed - create defaults in save
 }
+
+window.copyYesterdaySurvey = function() {
+  const dateStr = window.currentDate;
+  const yest = (() => { const d = new Date(dateStr + 'T12:00:00'); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); })();
+  const ys = state.surveys[yest];
+  if (!ys) return;
+  const map = [
+    ['d-energy', ys.physical?.energy],
+    ['d-anx', ys.emotions?.anxiety],
+    ['d-prod', ys.mental?.productivity],
+    ['d-meaning', ys.mental?.meaning],
+  ];
+  map.forEach(([id, v]) => {
+    if (v == null) return;
+    const nearest = [2,4,6,8,10].reduce((best, x) => Math.abs(x - v) < Math.abs(best - v) ? x : best, 6);
+    window.pickScore(id, nearest);
+  });
+  if (ys.physical?.sleepStart) { const el = document.getElementById('d-sleep-start'); if (el) el.value = ys.physical.sleepStart; }
+  if (ys.physical?.sleepEnd) { const el = document.getElementById('d-sleep-end'); if (el) el.value = ys.physical.sleepEnd; }
+  if (ys.physical?.movement != null) window.pickScore('d-movement', ys.physical.movement >= 60 ? 60 : [0,15,30,45,60].find(x => x >= ys.physical.movement) || 0);
+  tempContextTags = [...(ys.contextTags || [])];
+  window.tempContextTags = tempContextTags;
+  document.querySelectorAll('.ctx-tag').forEach(btn => {
+    const id = btn.id.replace('tag-', '');
+    btn.classList.toggle('on', tempContextTags.includes(id));
+  });
+  haptic && haptic('success');
+  window.showToast && window.showToast('Скопировано со вчера');
+};
+
 
 export function openChangelog() {
   const itemsHtml = CHANGELOG.map(c => `
@@ -272,21 +306,29 @@ export function saveDailySurvey() {
   s.evening = true;
   s.eveningTime = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 
+  const val = (id, def) => {
+    const el = document.getElementById(id);
+    if (!el || el.value === '' || el.value == null) return def;
+    return +el.value;
+  };
   s.mental = s.mental || {};
-  s.mental.productivity = +document.getElementById('d-prod').value;
-  s.mental.meaning = +document.getElementById('d-meaning').value;
+  s.mental.productivity = val('d-prod', s.mental.productivity ?? 6);
+  s.mental.meaning = val('d-meaning', s.mental.meaning ?? 6);
   s.emotions = s.emotions || {};
-  s.emotions.anxiety = +document.getElementById('d-anx').value;
+  s.emotions.anxiety = val('d-anx', s.emotions.anxiety ?? 4);
   s.physical = s.physical || {};
-  s.physical.energy = +document.getElementById('d-energy').value;
-  s.physical.sleepStart = document.getElementById('d-sleep-start').value || null;
-  s.physical.sleepEnd = document.getElementById('d-sleep-end').value || null;
+  s.physical.energy = val('d-energy', s.physical.energy ?? 6);
+  const ss = document.getElementById('d-sleep-start');
+  const se = document.getElementById('d-sleep-end');
+  s.physical.sleepStart = ss?.value || s.physical.sleepStart || null;
+  s.physical.sleepEnd = se?.value || s.physical.sleepEnd || null;
   s.physical.sleepHours = window.computeSleepHours ? window.computeSleepHours(s.physical.sleepStart, s.physical.sleepEnd) : null;
-  s.physical.movement = parseFloat(document.getElementById('d-movement').value) || 0;
+  s.physical.movement = val('d-movement', s.physical.movement ?? 0);
 
   s.reflection = s.reflection || {};
-  s.reflection.gratitude = document.getElementById('d-gratitude').value.trim();
-  s.contextTags = window.tempContextTags || [];
+  const g = document.getElementById('d-gratitude');
+  s.reflection.gratitude = g ? g.value.trim() : (s.reflection.gratitude || '');
+  s.contextTags = window.tempContextTags || s.contextTags || [];
 
   const moods = state.moods[dateStr] || [];
   if (moods.length) s.emotions.joy = Math.round(moods.reduce((sum, m) => sum + m.val, 0) / moods.length);
