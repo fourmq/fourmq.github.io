@@ -177,9 +177,17 @@ window.updateDateNav = function() {
   }
 };
 
+window.forceCloseSheets = function() {
+  const s = document.getElementById('sheet');
+  const b = document.getElementById('backdrop');
+  if (s) { s.classList.remove('open'); s.style.transform = ''; }
+  if (b) b.classList.remove('open');
+  const po = document.getElementById('popover-overlay');
+  if (po) po.classList.remove('open');
+};
 window.switchTab = function(name) {
   if (name === 'today') window.currentDate = todayStr();
-  if (window.closeSheet) window.closeSheet();
+  window.forceCloseSheets && window.forceCloseSheets();
   window.updateTopbar(); // Сразу меняем заголовок, чтобы не было задержки
   
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
@@ -1118,8 +1126,7 @@ window.renderTodayHero = function() {
   } else {
     emoji = '🌿'; title = 'С чего начнём?'; sub = 'Добавь задачу или отметь пульс дня'; cta = 'Новая задача'; ctaFn = 'window.openTaskEditor()';
   }
-  el.innerHTML = `<div class="today-hero-row"><div class="today-hero-emoji">${emoji}</div><div class="today-hero-text"><div class="today-hero-title">${title}</div><div class="today-hero-sub">${sub}</div></div></div>
-    ${cta ? `<button type="button" class="btn-primary today-hero-cta" onclick="${ctaFn}">${cta}</button>` : ''}`;
+  el.innerHTML = `<div class="today-hero-row" onclick="${ctaFn || ''}" style="cursor:${ctaFn ? 'pointer' : 'default'}"><div class="today-hero-emoji">${emoji}</div><div class="today-hero-text"><div class="today-hero-title">${title}</div><div class="today-hero-sub">${sub}</div></div>${cta ? `<span class="today-hero-link">${cta} →</span>` : ''}</div>`;
 };
 
 window.getOverdueTasks = function() {
