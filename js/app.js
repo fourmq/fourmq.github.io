@@ -1,4 +1,4 @@
-import { todayStr, haptic, escapeHtml, svgIcon, APP_VERSION, playSound, playTick, showToast, uid, PALETTE, WEEKDAYS_SHORT, WEEKDAYS_LONG, formatDateHuman, stripHtml, ICONS } from './utils.js';
+import { todayStr, haptic, escapeHtml, svgIcon, APP_VERSION, playSound, playTick, playTimerStart, playTimerEnd, showToast, uid, PALETTE, WEEKDAYS_SHORT, WEEKDAYS_LONG, formatDateHuman, stripHtml, ICONS } from './utils.js';
 import { state, save, initSupabase, pullFromCloud, pushToCloud, migrateState, supabaseClient, currentUser } from './db.js';
 import * as Tasks from './tasks.js';
 import * as Surveys from './surveys.js';
@@ -7,7 +7,7 @@ import * as Surveys from './surveys.js';
 window.currentDate = todayStr();
 window.taskWeekOffset = 0;
 window.haptic = haptic;
-window.playSound = playSound;
+window.playSound = playSound; window.playTimerStart = playTimerStart; window.playTimerEnd = playTimerEnd;
 window.showToast = showToast;
 
 window.openTaskEditor = Tasks.openTaskEditor;
@@ -1484,7 +1484,7 @@ window.startFocusTimer = function() {
   }
   
   if (focusTotalTime <= 0) setFocusTime();
-  playTick();
+  playTimerStart();
   
   document.getElementById('focus-setup-controls').style.display = 'none';
   document.getElementById('focus-start-btn-container').style.display = 'none';
@@ -1562,7 +1562,7 @@ function completeFocusSession() {
   setTimeout(() => { if(treePath) treePath.classList.remove('tree-completed'); }, 3000);
   
   if (focusMode === 'focus') {
-    playSound('success');
+    playTimerEnd();
     
     if (!state.focusSessions) state.focusSessions = []; 
     const taskSelect = document.getElementById('focus-task-select'); 
@@ -1648,3 +1648,15 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('focus-auto-break').checked = state.focusSettings.autoBreak;
   document.getElementById('focus-auto-complete').checked = state.focusSettings.autoComplete;
 });
+
+// Auto-hide scrollbar
+(function() {
+  const main = document.querySelector('main');
+  if (!main) return;
+  let timer;
+  main.addEventListener('scroll', () => {
+    main.classList.add('is-scrolling');
+    clearTimeout(timer);
+    timer = setTimeout(() => main.classList.remove('is-scrolling'), 800);
+  }, { passive: true });
+})();
