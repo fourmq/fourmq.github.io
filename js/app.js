@@ -297,7 +297,7 @@ window.renderHabitsToday = function() {
   const el = document.getElementById('habits-today');
   const t = window.currentDate;
   const list = window.habitsScheduledForDate(t);
-  if (!list.length) { el.innerHTML = '<div class="empty-hint">Нет привычек на этот день.<br>Нажмите ⚙️, чтобы настроить.</div>'; return; }
+  if (!list.length) { el.innerHTML = '<div class="empty-hint">🌱 Пока тихий день.<br>Можно добавить привычку в ⚙️</div>'; return; }
   
   let html = '';
   list.forEach(h => {
@@ -508,7 +508,7 @@ window.renderNotes = function() {
   }
   if (search) notes = notes.filter(n => (n.title || '').toLowerCase().includes(search) || stripHtml(n.body).toLowerCase().includes(search));
   notes.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (b.updatedAt || 0) - (a.updatedAt || 0));
-  if (!notes.length) { el.innerHTML = isTrash ? '<div class="empty-hint">Корзина пуста</div>' : '<div class="empty-hint">Заметок нет.<br>Нажмите +, чтобы создать.</div>'; return; }
+  if (!notes.length) { el.innerHTML = isTrash ? '<div class="empty-hint">🗑 Корзина пуста — и это хорошо</div>' : '<div class="empty-hint">📝 Здесь будут твои мысли.<br>Нажми +, когда захочешь</div>'; return; }
   
   let notesHtml = '';
   notes.forEach(n => {
@@ -530,7 +530,7 @@ window.renderNotes = function() {
         </div>
       </div>`;
   });
-  el.innerHTML = notesHtml;
+  el.innerHTML = notesHtml + (isTrash ? '<button class="btn-cancel" style="width:100%;margin-top:12px;" onclick="window.clearOldTrash()">Очистить старше 30 дней</button>' : '');
 };
 
 window.deleteNoteById = function(id) {
@@ -548,6 +548,17 @@ window.restoreNote = function(id) {
   haptic('success'); save(); window.renderNotes();
   window.showToast('Восстановлено');
 };
+
+window.clearOldTrash = function() {
+  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const toRemove = (state.notes || []).filter(n => n.deletedAt && n.deletedAt < cutoff);
+  if (!toRemove.length) { window.showToast('Нечего удалять'); return; }
+  if (!confirm(`Удалить навсегда ${toRemove.length} зам. старше 30 дней?`)) return;
+  const ids = new Set(toRemove.map(n => n.id));
+  state.notes = state.notes.filter(n => !ids.has(n.id));
+  haptic(); save(); window.renderNotes(); window.showToast(`Удалено: ${toRemove.length}`);
+};
+
 window.permanentlyDeleteNote = function(id) {
   if (!confirm('Удалить навсегда? Это нельзя отменить.')) return;
   state.notes = state.notes.filter(n => n.id !== id);
@@ -675,7 +686,51 @@ window.deleteCurrentNote = function() {
 function lastNDates(n){const a=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);a.push(d.toISOString().slice(0,10))}return a}
 function avgOf(a){const v=a.filter(x=>x!=null&&!isNaN(x));return v.length?v.reduce((x,y)=>x+y,0)/v.length:null}
 function corr(xs,ys){const p=xs.map((x,i)=>[x,ys[i]]).filter(([x,y])=>x!=null&&y!=null&&!isNaN(x)&&!isNaN(y));const n=p.length;if(n<3)return null;const mx=p.reduce((a,q)=>a+q[0],0)/n,my=p.reduce((a,q)=>a+q[1],0)/n;let num=0,dx=0,dy=0;for(const[x,y]of p){num+=(x-mx)*(y-my);dx+=(x-mx)**2;dy+=(y-my)**2}const den=Math.sqrt(dx*dy);return den?num/den:null}
+
+function dayTaskRate(dateStr) {
+  const tasks = (state.tasks || []).filter(t => {
+    if (t.recurrence) return typeof matchesRecurrence === 'function' ? matchesRecurrence(t, dateStr) : (window.Tasks && Tasks.matchesRecurrence ? Tasks.matchesRecurrence(t, dateStr) : false);
+    return t.date === dateStr;
+  });
+  if (!tasks.length) return null;
+  const done = tasks.filter(t => {
+    if (window.Tasks && Tasks.isTaskDoneOn) return Tasks.isTaskDoneOn(t, dateStr);
+    if (typeof isTaskDoneOn === 'function') return isTaskDoneOn(t, dateStr);
+    return !!t.done;
+  }).length;
+  return done / tasks.length;
+}
+
 function surveyMetric(dateStr,path){const s=state.surveys[dateStr];if(!s)return null;const val=path.split('.').reduce((o,k)=>o&&o[k],s);if(val!=null)return val;return null}
+
+
+window.exportWeeklyReport = function() {
+  const days = lastNDates(7);
+  const lines = ['# Недельный отчёт Cantilena', ''];
+  days.forEach(d => {
+    const s = state.surveys[d] || {};
+    const rate = dayTaskRate(d);
+    lines.push(`## ${d}`);
+    lines.push(`- Энергия: ${s.physical?.energy ?? '—'} · Тревога: ${s.emotions?.anxiety ?? '—'} · Продуктивность: ${s.mental?.productivity ?? '—'}`);
+    lines.push(`- Задачи: ${rate != null ? Math.round(rate * 100) + '%' : '—'}`);
+    if (s.reflection?.gratitude) lines.push(`- Заметка: ${s.reflection.gratitude}`);
+    lines.push('');
+  });
+  const wk = window.isoWeek ? window.isoWeek() : '';
+  const ws = state.weeklySurveys?.[wk];
+  if (ws) {
+    lines.push('## Компас недели');
+    lines.push(`- Цель: ${ws.goal || '—'}`);
+    lines.push(`- Прогресс: ${ws.progress ?? '—'}/10`);
+    lines.push(`- Урок: ${ws.lesson || '—'}`);
+  }
+  const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `cantilena-week-${days[0]}.md`;
+  a.click();
+  window.showToast && window.showToast('Отчёт скачан');
+};
 
 window.renderStats = function() {
   const d14 = lastNDates(14);
@@ -781,11 +836,39 @@ function renderStatsGrid() {
 }
 
 function renderWeekdayPatterns() {
-  const el = document.getElementById('weekday-patterns'); const days = lastNDates(60); const buckets = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] }, prods = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
-  days.forEach(d => { if (!state.surveys[d]) return; const wd = new Date(d + 'T12:00:00').getDay(); const joy = surveyMetric(d, 'emotions.joy'); const prod = surveyMetric(d, 'mental.productivity'); if (joy != null) buckets[wd].push(joy); if (prod != null) prods[wd].push(prod); });
-  const rows = [1, 2, 3, 4, 5, 6, 0].map(wd => ({ wd, name: WEEKDAYS_LONG[wd], joy: avgOf(buckets[wd]), prod: avgOf(prods[wd]) }));
-  if (!rows.some(r => r.joy != null || r.prod != null)) { el.innerHTML = '<div class="empty-hint">Пройдите опрос за 2-3 недели, чтобы увидеть паттерны по дням недели.</div>'; return; }
-  el.innerHTML = rows.map(r => { const w = (r.joy || 0) / 10 * 100; return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px;"><div style="width:100px;color:var(--text-sec);">${r.name}</div><div style="flex:1;height:8px;background:var(--input-bg);border-radius:4px;overflow:hidden;"><div style="height:100%;background:linear-gradient(90deg,var(--pink),var(--orange));width:${w}%;transition:width .6s"></div></div><div style="width:70px;text-align:right;font-weight:600;">${r.joy != null ? r.joy.toFixed(1) : '—'} / ${r.prod != null ? r.prod.toFixed(1) : '—'}</div></div>`; }).join('') + '<div style="font-size:11px;color:var(--text-sec);text-align:center;margin-top:8px;">Настроение / Продуктивность</div>';
+  const el = document.getElementById('weekday-patterns'); if (!el) return;
+  const days = lastNDates(60);
+  const buckets = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+  const prods = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+  const rates = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+  days.forEach(d => {
+    if (!state.surveys[d] && dayTaskRate(d) == null) return;
+    const wd = new Date(d + 'T12:00:00').getDay();
+    const joy = surveyMetric(d, 'emotions.joy');
+    const prod = surveyMetric(d, 'mental.productivity');
+    const rate = dayTaskRate(d);
+    if (joy != null) buckets[wd].push(joy);
+    if (prod != null) prods[wd].push(prod);
+    if (rate != null) rates[wd].push(rate);
+  });
+  const emojiFor = (v) => v == null ? '·' : v >= 8 ? '😄' : v >= 6 ? '🙂' : v >= 4 ? '😐' : '😔';
+  const rows = [1, 2, 3, 4, 5, 6, 0].map(wd => ({
+    wd, name: WEEKDAYS_LONG[wd],
+    joy: avgOf(buckets[wd]), prod: avgOf(prods[wd]), rate: avgOf(rates[wd])
+  }));
+  if (!rows.some(r => r.joy != null || r.prod != null || r.rate != null)) {
+    el.innerHTML = '<div class="empty-hint warm">📅 Через 2–3 недели здесь появятся «хорошие» и «тяжёлые» дни недели.</div>';
+    return;
+  }
+  el.innerHTML = `<div class="weekday-cards">` + rows.map(r => {
+    const w = r.joy != null ? (r.joy / 10 * 100) : 0;
+    const ratePct = r.rate != null ? Math.round(r.rate * 100) + '%' : '—';
+    return `<div class="weekday-card">
+      <div class="weekday-card-top"><span class="weekday-emoji">${emojiFor(r.joy)}</span><span class="weekday-name">${r.name.slice(0,2)}</span></div>
+      <div class="weekday-bar"><div style="width:${w}%"></div></div>
+      <div class="weekday-meta">${r.joy != null ? r.joy.toFixed(1) : '—'} · задачи ${ratePct}</div>
+    </div>`;
+  }).join('') + `</div>`;
 }
 
 function renderCorrMatrix() {
@@ -798,22 +881,82 @@ function renderCorrMatrix() {
 }
 
 function renderAutoInsights() {
-  const el = document.getElementById('auto-insights'); if (!el) return; const days = lastNDates(30); const insights = [];
-  const lowSleep = days.filter(d => { const h = state.surveys[d]?.physical?.sleepHours; return h != null && h < 7; }); const normSleep = days.filter(d => { const h = state.surveys[d]?.physical?.sleepHours; return h != null && h >= 7; });
-  const lowAnx = avgOf(lowSleep.map(d => state.surveys[d]?.emotions?.anxiety)); const normAnx = avgOf(normSleep.map(d => state.surveys[d]?.emotions?.anxiety));
-  if (lowAnx != null && normAnx != null && Math.abs(lowAnx - normAnx) > 0.3) { const diff = (lowAnx - normAnx).toFixed(1); insights.push({ icon: '😴', text: lowAnx > normAnx ? `Когда сон < 7 ч, тревога в среднем на ${diff} выше` : `Когда сон < 7 ч, тревога в среднем на ${Math.abs(diff)} ниже` }); }
-  const moveDays = days.filter(d => (state.surveys[d]?.physical?.movement || 0) >= 20); const noMoveDays = days.filter(d => (state.surveys[d]?.physical?.movement || 0) < 20 && state.surveys[d]);
-  const moveMood = avgOf(moveDays.map(d => state.surveys[d]?.emotions?.joy)); const noMoveMood = avgOf(noMoveDays.map(d => state.surveys[d]?.emotions?.joy));
-  if (moveMood != null && noMoveMood != null && moveMood - noMoveMood > 0.5) { insights.push({ icon: '🏃', text: `В дни с движением настроение на ${(moveMood - noMoveMood).toFixed(1)} выше` }); }
-  const sleepVals = days.map(d => state.surveys[d]?.physical?.sleepHours).filter(v => v != null);
-  if (sleepVals.length >= 5) { const mean = avgOf(sleepVals); const variance = avgOf(sleepVals.map(v => (v - mean) ** 2)); const std = Math.sqrt(variance); insights.push({ icon: '⏰', text: `Сон в среднем ${mean.toFixed(1)} ч, стабильность ±${std.toFixed(1)} ч` }); }
-  const last28 = lastNDates(28); const w1 = last28.slice(0, 14), w2 = last28.slice(14);
-  const anx1 = avgOf(w1.map(d => state.surveys[d]?.emotions?.anxiety)); const anx2 = avgOf(w2.map(d => state.surveys[d]?.emotions?.anxiety));
-  if (anx1 != null && anx2 != null && Math.abs(anx2 - anx1) > 0.5) { const dir = anx2 < anx1 ? '↓' : '↑'; insights.push({ icon: anx2 < anx1 ? '📉' : '📈', text: `Тревога за 2 недели ${dir} на ${Math.abs(anx2 - anx1).toFixed(1)}` }); }
-  const joy1 = avgOf(w1.map(d => state.surveys[d]?.emotions?.joy)); const joy2 = avgOf(w2.map(d => state.surveys[d]?.emotions?.joy));
-  if (joy1 != null && joy2 != null && Math.abs(joy2 - joy1) > 0.5) { const dir = joy2 > joy1 ? '↑' : '↓'; insights.push({ icon: joy2 > joy1 ? '🌟' : '💧', text: `Настроение за 2 недели ${dir} на ${Math.abs(joy2 - joy1).toFixed(1)}` }); }
-  if (!insights.length) { const daysWithData = days.filter(d => state.surveys[d]?.evening).length; if (daysWithData < 3) el.innerHTML = `<div class="empty-hint">📊 Собираем данные (${daysWithData}/3 дня).</div>`; else el.innerHTML = `<div class="empty-hint">📊 Пока значимых паттернов не найдено.</div>`; return; }
-  el.innerHTML = insights.map(i => `<div class="insight"><span class="insight-icon">${i.icon}</span>${escapeHtml(i.text)}</div>`).join('');
+  const el = document.getElementById('auto-insights'); if (!el) return;
+  const days = lastNDates(30);
+  const insights = [];
+
+  // Emotion ↔ task completion
+  const joyArr = [], rateArr = [], anxArr = [], energyArr = [];
+  days.forEach(d => {
+    const rate = dayTaskRate(d);
+    if (rate == null) return;
+    const joy = surveyMetric(d, 'emotions.joy');
+    const anx = surveyMetric(d, 'emotions.anxiety');
+    const en = surveyMetric(d, 'physical.energy');
+    if (joy != null) { joyArr.push(joy); rateArr.push(rate); }
+    if (anx != null) anxArr.push({ anx, rate });
+    if (en != null) energyArr.push({ en, rate });
+  });
+  if (joyArr.length >= 5) {
+    const r = corr(joyArr, rateArr);
+    if (r != null && Math.abs(r) > 0.25) {
+      insights.push(r > 0
+        ? { e: '✅', t: `В дни с лучшим настроением ты закрываешь больше задач (связь r=${r.toFixed(2)}).` }
+        : { e: '🤔', t: `Настроение и закрытие задач связаны слабо/обратно (r=${r.toFixed(2)}).` });
+    }
+  }
+  if (anxArr.length >= 5) {
+    const high = anxArr.filter(x => x.anx >= 7);
+    const low = anxArr.filter(x => x.anx <= 4);
+    if (high.length >= 2 && low.length >= 2) {
+      const hAvg = avgOf(high.map(x => x.rate));
+      const lAvg = avgOf(low.map(x => x.rate));
+      if (hAvg != null && lAvg != null && lAvg - hAvg > 0.1) {
+        const pct = Math.round((lAvg - hAvg) * 100);
+        insights.push({ e: '🫧', t: `В дни с высокой тревогой закрываешь примерно на ${pct}% меньше задач. Имеет смысл планировать меньше.` });
+      }
+    }
+  }
+  if (energyArr.length >= 5) {
+    const high = energyArr.filter(x => x.en >= 7);
+    const low = energyArr.filter(x => x.en <= 4);
+    if (high.length >= 2 && low.length >= 2) {
+      const hAvg = avgOf(high.map(x => x.rate));
+      const lAvg = avgOf(low.map(x => x.rate));
+      if (hAvg != null && lAvg != null && hAvg - lAvg > 0.1) {
+        insights.push({ e: '⚡', t: `При высокой энергии задачи закрываются заметно лучше. Лови такие дни для важного.` });
+      }
+    }
+  }
+
+  // Sleep / anxiety classics
+  const lowSleep = days.filter(d => { const h = state.surveys[d]?.physical?.sleepHours; return h != null && h < 7; });
+  const normSleep = days.filter(d => { const h = state.surveys[d]?.physical?.sleepHours; return h != null && h >= 7; });
+  const lowAnx = avgOf(lowSleep.map(d => state.surveys[d]?.emotions?.anxiety));
+  const normAnx = avgOf(normSleep.map(d => state.surveys[d]?.emotions?.anxiety));
+  if (lowAnx != null && normAnx != null && lowAnx > normAnx + 0.8) {
+    insights.push({ e: '😴', t: `После короткого сна тревога выше (~${lowAnx.toFixed(1)} vs ${normAnx.toFixed(1)}). Сон — рычаг.` });
+  }
+  const moveDays = days.filter(d => (state.surveys[d]?.physical?.movement || 0) >= 20);
+  const noMoveDays = days.filter(d => (state.surveys[d]?.physical?.movement || 0) < 20 && state.surveys[d]);
+  const moveMood = avgOf(moveDays.map(d => state.surveys[d]?.emotions?.joy));
+  const noMoveMood = avgOf(noMoveDays.map(d => state.surveys[d]?.emotions?.joy));
+  if (moveMood != null && noMoveMood != null && moveMood > noMoveMood + 0.5) {
+    insights.push({ e: '🚶', t: `В дни с движением настроение выше (${moveMood.toFixed(1)} vs ${noMoveMood.toFixed(1)}).` });
+  }
+  const w1 = lastNDates(14).slice(0, 7), w2 = lastNDates(7);
+  const anx1 = avgOf(w1.map(d => state.surveys[d]?.emotions?.anxiety));
+  const anx2 = avgOf(w2.map(d => state.surveys[d]?.emotions?.anxiety));
+  if (anx1 != null && anx2 != null && anx2 > anx1 + 1) insights.push({ e: '📈', t: 'Тревога на этой неделе выше прошлой. Можно снизить нагрузку.' });
+  if (anx1 != null && anx2 != null && anx1 > anx2 + 1) insights.push({ e: '📉', t: 'Тревога снизилась по сравнению с прошлой неделей — хороший знак.' });
+
+  if (!insights.length) {
+    const daysWithData = days.filter(d => state.surveys[d]?.evening).length;
+    if (daysWithData < 3) el.innerHTML = `<div class="empty-hint warm">🌱 Пока рано для выводов. Ещё ${3 - daysWithData} вечерних опроса — и появятся паттерны.</div>`;
+    else el.innerHTML = `<div class="empty-hint warm">✨ Пока резких паттернов нет — это тоже нормально. Продолжай отмечать дни.</div>`;
+    return;
+  }
+  el.innerHTML = insights.slice(0, 4).map(i => `<div class="insight">${i.e} ${escapeHtml(i.t)}</div>`).join('');
 }
 
 function renderTrends4W() {
@@ -831,8 +974,8 @@ function renderPsyProfile() {
   if (stress != null) { burnRisk += stress; parts++; } if (energy != null) { burnRisk += (10 - energy); parts++; } if (anx != null) { burnRisk += anx; parts++; } if (sleepQ != null) { burnRisk += (10 - sleepQ); parts++; }
   const burn = parts ? burnRisk / parts : 0; const burnLabel = burn > 7 ? '🔴 Высокий' : burn > 5 ? '🟡 Умеренный' : burn > 0 ? '🟢 Низкий' : '—';
   const sleepCorr = corr(days.map(d => surveyMetric(d, 'physical.sleepHours')), days.map(d => surveyMetric(d, 'emotions.joy'))); const screenAnx = corr(days.map(d => surveyMetric(d, 'screen.totalHours')), days.map(d => surveyMetric(d, 'emotions.anxiety')));
-  if (balance == null && burn === 0 && sleepCorr == null && meaning == null) { el.innerHTML = '<div class="expert-badge badge-psy">Психолог</div><div class="empty-hint">Пройди 2-3 вечерних опроса, чтобы получить психологический профиль.</div>'; return; }
-  el.innerHTML = `<div class="expert-badge badge-psy">Психолог</div><div class="insight"><b>Эмоциональный баланс:</b> ${balanceLabel} ${balance != null ? `(${balance.toFixed(1)})` : ''}</div><div class="insight"><b>Индикатор выгорания:</b> ${burnLabel} ${burn ? `(${burn.toFixed(1)}/10)` : ''}</div>${meaning != null ? `<div class="insight"><b>Ощущение смысла:</b> ${meaning.toFixed(1)}/10 ${meaning < 5 ? '— стоит проверить ценности' : '— хороший знак'}</div>` : ''}${sleepCorr != null && Math.abs(sleepCorr) > 0.3 ? `<div class="insight"><b>Сон влияет на настроение:</b> r=${sleepCorr.toFixed(2)}</div>` : ''}${screenAnx != null && Math.abs(screenAnx) > 0.3 ? `<div class="insight"><b>Экран ↔ тревога:</b> r=${screenAnx.toFixed(2)}</div>` : ''}<div class="insight" style="color:var(--text-sec);font-size:13px;">На основе ${days.filter(d => state.surveys[d]).length} опросов за 14 дней</div>`;
+  if (balance == null && burn === 0 && sleepCorr == null && meaning == null) { el.innerHTML = '<div class="expert-badge badge-psy">Картина недели</div><div class="empty-hint">Пройди 2-3 вечерних опроса, чтобы получить картину недели.</div>'; return; }
+  el.innerHTML = `<div class="expert-badge badge-psy">Картина недели</div><div class="insight">🙂 <b>Баланс:</b> ${balanceLabel} ${balance != null ? `(${balance.toFixed(1)})` : ''}</div><div class="insight">🔥 <b>Нагрузка:</b> ${burnLabel} ${burn ? `(${burn.toFixed(1)}/10)` : ''}</div>${meaning != null ? `<div class="insight">✨ <b>Смысл:</b> ${meaning.toFixed(1)}/10 ${meaning < 5 ? '— стоит проверить ценности' : '— хороший знак'}</div>` : ''}${sleepCorr != null && Math.abs(sleepCorr) > 0.3 ? `<div class="insight"><b>Сон влияет на настроение:</b> r=${sleepCorr.toFixed(2)}</div>` : ''}${screenAnx != null && Math.abs(screenAnx) > 0.3 ? `<div class="insight"><b>Экран ↔ тревога:</b> r=${screenAnx.toFixed(2)}</div>` : ''}<div class="insight" style="color:var(--text-sec);font-size:13px;">На основе ${days.filter(d => state.surveys[d]).length} опросов за 14 дней</div>`;
 }
 
 function renderPedRecommendations() {
@@ -849,6 +992,38 @@ function renderYearInPixels() {
   const el = document.getElementById('year-grid'); if (!el) return; const days = []; for (let i = 364; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(d.toISOString().slice(0, 10)); }
   el.innerHTML = days.map(d => { const sPct = state.surveys[d]?.evening ? 1 : 0; const sched = window.habitsScheduledForDate(d); const hPct = sched.length ? sched.filter(h => window.isHabitDoneForDate(h, d)).length / sched.length : 0; const tToday = state.tasks.filter(x => x.recurrence ? Tasks.matchesRecurrence(x, d) : x.date === d); const tPct = tToday.length ? tToday.filter(x => Tasks.isTaskDoneOn(x, d)).length / tToday.length : 0; const score = (sPct + hPct + tPct) / 3; let cls = ''; if (score > 0.75) cls = 'level-4'; else if (score > 0.5) cls = 'level-3'; else if (score > 0.25) cls = 'level-2'; else if (score > 0) cls = 'level-1'; return `<div class="year-cell ${cls}" title="${d}"></div>`; }).join('');
 }
+
+
+
+window.renderAnxietyTaskHint = function() {
+  const t = window.currentDate || (typeof todayStr === 'function' ? todayStr() : new Date().toISOString().slice(0,10));
+  const el = document.getElementById('tasks-today-mini');
+  if (!el || !el.parentElement) return;
+  el.parentElement.querySelectorAll('.anxiety-task-hint').forEach(n => n.remove());
+  let a = state.surveys[t]?.emotions?.anxiety;
+  if (a == null) {
+    const y = new Date(t + 'T12:00:00'); y.setDate(y.getDate() - 1);
+    a = state.surveys[y.toISOString().slice(0,10)]?.emotions?.anxiety;
+  }
+  if (a == null || a < 7) return;
+  const tip = document.createElement('div');
+  tip.className = 'anxiety-task-hint onboard-tip';
+  tip.style.marginBottom = '10px';
+  tip.innerHTML = '<div>🫧 Тревога была высокой. На сегодня лучше <b>2–3 задачи</b>, не больше.</div>';
+  el.parentElement.insertBefore(tip, el);
+};
+
+window.renderOnboardTip = function() {
+  const el = document.getElementById('onboard-survey-tip');
+  if (!el) return;
+  if (localStorage.getItem('cantilena_tip_survey_v1')) { el.innerHTML = ''; return; }
+  const daysWith = Object.keys(state.surveys || {}).filter(d => state.surveys[d]?.evening).length;
+  if (daysWith >= 5) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="onboard-tip">
+    <div>✨ <b>Зачем вечерний опрос?</b><br>3 касания — и статистика начнёт показывать твои паттерны: сон, тревога, задачи.</div>
+    <button type="button" onclick="localStorage.setItem('cantilena_tip_survey_v1','1');this.parentElement.remove()" aria-label="Закрыть">×</button>
+  </div>`;
+};
 
 window.renderWeeklyCard = function() {
   const container = document.getElementById('weekly-survey-container'); if (!container) return; const wk = window.isoWeek(); const s = state.weeklySurveys[wk]; const passed = s && s.ts;
@@ -877,7 +1052,7 @@ window.renderAll = function() {
   window.renderNotes(); 
   window.updateRings();
   window.renderStats(); 
-  window.renderWeeklyCard();
+  window.renderWeeklyCard(); window.renderOnboardTip && window.renderOnboardTip();
 };
 
 window.updateRings = function() {
@@ -1086,7 +1261,7 @@ window.renderFocusHistory = function() {
   const el = document.getElementById('focus-history-list');
   if (!el) return;
   const sessions = (state.focusSessions || []).slice().sort((a,b) => b.ts - a.ts).slice(0, 5);
-  if (!sessions.length) { el.innerHTML = '<div class="empty-hint">Пока нет завершенных сессий</div>'; return; }
+  if (!sessions.length) { el.innerHTML = '<div class="empty-hint">🌲 Первое дерево ещё впереди. Запусти фокус, когда будешь готов</div>'; return; }
   
   el.innerHTML = sessions.map(s => {
     const dt = new Date(s.ts);
