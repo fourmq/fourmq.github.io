@@ -39,12 +39,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-s
 
 
 /* ЗАСТАВКА */
-#splash{position:fixed;inset:0;background:#3E1728;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s ease-out, visibility .6s;cursor:pointer}
+#splash{position:fixed;inset:0;background:#F2F2F7;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s ease-out, visibility .6s;cursor:pointer}
 #splash.hidden{opacity:0;visibility:hidden}
 #splash { animation: forceHideSplash .4s ease 2.5s forwards; }
 @keyframes forceHideSplash { to { opacity: 0; visibility: hidden; pointer-events: none; } }
 .splash-svg{width:200px;height:200px;margin-bottom:20px;overflow:visible}
-.splash-title{color:#F2A0C0;font-size:28px;font-weight:700;letter-spacing:2px;opacity:0;animation:fadeIn 1s .5s forwards}
+.splash-title{color:#FF375F;font-size:28px;font-weight:700;letter-spacing:2px;opacity:0;animation:fadeIn 1s .5s forwards}
 @keyframes fadeIn{to{opacity:1}}
 
 .main-area{flex:1;display:flex;flex-direction:column;min-width:0;position:relative;overflow:hidden}
@@ -842,4 +842,11 @@ input:checked + .slider:before{transform:translateX(18px)}
   .day-status, .today-hero, .progress-card { max-width: 680px; margin-left: auto; margin-right: auto; }
   .section-title { max-width: 680px; margin-left: auto; margin-right: auto; }
   #tasks-today-mini, #habits-today, #overdue-block, #weekly-report-card { max-width: 680px; margin-left: auto; margin-right: auto; }
+}
+
+/* Desktop: separator under brand */
+.sidebar-brand {
+  border-bottom: 1px solid var(--separator);
+  margin-bottom: 16px;
+  padding-bottom: 16px;
 }
