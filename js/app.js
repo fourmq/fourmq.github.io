@@ -36,7 +36,7 @@ window.saveWeeklySurvey = Surveys.saveWeeklySurvey;
   document.addEventListener('touchstart', e => {
     const s = sheet();
     if (!s || !s.classList.contains('open')) return;
-    const handle = e.target.closest('.sheet') && (e.target === s || e.target.closest('.sheet::before') || e.clientY - s.getBoundingClientRect().top < 40);
+    const touchY = e.touches[0].clientY; const handle = e.target.closest('.sheet') && (e.target === s || touchY - s.getBoundingClientRect().top < 48);
     if (handle || (e.target.closest('.sheet') && e.target.scrollTop === 0 && e.touches[0].clientY < s.getBoundingClientRect().top + 50)) {
       startY = e.touches[0].clientY;
       dragging = true;
