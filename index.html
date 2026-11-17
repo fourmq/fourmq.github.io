@@ -111,21 +111,18 @@ window.addEventListener('error', function(event) {
         <!-- Главная петля: 1 вывод + 1 действие -->
         <div class="card today-hero" id="today-hero"></div>
 
-        <div class="card progress-card">
-          <div class="progress-row">
-            <div class="progress-label"><span class="dot" style="background:var(--pink)"></span>Опрос</div>
-            <div class="progress-track"><div class="progress-fill" id="bar-survey" style="width:0%;background:var(--pink)"></div></div>
-            <div class="progress-pct" id="pct-survey">0%</div>
+        <div class="card day-status">
+          <div class="status-item">
+            <div class="status-ring" id="ring-survey-wrap"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="var(--pink-soft)" stroke-width="3"/><circle id="ring-survey" cx="18" cy="18" r="15" fill="none" stroke="var(--pink)" stroke-width="3" stroke-linecap="round" transform="rotate(-90 18 18)"/></svg><span id="pct-survey">0%</span></div>
+            <div class="status-label">Опрос</div>
           </div>
-          <div class="progress-row">
-            <div class="progress-label"><span class="dot" style="background:var(--green)"></span>Привычки</div>
-            <div class="progress-track"><div class="progress-fill" id="bar-habits" style="width:0%;background:var(--green)"></div></div>
-            <div class="progress-pct" id="pct-habits">0%</div>
+          <div class="status-item">
+            <div class="status-ring" id="ring-habits-wrap"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="var(--green-soft)" stroke-width="3"/><circle id="ring-habits" cx="18" cy="18" r="15" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" transform="rotate(-90 18 18)"/></svg><span id="pct-habits">0%</span></div>
+            <div class="status-label">Привычки</div>
           </div>
-          <div class="progress-row">
-            <div class="progress-label"><span class="dot" style="background:var(--td-red)"></span>Задачи</div>
-            <div class="progress-track"><div class="progress-fill" id="bar-tasks" style="width:0%;background:var(--td-red)"></div></div>
-            <div class="progress-pct" id="pct-tasks">0%</div>
+          <div class="status-item">
+            <div class="status-ring" id="ring-tasks-wrap"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="rgba(219,76,63,0.15)" stroke-width="3"/><circle id="ring-tasks" cx="18" cy="18" r="15" fill="none" stroke="var(--td-red)" stroke-width="3" stroke-linecap="round" transform="rotate(-90 18 18)"/></svg><span id="pct-tasks">0%</span></div>
+            <div class="status-label">Задачи</div>
           </div>
         </div>
 
