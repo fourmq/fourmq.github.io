@@ -6,7 +6,20 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<script>
+(function(){
+  try {
+    const raw = localStorage.getItem('cantilena_v21');
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    const sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const dark = s.theme === 'dark' || (s.theme === 'auto' && sysDark);
+    if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+  } catch(e) {}
+})();
+</script>
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='115' fill='%231D1D1F'/%3E%3Cpath d='M 70 340 C 120 220, 170 200, 220 270 C 270 340, 310 380, 360 340 C 400 310, 420 280, 440 250' fill='none' stroke='%23FF375F' stroke-width='28' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='115' fill='%231D1D1F'/%3E%3Cpath d='M 70 340 C 120 220, 170 200, 220 270 C 270 340, 310 380, 360 340 C 400 310, 420 280, 440 250' fill='none' stroke='%23FF375F' stroke-width='28' stroke-linecap='round'/%3E%3C/svg%3E">
 <title>Cantilena</title>
 <link rel="stylesheet" href="style.css">
@@ -248,6 +261,7 @@ window.addEventListener('error', function(event) {
         </div>
         
         <div id="note-edit-view" style="display:none; flex-direction:column; height:100%;">
+          <div id="note-placeholder" style="display:none; align-items:center; justify-content:center; flex:1; color:var(--text-sec); font-size:16px;">Выберите заметку</div>
           <div class="note-ios-header">
             <button class="note-ios-back" onclick="closeNoteEditor()">‹ Заметки</button>
             <div id="note-header-actions" style="display:flex;gap:4px;">
