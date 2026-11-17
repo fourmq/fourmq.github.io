@@ -1,5 +1,5 @@
 import { todayStr, haptic, escapeHtml, svgIcon, APP_VERSION, playSound, playTick, playTimerStart, playTimerEnd, showToast, uid, PALETTE, WEEKDAYS_SHORT, WEEKDAYS_LONG, formatDateHuman, stripHtml, ICONS } from './utils.js';
-import { state, save, initSupabase, pullFromCloud, pushToCloud, migrateState, supabaseClient, currentUser } from './db.js';
+import { state, save, initSupabase, pullFromCloud, pushToCloud, migrateState, supabaseClient, currentUser, setSupabaseClient, setCurrentUser } from './db.js';
 import * as Tasks from './tasks.js';
 import * as Surveys from './surveys.js';
 
@@ -642,7 +642,7 @@ window.openNote = function(id) {
   if (!n) return;
   currentNoteId = id;
   document.getElementById('edit-note-title').value = n.title || '';
-  document.getElementById('edit-note-body').innerHTML = n.body || '';
+  document.getElementById('edit-note-body').innerHTML = stripHtml(n.body || '');
   document.getElementById('notes-list-view').style.display = 'none';
   const edit = document.getElementById('note-edit-view');
   edit.style.display = 'flex';
@@ -1551,8 +1551,9 @@ window.toggleFocusTimer = function() {
     document.getElementById('floating-timer').classList.remove('active'); 
     document.getElementById('focus-status').textContent = focusMode === 'break' ? 'Отдых...' : 'В процессе...';
     
+    const endAt = Date.now() + focusTimeLeft * 1000;
     focusInterval = setInterval(() => { 
-      focusTimeLeft--; 
+      focusTimeLeft = Math.max(0, Math.round((endAt - Date.now()) / 1000));
       updateFocusDisplay(); 
       if (focusTimeLeft <= 0) completeFocusSession(); 
     }, 1000);
@@ -1667,15 +1668,16 @@ document.addEventListener('change', (e) => {
 });
 
 // ============ 14. СИНХРОНИЗАЦИЯ ============
-window.loginWithPassword = async function() { const email = document.getElementById('sb-email').value.trim(); const password = document.getElementById('sb-password').value; const url = document.getElementById('sb-url').value.trim(); const key = document.getElementById('sb-key').value.trim(); if (!email || !password || !url || !key) { alert('Заполните все поля'); return; } state.supabase.url = url; state.supabase.key = key; state.supabase.email = email; save(); try { if (!supabaseClient) supabaseClient = window.supabase.createClient(url, key); const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password }); if (error) throw error; currentUser = data.user; window.closeSheet(); window.renderAll(); } catch (e) { alert('Ошибка: ' + e.message); } };
-window.registerWithPassword = async function() { const email = document.getElementById('sb-email').value.trim(); const password = document.getElementById('sb-password').value; const url = document.getElementById('sb-url').value.trim(); const key = document.getElementById('sb-key').value.trim(); if (!email || !password || !url || !key) { alert('Заполните все поля'); return; } state.supabase.url = url; state.supabase.key = key; state.supabase.email = email; save(); try { if (!supabaseClient) supabaseClient = window.supabase.createClient(url, key); const { data, error } = await supabaseClient.auth.signUp({ email, password }); if (error) throw error; currentUser = data.user; window.closeSheet(); window.renderAll(); } catch (e) { alert('Ошибка: ' + e.message); } };
+window.loginWithPassword = async function() { const email = document.getElementById('sb-email').value.trim(); const password = document.getElementById('sb-password').value; const url = document.getElementById('sb-url').value.trim(); const key = document.getElementById('sb-key').value.trim(); if (!email || !password || !url || !key) { alert('Заполните все поля'); return; } state.supabase.url = url; state.supabase.key = key; state.supabase.email = email; save(); try { if (!supabaseClient) setSupabaseClient(window.supabase.createClient(url, key)); const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password }); if (error) throw error; setCurrentUser(data.user); window.closeSheet(); window.renderAll(); } catch (e) { alert('Ошибка: ' + e.message); } };
+window.registerWithPassword = async function() { const email = document.getElementById('sb-email').value.trim(); const password = document.getElementById('sb-password').value; const url = document.getElementById('sb-url').value.trim(); const key = document.getElementById('sb-key').value.trim(); if (!email || !password || !url || !key) { alert('Заполните все поля'); return; } state.supabase.url = url; state.supabase.key = key; state.supabase.email = email; save(); try { if (!supabaseClient) setSupabaseClient(window.supabase.createClient(url, key)); const { data, error } = await supabaseClient.auth.signUp({ email, password }); if (error) throw error; setCurrentUser(data.user); window.closeSheet(); window.renderAll(); } catch (e) { alert('Ошибка: ' + e.message); } };
 window.manualSync = async function() { await pullFromCloud(false, false); await pushToCloud(); window.showToast('🔄 Синхронизировано'); window.closeSheet(); };
-window.signOut = async function() { if (window.supabaseClient) await window.supabaseClient.auth.signOut(); window.currentUser = null; window.updateSyncStatus('online', 'Не вошли'); window.closeSheet(); window.showToast('Вы вышли из аккаунта'); };
+window.signOut = async function() { if (supabaseClient) await supabaseClient.auth.signOut(); setCurrentUser(null); window.updateSyncStatus('online', 'Не вошли'); window.closeSheet(); window.showToast('Вы вышли из аккаунта'); };
 window.manualSyncWithUI = async function(btn) { const icon = btn.querySelector('.sync-icon'); if (icon) icon.classList.add('spinning'); await pullFromCloud(false, false); await pushToCloud(); if (icon) icon.classList.remove('spinning'); window.showToast('🔄 Обновлено'); };
 
 document.addEventListener('DOMContentLoaded', () => {
   window.renderAll();
   initSupabase();
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
   const splash = document.getElementById('splash'); if (splash) setTimeout(() => splash.classList.add('hidden'), 1500);
   document.getElementById('splash').addEventListener('click', () => document.getElementById('splash').classList.add('hidden'));
   
@@ -1697,3 +1699,8 @@ document.addEventListener('DOMContentLoaded', () => {
     timer = setTimeout(() => main.classList.remove('is-scrolling'), 800);
   }, { passive: true });
 })();
+
+window.addEventListener('unhandledrejection', (e) => {
+  console.warn('Unhandled:', e.reason);
+  if (window.showToast) window.showToast('Что-то пошло не так');
+});
