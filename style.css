@@ -607,3 +607,66 @@ input:checked + .slider:before{transform:translateX(18px)}
 @media (max-width: 899px) {
   .sidebar-footer { display: none; }
 }
+
+/* Auto-hiding scrollbar on desktop */
+@media (min-width: 900px) {
+  main, .screen, .sidebar {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+  main::-webkit-scrollbar, .screen::-webkit-scrollbar, .sidebar::-webkit-scrollbar {
+    width: 8px;
+  }
+  main::-webkit-scrollbar-track, .screen::-webkit-scrollbar-track, .sidebar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  main::-webkit-scrollbar-thumb, .screen::-webkit-scrollbar-thumb, .sidebar::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 4px;
+    transition: background 0.3s;
+  }
+  main.is-scrolling::-webkit-scrollbar-thumb,
+  .screen.is-scrolling::-webkit-scrollbar-thumb,
+  .sidebar.is-scrolling::-webkit-scrollbar-thumb,
+  main:hover::-webkit-scrollbar-thumb,
+  .sidebar:hover::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.25);
+  }
+  main.is-scrolling, .sidebar.is-scrolling {
+    scrollbar-color: rgba(0,0,0,0.25) transparent;
+  }
+}
+
+
+/* Desktop: sheets become centered modals */
+@media (min-width: 900px) {
+  .sheet {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    bottom: auto;
+    right: auto;
+    width: min(520px, 90vw);
+    max-height: 80vh;
+    border-radius: 16px;
+    padding: 8px 20px 20px;
+    transform: translate(-50%, -46%) scale(0.96);
+    opacity: 0;
+    pointer-events: none;
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  }
+  .sheet.open {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .sheet-handle-wrap { display: none; }
+  .backdrop { position: fixed; }
+}
+
+@media (min-width: 900px) {
+  .sheet h2 { font-size: 20px; margin: 4px 0 12px; }
+  .sheet .sheet-actions { margin-top: 16px; }
+  .td-editor { gap: 12px; }
+  .td-title-input { font-size: 20px; }
+}
