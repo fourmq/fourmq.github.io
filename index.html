@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0, user-scalable=yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
@@ -168,7 +168,7 @@ window.addEventListener('error', function(event) {
           <div class="tree-container" id="tree-container">
             <svg class="tree-svg" viewBox="0 0 100 110" id="focus-tree-svg">
               <ellipse cx="50" cy="102" rx="28" ry="4" fill="var(--green)" opacity="0.15"/>
-              <path id="tree-trunk" d="M50 100 L50 55" stroke="#8B5A2B" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.3"/>
+              <path id="tree-trunk" class="tree-path" d="M50 100 L50 55" stroke="#8B5A2B" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.3"/>
               <g id="tree-branches" opacity="0">
                 <path d="M50 70 C40 65, 32 55, 28 42" stroke="#8B5A2B" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                 <path d="M50 70 C60 65, 68 55, 72 42" stroke="#8B5A2B" stroke-width="2.5" fill="none" stroke-linecap="round"/>
@@ -237,7 +237,7 @@ window.addEventListener('error', function(event) {
       <section id="screen-notes" class="screen">
         <div id="notes-list-view" style="flex:1; overflow-y:auto;">
           <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
-            <input id="notes-search" placeholder="Поиск по заметкам" placeholder="Поиск" style="flex:1;padding:10px;border-radius:10px;border:none;background:var(--chip-bg);color:var(--text);outline:none;font-size:16px;height:42px;">
+            <input id="notes-search" placeholder="Поиск по заметкам" style="flex:1;padding:10px;border-radius:10px;border:none;background:var(--chip-bg);color:var(--text);outline:none;font-size:16px;height:42px;">
           </div>
           <div class="folder-chips" id="folder-chips" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;"></div>
           <div class="card tight" id="notes-list"></div>
