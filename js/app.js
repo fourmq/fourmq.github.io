@@ -28,6 +28,39 @@ window.saveDailySurvey = Surveys.saveDailySurvey;
 window.saveWeeklySurvey = Surveys.saveWeeklySurvey;
 
 // ============ 2. БАЗОВЫЕ UI ФУНКЦИИ ============
+
+// Sheet swipe-to-close
+(function() {
+  let startY = 0, currentY = 0, dragging = false;
+  const sheet = () => document.getElementById('sheet');
+  document.addEventListener('touchstart', e => {
+    const s = sheet();
+    if (!s || !s.classList.contains('open')) return;
+    const handle = e.target.closest('.sheet') && (e.target === s || e.target.closest('.sheet::before') || e.clientY - s.getBoundingClientRect().top < 40);
+    if (handle || (e.target.closest('.sheet') && e.target.scrollTop === 0 && e.touches[0].clientY < s.getBoundingClientRect().top + 50)) {
+      startY = e.touches[0].clientY;
+      dragging = true;
+    }
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    currentY = e.touches[0].clientY;
+    const dy = currentY - startY;
+    if (dy > 0) {
+      const s = sheet();
+      if (s) s.style.transform = `translateY(${dy}px)`;
+    }
+  }, { passive: true });
+  document.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false;
+    const dy = currentY - startY;
+    const s = sheet();
+    if (s) s.style.transform = '';
+    if (dy > 80) window.closeSheet();
+  });
+})();
+
 window.openSheet = (html) => { document.getElementById('sheet-content').innerHTML = html; document.getElementById('sheet').classList.add('open'); document.getElementById('backdrop').classList.add('open'); };
 window.closeSheet = () => { const s = document.getElementById('sheet'); s.classList.remove('open'); document.getElementById('backdrop').classList.remove('open'); window.closePopover(); };
 window.closePopover = () => { document.getElementById('popover-overlay').classList.remove('open'); };
@@ -146,6 +179,7 @@ window.updateDateNav = function() {
 
 window.switchTab = function(name) {
   if (name === 'today') window.currentDate = todayStr();
+  if (window.closeSheet) window.closeSheet();
   window.updateTopbar(); // Сразу меняем заголовок, чтобы не было задержки
   
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
@@ -967,7 +1001,7 @@ function renderAutoInsights() {
     else el.innerHTML = `<div class="empty-hint warm">✨ Пока резких паттернов нет — это тоже нормально. Продолжай отмечать дни.</div>`;
     return;
   }
-  el.innerHTML = insights.slice(0, 4).map(i => `<div class="insight">${i.e} ${escapeHtml(i.t)}</div>`).join('');
+  el.innerHTML = insights.slice(0, 4).map(i => `<div class="insight-card"><span class="insight-emoji">${i.e}</span><span class="insight-text">${escapeHtml(i.t)}</span></div>`).join('');
 }
 
 function renderTrends4W() {
@@ -1339,8 +1373,8 @@ window.renderAll = function() {
 
 window.updateRings = function() {
   const t = window.currentDate; const sPct = state.surveys[t]?.evening ? 1 : 0; const sched = window.habitsScheduledForDate(t); const hPct = sched.length ? sched.filter(h => window.isHabitDoneForDate(h, t)).length / sched.length : 0; const tToday = state.tasks.filter(x => x.recurrence ? Tasks.matchesRecurrence(x, t) : x.date === t); const tPct = tToday.length ? tToday.filter(x => Tasks.isTaskDoneOn(x, t)).length / tToday.length : 0;
-  const setBar = (id, pct) => { const el = document.getElementById(id); if (el) el.style.width = Math.round(Math.max(0, Math.min(1, pct)) * 100) + '%'; };
-  setBar('bar-survey', sPct); setBar('bar-habits', hPct); setBar('bar-tasks', tPct);
+  const setMiniRing = (id, pct) => { const el = document.getElementById(id); if (!el) return; const c = 2 * Math.PI * 15; el.setAttribute('stroke-dasharray', `${c * Math.max(0, Math.min(1, pct))} ${c}`); };
+  setMiniRing('ring-survey', sPct); setMiniRing('ring-habits', hPct); setMiniRing('ring-tasks', tPct);
   document.getElementById('pct-survey').textContent = Math.round(sPct * 100) + '%'; document.getElementById('pct-habits').textContent = Math.round(hPct * 100) + '%'; document.getElementById('pct-tasks').textContent = Math.round(tPct * 100) + '%';
   const btn = document.getElementById('survey-btn'); const btnContent = document.getElementById('survey-btn-content'); const btnTime = document.getElementById('survey-btn-time');
   if (sPct) { btn.classList.add('done'); btnContent.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg> <span>Опрос пройден</span>`; btnTime.textContent = state.surveys[t].eveningTime || 'Сегодня'; }
@@ -1419,8 +1453,11 @@ function updateFocusDisplay() {
     if (seed) seed.style.opacity = String(progress < 0.12 ? 1 : Math.max(0, 1 - progress * 2.2));
     if (container) {
       container.classList.toggle('growing', progress > 0.05 && progress < 0.95);
-      container.style.transform = `scale(${1 + progress * 0.04})`;
+      container.style.transform = `scale(${1 + Math.sin(progress * Math.PI) * 0.06})`;
     }
+    // Gentle leaf sway
+    const leaves = document.getElementById('tree-leaves');
+    if (leaves && progress > 0.5) leaves.style.transform = `rotate(${Math.sin(Date.now() / 800) * 2}deg)`;
   }
 }
 
