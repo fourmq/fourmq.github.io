@@ -59,10 +59,10 @@ window.addEventListener('error', function(event) {
 </div>
 <div id="splash">
   <svg class="splash-svg" viewBox="0 0 512 512">
-    <rect width="512" height="512" rx="115" fill="#3E1728" />
-    <path d="M 75 320 C 130 210, 180 210, 230 280 S 310 400, 370 350 S 420 280, 430 260" fill="none" stroke="#F2A0C0" stroke-width="32" stroke-linecap="round"/>
-    <circle r="22" fill="#F2A0C0" cx="0" cy="0">
-      <animateMotion dur="2.6s" fill="freeze" begin="0.2s" path="M 75 320 C 130 210, 180 210, 230 280 S 310 400, 370 350 S 420 280, 430 260" />
+    <rect width="512" height="512" rx="115" fill="#1D1D1F" />
+    <path d="M 70 340 C 120 220, 170 200, 220 270 C 270 340, 310 380, 360 340 C 400 310, 420 280, 440 250" fill="none" stroke="#FF375F" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle r="18" fill="#FF375F" cx="0" cy="0">
+      <animateMotion dur="2.2s" fill="freeze" begin="0.3s" path="M 70 340 C 120 220, 170 200, 220 270 C 270 340, 310 380, 360 340 C 400 310, 420 280, 440 250" />
     </circle>
   </svg>
   <div class="splash-title">Cantilena</div>
@@ -79,7 +79,7 @@ window.addEventListener('error', function(event) {
 
 <div class="app">
   <aside class="sidebar">
-    <div class="sidebar-brand">Cantilena<span>трекер жизни</span></div>
+    <div class="sidebar-brand" onclick="window.switchTab('today')" style="cursor:pointer;">Cantilena</div>
     <nav class="sidebar-nav" id="sidebar-nav">
       <button data-tab="today" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V21H3z" stroke-linejoin="round"/></svg><span>Сегодня</span></button>
       <button data-tab="tasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="6" cy="18" r="2"/><path d="M11 6h9M11 12h9M11 18h9" stroke-linecap="round"/></svg><span>Задачи</span></button>
@@ -111,13 +111,22 @@ window.addEventListener('error', function(event) {
         <!-- Главная петля: 1 вывод + 1 действие -->
         <div class="card today-hero" id="today-hero"></div>
 
-        <div class="card rings-card compact-rings">
-          <svg class="rings" viewBox="0 0 120 120">
-            <circle cx="60" cy="60" r="52" stroke="var(--pink-soft)" stroke-width="10" fill="none"/><circle id="ring-survey" cx="60" cy="60" r="52" stroke="var(--pink)" stroke-width="10" fill="none" stroke-linecap="round" transform="rotate(-90 60 60)"/>
-            <circle cx="60" cy="60" r="38" stroke="var(--green-soft)" stroke-width="10" fill="none"/><circle id="ring-habits" cx="60" cy="60" r="38" stroke="var(--green)" stroke-width="10" fill="none" stroke-linecap="round" transform="rotate(-90 60 60)"/>
-            <circle cx="60" cy="60" r="24" stroke="rgba(219,76,63,0.1)" stroke-width="10" fill="none"/><circle id="ring-tasks" cx="60" cy="60" r="24" stroke="var(--td-red)" stroke-width="10" fill="none" stroke-linecap="round" transform="rotate(-90 60 60)"/>
-          </svg>
-          <div class="rings-legend"><div><span class="dot" style="background:var(--pink)"></span>Опрос <b id="pct-survey">0%</b></div><div><span class="dot" style="background:var(--green)"></span>Привычки <b id="pct-habits">0%</b></div><div><span class="dot" style="background:var(--td-red)"></span>Задачи <b id="pct-tasks">0%</b></div></div>
+        <div class="card progress-card">
+          <div class="progress-row">
+            <div class="progress-label"><span class="dot" style="background:var(--pink)"></span>Опрос</div>
+            <div class="progress-track"><div class="progress-fill" id="bar-survey" style="width:0%;background:var(--pink)"></div></div>
+            <div class="progress-pct" id="pct-survey">0%</div>
+          </div>
+          <div class="progress-row">
+            <div class="progress-label"><span class="dot" style="background:var(--green)"></span>Привычки</div>
+            <div class="progress-track"><div class="progress-fill" id="bar-habits" style="width:0%;background:var(--green)"></div></div>
+            <div class="progress-pct" id="pct-habits">0%</div>
+          </div>
+          <div class="progress-row">
+            <div class="progress-label"><span class="dot" style="background:var(--td-red)"></span>Задачи</div>
+            <div class="progress-track"><div class="progress-fill" id="bar-tasks" style="width:0%;background:var(--td-red)"></div></div>
+            <div class="progress-pct" id="pct-tasks">0%</div>
+          </div>
         </div>
 
         <div id="overdue-block"></div>
@@ -129,11 +138,6 @@ window.addEventListener('error', function(event) {
           </div>
         </div>
 
-        <!-- Сон: простой трек -->
-        <div class="card sleep-card" id="sleep-card">
-          <div class="sleep-card-head"><span>😴 Сон</span><button type="button" class="link" onclick="window.openSleepEditor()">Изменить</button></div>
-          <div id="sleep-card-body" class="sleep-card-body">Нет записи — нажми «Изменить»</div>
-        </div>
 
         <button class="survey-btn" id="survey-btn" onclick="openDailySurvey()">
           <div class="left" id="survey-btn-content"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span>Опрос</span></div>
@@ -264,10 +268,13 @@ window.addEventListener('error', function(event) {
       </section>
 
       <section id="screen-stats" class="screen">
-        <div id="stats-summary" class="card stats-summary-card"></div>
+        <div id="stats-summary" class="card stats-summary-card" style="font-size:16px;line-height:1.5;"></div>
 
-        <div class="section-title"><span>🎯 Главное сейчас</span></div>
+        <div class="section-title"><span>✨ Как у тебя сейчас</span></div>
         <div class="card" id="auto-insights"></div>
+
+        <div class="section-title"><span>📅 Ритм недели</span></div>
+        <div class="card" id="weekday-patterns"></div>
 
         <div class="section-title"><span>🌲 Фокус</span></div>
         <div class="card" id="focus-analytics"></div>
@@ -285,8 +292,6 @@ window.addEventListener('error', function(event) {
         <div class="section-title"><span>✨ Метрики недели</span></div>
         <div class="stat-grid" id="stats-grid"></div>
 
-        <div class="section-title"><span>📅 По дням недели</span></div>
-        <div class="card" id="weekday-patterns"></div>
 
         <div class="section-title"><span>📉 Тренды (4 недели)</span></div>
         <div class="card" id="trends-4w"></div>
