@@ -1,4 +1,4 @@
-import { todayStr, haptic, escapeHtml, svgIcon, APP_VERSION, playSound, playTick, playTimerStart, playTimerEnd, showToast, uid, PALETTE, WEEKDAYS_SHORT, WEEKDAYS_LONG, formatDateHuman, stripHtml, ICONS } from './utils.js';
+import { todayStr, haptic, escapeHtml, svgIcon, APP_VERSION, playSound, playTick, playTimerStart, playTimerEnd, showToast, uid, PALETTE, WEEKDAYS_SHORT, WEEKDAYS_LONG, formatDateHuman, stripHtml, sanitizeHtml, ICONS, ymdLocal } from './utils.js';
 import { state, save, initSupabase, pullFromCloud, pushToCloud, migrateState, supabaseClient, currentUser, setSupabaseClient, setCurrentUser } from './db.js';
 import * as Tasks from './tasks.js';
 import * as Surveys from './surveys.js';
@@ -162,7 +162,7 @@ window.tickClock();
 window.changeDay = function(offset) {
   const d = new Date(window.currentDate + 'T12:00:00');
   d.setDate(d.getDate() + offset);
-  window.currentDate = d.toISOString().slice(0, 10);
+  window.currentDate = ymdLocal(d);
   haptic(); window.renderAll();
   window.maybeShowOnboarding && window.maybeShowOnboarding();
   window.scheduleSurveyReminderTick && window.scheduleSurveyReminderTick();
@@ -316,7 +316,7 @@ window.weekCount = function(h, dateStr = todayStr()) {
   let c = 0;
   for (let i = 0; i < 7; i++) {
     const ds = new Date(monday); ds.setDate(monday.getDate() + i);
-    if ((h.checks[ds.toISOString().slice(0, 10)] || 0) > 0) c++;
+    if ((h.checks[ymdLocal(ds)] || 0) > 0) c++;
   }
   return c;
 };
@@ -330,7 +330,7 @@ window.isHabitDoneForDate = function(h, dateStr) {
 window.habitStreak = function(h) {
   let c = 0; const d = new Date();
   for (let i = 0; i < 365; i++) {
-    const ds = d.toISOString().slice(0, 10);
+    const ds = ymdLocal(d);
     if (h.skips && h.skips[ds]) { d.setDate(d.getDate() - 1); continue; }
     if (!window.isScheduledOn(h, ds)) { d.setDate(d.getDate() - 1); continue; }
     if ((h.checks[ds] || 0) >= h.target) { c++; d.setDate(d.getDate() - 1); }
@@ -395,7 +395,7 @@ window.toggleHabit = function(id, el) {
 
 window.openHabitDetail = function(id) {
   const h = state.habits.find(x => x.id === id); if (!h) return;
-  const days = []; for (let i = 29; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(d.toISOString().slice(0, 10)); }
+  const days = []; for (let i = 29; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(ymdLocal(d)); }
   const doneDays = days.filter(d => window.isHabitDoneForDate(h, d)); const pct = Math.round(doneDays.length / 30 * 100); const streak = window.habitStreak(h);
   const total = Object.values(h.checks).reduce((a, b) => a + (b || 0), 0); const today = window.currentDate; const skippedToday = h.skips && h.skips[today];
   
@@ -642,12 +642,14 @@ window.openNote = function(id) {
   if (!n) return;
   currentNoteId = id;
   document.getElementById('edit-note-title').value = n.title || '';
-  document.getElementById('edit-note-body').innerHTML = stripHtml(n.body || '');
+  document.getElementById('edit-note-body').innerHTML = sanitizeHtml(n.body || '');
   const list = document.getElementById('notes-list-view');
   const edit = document.getElementById('note-edit-view');
   if (window.innerWidth < 1100) list.style.display = 'none';
   edit.style.display = 'flex';
   edit.style.flexDirection = 'column';
+  const ph = document.getElementById('note-placeholder');
+  if (ph) ph.style.display = 'none';
   window.updatePinBtn();
   window.updateNoteTrashActions(n);
   const dt = new Date(n.updatedAt);
@@ -703,6 +705,8 @@ window.closeNoteEditor = function() {
   window.saveCurrentNote(); currentNoteId = null;
   document.getElementById('notes-list-view').style.display = 'block';
   if (window.innerWidth < 1100) document.getElementById('note-edit-view').style.display = 'none';
+  const ph = document.getElementById('note-placeholder');
+  if (ph && window.innerWidth >= 1100) ph.style.display = 'flex';
   window.renderNotes();
 };
 
@@ -746,7 +750,7 @@ window.deleteCurrentNote = function() {
 };
 
 // ============ 10. СТАТИСТИКА И ГРАФИКИ ============
-function lastNDates(n){const a=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);a.push(d.toISOString().slice(0,10))}return a}
+function lastNDates(n){const a=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);a.push(ymdLocal(d))}return a}
 function avgOf(a){const v=a.filter(x=>x!=null&&!isNaN(x));return v.length?v.reduce((x,y)=>x+y,0)/v.length:null}
 function corr(xs,ys){const p=xs.map((x,i)=>[x,ys[i]]).filter(([x,y])=>x!=null&&y!=null&&!isNaN(x)&&!isNaN(y));const n=p.length;if(n<3)return null;const mx=p.reduce((a,q)=>a+q[0],0)/n,my=p.reduce((a,q)=>a+q[1],0)/n;let num=0,dx=0,dy=0;for(const[x,y]of p){num+=(x-mx)*(y-my);dx+=(x-mx)**2;dy+=(y-my)**2}const den=Math.sqrt(dx*dy);return den?num/den:null}
 
@@ -1089,21 +1093,21 @@ function renderPedRecommendations() {
 }
 
 function renderYearInPixels() {
-  const el = document.getElementById('year-grid'); if (!el) return; const days = []; for (let i = 364; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(d.toISOString().slice(0, 10)); }
+  const el = document.getElementById('year-grid'); if (!el) return; const days = []; for (let i = 364; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(ymdLocal(d)); }
   el.innerHTML = days.map(d => { const sPct = state.surveys[d]?.evening ? 1 : 0; const sched = window.habitsScheduledForDate(d); const hPct = sched.length ? sched.filter(h => window.isHabitDoneForDate(h, d)).length / sched.length : 0; const tToday = state.tasks.filter(x => x.recurrence ? Tasks.matchesRecurrence(x, d) : x.date === d); const tPct = tToday.length ? tToday.filter(x => Tasks.isTaskDoneOn(x, d)).length / tToday.length : 0; const score = (sPct + hPct + tPct) / 3; let cls = ''; if (score > 0.75) cls = 'level-4'; else if (score > 0.5) cls = 'level-3'; else if (score > 0.25) cls = 'level-2'; else if (score > 0) cls = 'level-1'; return `<div class="year-cell ${cls}" title="${d}"></div>`; }).join('');
 }
 
 
 
 window.renderAnxietyTaskHint = function() {
-  const t = window.currentDate || (typeof todayStr === 'function' ? todayStr() : new Date().toISOString().slice(0,10));
+  const t = window.currentDate || (typeof todayStr === 'function' ? todayStr() : todayStr());
   const el = document.getElementById('tasks-today-mini');
   if (!el || !el.parentElement) return;
   el.parentElement.querySelectorAll('.anxiety-task-hint').forEach(n => n.remove());
   let a = state.surveys[t]?.emotions?.anxiety;
   if (a == null) {
     const y = new Date(t + 'T12:00:00'); y.setDate(y.getDate() - 1);
-    a = state.surveys[y.toISOString().slice(0,10)]?.emotions?.anxiety;
+    a = state.surveys[ymdLocal(y)]?.emotions?.anxiety;
   }
   if (a == null || a < 7) return;
   const tip = document.createElement('div');
@@ -1157,7 +1161,7 @@ window.renderTodayHero = function() {
   });
   const tasksOpen = tasks.filter(x => !(window.Tasks?.isTaskDoneOn ? Tasks.isTaskDoneOn(x, t) : x.done)).length;
   const overdue = window.getOverdueTasks ? window.getOverdueTasks() : [];
-  const anx = state.surveys[t]?.emotions?.anxiety ?? state.surveys[(() => { const d=new Date(t+'T12:00:00');d.setDate(d.getDate()-1);return d.toISOString().slice(0,10);})()]?.emotions?.anxiety;
+  const anx = state.surveys[t]?.emotions?.anxiety ?? state.surveys[(() => { const d=new Date(t+'T12:00:00');d.setDate(d.getDate()-1);return ymdLocal(d);})()]?.emotions?.anxiety;
 
   let emoji = '☀️', title = 'Хороший день, чтобы двигаться', sub = '', cta = '', ctaFn = '';
   if (overdue.length) {
@@ -1177,7 +1181,7 @@ window.renderTodayHero = function() {
 };
 
 window.getOverdueTasks = function() {
-  const today = typeof todayStr === 'function' ? todayStr() : new Date().toISOString().slice(0,10);
+  const today = typeof todayStr === 'function' ? todayStr() : todayStr();
   return (state.tasks || []).filter(t => {
     if (t.recurrence) return false;
     if (!t.date || t.date >= today) return false;
@@ -1264,7 +1268,7 @@ window.prepareFocusForAnxiety = function() {
   let a = state.surveys[t]?.emotions?.anxiety;
   if (a == null) {
     const y = new Date(t + 'T12:00:00'); y.setDate(y.getDate() - 1);
-    a = state.surveys[y.toISOString().slice(0,10)]?.emotions?.anxiety;
+    a = state.surveys[ymdLocal(y)]?.emotions?.anxiety;
   }
   if (a != null && a >= 7) {
     const minsEl = document.getElementById('focus-mins');
@@ -1279,7 +1283,7 @@ window.startFocusWithBreath = function() {
   let a = state.surveys[t]?.emotions?.anxiety;
   if (a == null) {
     const y = new Date(t + 'T12:00:00'); y.setDate(y.getDate() - 1);
-    a = state.surveys[y.toISOString().slice(0,10)]?.emotions?.anxiety;
+    a = state.surveys[ymdLocal(y)]?.emotions?.anxiety;
   }
   window.prepareFocusForAnxiety();
   if (a != null && a >= 7) {
@@ -1342,7 +1346,7 @@ window.checkRemind = function() {
   if (Notification.permission !== 'granted') return;
   const hour = state.settings.surveyRemindHour ?? 21;
   const now = new Date();
-  if (now.getHours() !== hour || now.getMinutes() > 2) return;
+  if (now.getHours() !== hour || now.getMinutes() > 15) return;
   const t = todayStr();
   if (state.surveys[t]?.evening) return;
   const key = 'survey_notif_' + t;
@@ -1502,7 +1506,10 @@ function updateFocusDisplay() {
     const leaves = document.getElementById('tree-leaves');
     const seed = document.getElementById('tree-seed');
     const container = document.getElementById('tree-container');
-    if (trunk) trunk.style.opacity = String(0.25 + progress * 0.75);
+    if (trunk) {
+      trunk.style.opacity = String(0.25 + progress * 0.75);
+      trunk.style.strokeDashoffset = String(200 * (1 - progress));
+    }
     if (branches) branches.style.opacity = String(Math.max(0, (progress - 0.18) / 0.45));
     if (leaves) leaves.style.opacity = String(Math.max(0, (progress - 0.42) / 0.5));
     if (seed) seed.style.opacity = String(progress < 0.12 ? 1 : Math.max(0, 1 - progress * 2.2));
@@ -1562,6 +1569,7 @@ window.toggleFocusTimer = function() {
     focusInterval = setInterval(() => { 
       focusTimeLeft = Math.max(0, Math.round((endAt - Date.now()) / 1000));
       updateFocusDisplay(); 
+      if (focusMode === 'focus' && focusTimeLeft > 0 && focusTimeLeft % 1 === 0) playTick();
       if (focusTimeLeft <= 0) completeFocusSession(); 
     }, 1000);
   }
@@ -1584,13 +1592,15 @@ window.stopFocusTimer = function() {
   
   const status = document.getElementById('focus-status'); if (status) status.textContent = 'Готов к работе'; 
   
-  const treePath = document.getElementById('tree-path');
+  const treePath = document.getElementById('tree-trunk');
   if (treePath) { treePath.style.strokeDashoffset = 200; treePath.style.stroke = '#555'; }
   setTimeout(() => { if(treePath) treePath.style.stroke = ''; }, 2000);
 };
 
 window.exitFocusMode = function() {
-  stopFocusTimer();
+  if (confirm('Выйти из фокуса? Прогресс не сохранится.')) {
+    stopFocusTimer();
+  }
 };
 
 function completeFocusSession() {
@@ -1602,7 +1612,7 @@ function completeFocusSession() {
   document.getElementById('focus-start-btn-container').style.display = 'block';
   document.getElementById('focus-active-controls').style.display = 'none';
   
-  const treePath = document.getElementById('tree-path');
+  const treePath = document.getElementById('tree-trunk');
   if (treePath) treePath.classList.add('tree-completed');
   setTimeout(() => { if(treePath) treePath.classList.remove('tree-completed'); }, 3000);
   
@@ -1636,7 +1646,7 @@ function completeFocusSession() {
   focusTimeLeft = focusTotalTime; 
   updateFocusDisplay();
   window.renderFocusHistory();
-  const treePathReset = document.getElementById('tree-path');
+  const treePathReset = document.getElementById('tree-trunk');
   if(treePathReset) treePathReset.style.strokeDashoffset = 200;
 }
 
@@ -1714,17 +1724,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
 window.addEventListener('unhandledrejection', (e) => {
   console.warn('Unhandled:', e.reason);
+  const msg = (e.reason && (e.reason.message || e.reason.toString() || '')) || '';
+  if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('Load failed')) return;
   if (window.showToast) window.showToast('Что-то пошло не так');
 });
 
 document.addEventListener('keydown', (e) => {
-  if (e.target.matches('input, textarea, [contenteditable]')) return;
   if (e.key === 'Escape') {
     const sheet = document.getElementById('sheet');
-    if (sheet && sheet.classList.contains('open')) window.closeSheet();
+    if (sheet && sheet.classList.contains('open')) {
+      window.closeSheet();
+      e.preventDefault();
+      return;
+    }
   }
-  if (e.key === 'n' || e.key === 'N') { e.preventDefault(); window.openTaskEditor(); }
-  if (e.key === '/') { e.preventDefault(); const s = document.getElementById('notes-search'); if (s) { window.switchTab('notes'); setTimeout(() => s.focus(), 50); } }
+  if (e.target.matches('input, textarea, [contenteditable]')) return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.code === 'KeyN') { e.preventDefault(); window.openTaskEditor(); }
+  if (e.code === 'Slash') { e.preventDefault(); const s = document.getElementById('notes-search'); if (s) { window.switchTab('notes'); setTimeout(() => s.focus(), 50); } }
 });
 
 window.fmt = function(cmd, val) {
