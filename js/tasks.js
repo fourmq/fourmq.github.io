@@ -31,9 +31,9 @@ export function taskRowHTML(t, dateStr = window.currentDate, opts = {}) {
   return `
     <div class="swipe-row-container">
       <div class="swipe-actions">
-        <button class="swipe-btn post" onclick="event.stopPropagation();window.postponeTask(${t.id})">Завтра</button>
-        <button class="swipe-btn edit" onclick="event.stopPropagation();window.openTaskEditor(${t.id})">Изменить</button>
-        <button class="swipe-btn delete" onclick="event.stopPropagation();window.removeTask(${t.id})">Удалить</button>
+        <button class="swipe-btn post" onclick="event.stopPropagation();window.postponeTask(${t.id})">${svgIcon('calendar','#fff',18)}</button>
+        <button class="swipe-btn edit" onclick="event.stopPropagation();window.openTaskEditor(${t.id})">${svgIcon('pencil','#fff',18)}</button>
+        <button class="swipe-btn delete" onclick="event.stopPropagation();window.removeTask(${t.id})">${svgIcon('trash','#fff',18)}</button>
       </div>
       <div class="swipe-content task-row ${opts.draggable ? 'draggable-task' : ''}" data-task-id="${t.id}" ${dragAttr} onclick="window.openTaskEditor(${t.id})">
         <div class="check-circle ${done ? 'done' : ''} p${t.priority}" onclick="event.stopPropagation();window.toggleTask(${t.id},'${dateStr}',this)">
@@ -346,13 +346,21 @@ export function renderTasks() {
     else if (allFilter === 'no-date') tasks = state.tasks.filter(t => !t.done && !t.date && !t.recurrence);
     else tasks = state.tasks.filter(t => t.done || (t.recurrence && Object.values(t.completions || {}).some(Boolean)));
     
-    tasks.sort((a, b) => { if (a.priority !== b.priority) return a.priority - b.priority; if (a.date && b.date) return a.date.localeCompare(b.date); if (a.date) return -1; if (b.date) return 1; return 0; });
+    tasks.sort((a, b) => { if (a.done !== b.done) return a.done ? 1 : -1; if (a.priority !== b.priority) return a.priority - b.priority; if (a.date && b.date) return a.date.localeCompare(b.date); if (a.date) return -1; if (b.date) return 1; return 0; });
     content.innerHTML = subchips + (tasks.length ? `<div class="card tight">${tasks.map(t => taskRowHTML(t, t.date || realToday)).join('')}</div>` : `<div class="card"><div class="empty-hint">Нет задач в этой категории.</div></div>`);
     return;
   }
   
   let tasks = state.tasks.filter(t => t.recurrence ? matchesRecurrence(t, today) : t.date === today);
-  tasks.sort((a, b) => { const aDone = isTaskDoneOn(a, today) ? 1 : 0; const bDone = isTaskDoneOn(b, today) ? 1 : 0; if (aDone !== bDone) return aDone - bDone; if (a.priority !== b.priority) return a.priority - b.priority; if (a.startTime && b.startTime) return a.startTime.localeCompare(b.startTime); return 0; });
+  // Сортировка: сначала невыполненные, потом по приоритету и времени
+  tasks.sort((a, b) => { 
+    const aDone = isTaskDoneOn(a, today) ? 1 : 0; 
+    const bDone = isTaskDoneOn(b, today) ? 1 : 0; 
+    if (aDone !== bDone) return aDone - bDone; 
+    if (a.priority !== b.priority) return a.priority - b.priority; 
+    if (a.startTime && b.startTime) return a.startTime.localeCompare(b.startTime); 
+    return 0; 
+  });
   content.innerHTML = tasks.length ? `<div class="card tight">${tasks.map(t => taskRowHTML(t, today)).join('')}</div>` : `<div class="card"><div class="empty-hint">Задач нет.<br>Нажмите +, чтобы добавить.</div></div>`;
 }
 
@@ -449,6 +457,13 @@ window.setCurrentDateAndOpenTask = function(dateStr) {
 export function renderTasksTodayMini() {
   const t = window.currentDate;
   const tasks = state.tasks.filter(x => x.recurrence ? matchesRecurrence(x, t) : x.date === t);
+  // Сортируем: невыполненные вверх
+  tasks.sort((a, b) => { 
+    const aDone = isTaskDoneOn(a, t) ? 1 : 0; 
+    const bDone = isTaskDoneOn(b, t) ? 1 : 0; 
+    if (aDone !== bDone) return aDone - bDone; 
+    return a.priority - b.priority; 
+  });
   document.getElementById('tasks-today-mini').innerHTML = tasks.length ? tasks.map(x => taskRowHTML(x, t)).join('') : '<div class="empty-hint">Задач нет. Нажмите +, чтобы добавить.</div>';
 }
 
