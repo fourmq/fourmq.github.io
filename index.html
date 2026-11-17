@@ -13,15 +13,50 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script>
 window.addEventListener('error', function(event) {
-  const errDiv = document.createElement('div');
-  errDiv.style.cssText = 'position:fixed;inset:0;background:rgba(200,0,0,0.95);color:white;z-index:99999;padding:20px;font-family:monospace;font-size:14px;overflow:auto;white-space:pre-wrap;';
-  errDiv.innerHTML = '<h2>Критическая ошибка JS</h2><p><b>Сообщение:</b> ' + event.message + '</p><p><b>Файл:</b> ' + event.filename + '</p><p><b>Строка:</b> ' + event.lineno + ':' + event.colno + '</p><p><b>Стек:</b><br>' + (event.error ? event.error.stack : 'Нет стека') + '</p><button onclick="this.parentElement.remove()" style="padding:10px 20px;margin-top:20px;font-size:16px;cursor:pointer;border:none;border-radius:8px;">Закрыть</button>';
-  document.body.appendChild(errDiv);
+  console.error(event.error || event.message);
+  if (window.showToast) window.showToast('Ошибка: ' + (event.message || 'см. консоль'));
+  else {
+    const t = document.createElement('div');
+    t.style.cssText = 'position:fixed;bottom:24px;left:16px;right:16px;background:#222;color:#fff;padding:12px 16px;border-radius:12px;z-index:99999;font-size:14px;';
+    t.textContent = 'Что-то сломалось. Обнови страницу, если мешает.';
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 5000);
+  }
 });
 </script>
 </head>
 <body>
 
+<div id="onboarding" class="onboarding" style="display:none;">
+  <div class="onboarding-inner">
+    <div class="onboarding-step" data-step="0">
+      <div class="onboarding-emoji">🌱</div>
+      <h2>Привычки</h2>
+      <p>Отмечай маленькие действия каждый день. Серии помогут не бросать.</p>
+    </div>
+    <div class="onboarding-step" data-step="1" style="display:none;">
+      <div class="onboarding-emoji">✅</div>
+      <h2>Задачи</h2>
+      <p>Держи список коротким. В тревожные дни — 2–3 дела, не больше.</p>
+    </div>
+    <div class="onboarding-step" data-step="2" style="display:none;">
+      <div class="onboarding-emoji">✨</div>
+      <h2>Вечерний опрос</h2>
+      <p>Три касания — и статистика начнёт показывать твои паттерны.</p>
+    </div>
+    <div class="onboarding-actions">
+      <button type="button" class="btn-cancel" id="onboard-skip">Пропустить</button>
+      <button type="button" class="btn-primary" id="onboard-next">Далее</button>
+    </div>
+  </div>
+</div>
+<div id="breath-overlay" class="breath-overlay" style="display:none;">
+  <div class="breath-inner">
+    <div class="breath-circle" id="breath-circle"></div>
+    <p id="breath-text">Вдох…</p>
+    <button type="button" class="btn-cancel" onclick="window.skipBreathAndStart()">Пропустить</button>
+  </div>
+</div>
 <div id="splash">
   <svg class="splash-svg" viewBox="0 0 512 512">
     <rect width="512" height="512" rx="115" fill="#3E1728" />
@@ -72,7 +107,11 @@ window.addEventListener('error', function(event) {
     <main>
       <section id="screen-today" class="screen active">
         <div class="date-nav"><button class="nav-arrow" onclick="changeDay(-1)">‹</button><div class="date-nav-center" id="date-nav-label"></div><button class="nav-arrow" onclick="changeDay(1)">›</button></div>
-        <div class="card rings-card">
+
+        <!-- Главная петля: 1 вывод + 1 действие -->
+        <div class="card today-hero" id="today-hero"></div>
+
+        <div class="card rings-card compact-rings">
           <svg class="rings" viewBox="0 0 120 120">
             <circle cx="60" cy="60" r="52" stroke="var(--pink-soft)" stroke-width="10" fill="none"/><circle id="ring-survey" cx="60" cy="60" r="52" stroke="var(--pink)" stroke-width="10" fill="none" stroke-linecap="round" transform="rotate(-90 60 60)"/>
             <circle cx="60" cy="60" r="38" stroke="var(--green-soft)" stroke-width="10" fill="none"/><circle id="ring-habits" cx="60" cy="60" r="38" stroke="var(--green)" stroke-width="10" fill="none" stroke-linecap="round" transform="rotate(-90 60 60)"/>
@@ -80,28 +119,40 @@ window.addEventListener('error', function(event) {
           </svg>
           <div class="rings-legend"><div><span class="dot" style="background:var(--pink)"></span>Опрос <b id="pct-survey">0%</b></div><div><span class="dot" style="background:var(--green)"></span>Привычки <b id="pct-habits">0%</b></div><div><span class="dot" style="background:var(--td-red)"></span>Задачи <b id="pct-tasks">0%</b></div></div>
         </div>
-        
+
+        <div id="overdue-block"></div>
+
         <div class="card quick-mood-card" id="quick-mood-card">
           <div class="quick-mood-label"><span>Пульс дня</span><span id="mood-count" style="color:var(--text-tert);text-transform:none;font-size:11px;">Отметок: 0</span></div>
           <div class="quick-mood" id="quick-mood-row">
             <button data-val="2" onclick="quickMood(2)">😞</button><button data-val="4" onclick="quickMood(4)">😐</button><button data-val="6" onclick="quickMood(6)">🙂</button><button data-val="8" onclick="quickMood(8)">😄</button><button data-val="10" onclick="quickMood(10)">😍</button>
           </div>
         </div>
-        
+
+        <!-- Сон: простой трек -->
+        <div class="card sleep-card" id="sleep-card">
+          <div class="sleep-card-head"><span>😴 Сон</span><button type="button" class="link" onclick="window.openSleepEditor()">Изменить</button></div>
+          <div id="sleep-card-body" class="sleep-card-body">Нет записи — нажми «Изменить»</div>
+        </div>
+
         <button class="survey-btn" id="survey-btn" onclick="openDailySurvey()">
           <div class="left" id="survey-btn-content"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span>Опрос</span></div>
           <div class="right" id="survey-btn-time"></div>
         </button>
+
         <div class="section-title"><span>Задачи на сегодня</span><div class="actions"><button onclick="openTaskEditor()" title="Добавить"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span class="link" onclick="switchTab('tasks')">Все →</span></div></div>
         <div class="card tight" id="tasks-today-mini"></div>
-        <div class="section-title"><span>Привычки на сегодня</span><div class="actions"><button onclick="openHabitSettings()" style="background:transparent;color:var(--text-sec);width:auto;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button onclick="openHabitEditor()" style="background:transparent;color:var(--text-sec);width:auto;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
+
+        <div class="section-title"><span>Привычки</span><div class="actions"><button onclick="openHabitSettings()" style="background:transparent;color:var(--text-sec);width:auto;padding:8px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button onclick="openHabitEditor()" style="background:transparent;color:var(--text-sec);width:auto;padding:8px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
         <div class="card tight" id="habits-today"></div>
-        
+
         <div id="onboard-survey-tip"></div>
         <div id="weekly-survey-container"></div>
+        <div id="weekly-report-card"></div>
       </section>
 
-      <section id="screen-tasks" class="screen">
+      
+<section id="screen-tasks" class="screen">
         <div class="tabs-scroll" id="task-filters" style="display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;"></div>
         <div id="tasks-content"></div>
       </section>
@@ -146,7 +197,7 @@ window.addEventListener('error', function(event) {
 
             <div class="field" style="text-align:left; max-width:400px; margin:0 auto 16px;">
               <label>Описание (если без задачи)</label>
-              <input type="text" id="focus-desc" placeholder="Например: Читать статью" onkeydown="if(event.key==='Enter') startFocusTimer()" style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--separator-med); background:var(--input-bg); color:var(--text); font-size:15px; outline:none;">
+              <input type="text" id="focus-desc" placeholder="Например: Читать статью" onkeydown="if(event.key==='Enter') window.startFocusWithBreath()" style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--separator-med); background:var(--input-bg); color:var(--text); font-size:15px; outline:none;">
             </div>
 
             <div style="display:flex; justify-content:center; gap:16px; margin-bottom:24px; font-size:13px; color:var(--text-sec);">
@@ -168,7 +219,7 @@ window.addEventListener('error', function(event) {
           </div>
           
           <div id="focus-start-btn-container" style="margin-top:24px;">
-             <button class="btn-primary" style="max-width:300px; margin:0 auto; font-size:18px; padding:16px; border-radius:16px;" onclick="startFocusTimer()">Начать фокус</button>
+             <button class="btn-primary" style="max-width:300px; margin:0 auto; font-size:18px; padding:16px; border-radius:16px;" onclick="window.startFocusWithBreath()">Начать фокус</button>
           </div>
 
         </div>
@@ -181,7 +232,7 @@ window.addEventListener('error', function(event) {
       <section id="screen-notes" class="screen">
         <div id="notes-list-view" style="flex:1; overflow-y:auto;">
           <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
-            <input id="notes-search" placeholder="Поиск" style="flex:1;padding:10px;border-radius:10px;border:none;background:var(--chip-bg);color:var(--text);outline:none;font-size:16px;height:42px;">
+            <input id="notes-search" placeholder="Поиск по заметкам" placeholder="Поиск" style="flex:1;padding:10px;border-radius:10px;border:none;background:var(--chip-bg);color:var(--text);outline:none;font-size:16px;height:42px;">
           </div>
           <div class="folder-chips" id="folder-chips" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;"></div>
           <div class="card tight" id="notes-list"></div>
