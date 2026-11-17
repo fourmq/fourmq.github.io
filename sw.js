@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cantilena-v58'; // <-- Версия обновлена
+const CACHE_NAME = 'cantilena-v64'; // <-- Версия обновлена
 const ASSETS = ['click.mp3','timer-start.mp3','timer-end.mp3',
   './',
   './index.html',
