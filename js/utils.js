@@ -54,28 +54,20 @@ export function showToast(msg) {
   toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
 }
 
-let audioCtx = null;
-export function playSound(type) {
+const sounds = {};
+function playFile(name) {
   if (!window.state || !window.state.settings || !window.state.settings.sounds) return;
   try {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-    osc.connect(gain); gain.connect(audioCtx.destination);
-    if (type === 'success') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(523, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(784, audioCtx.currentTime + 0.12);
-      gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.22);
-    } else {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
-    }
-    osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+    if (!sounds[name]) sounds[name] = new Audio(name + '.mp3');
+    const a = sounds[name];
+    a.currentTime = 0;
+    a.volume = 0.5;
+    a.play().catch(() => {});
   } catch (e) {}
 }
+export function playSound(type) { playFile(type === 'success' || type === 'click' ? 'click' : 'click'); }
+export function playTimerStart() { playFile('timer-start'); }
+export function playTimerEnd() { playFile('timer-end'); }
 
 export function playTick() {
   if (!window.state || !window.state.settings || !window.state.settings.sounds) return;
