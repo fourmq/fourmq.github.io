@@ -18,9 +18,9 @@ export function migrateState(s) {
   s.habits = (s.habits || []).map((h, i) => {
     let icon = h.icon || 'sparkle';
     if (!ICONS[icon]) icon = 'sparkle';
-    return { id: h.id || uid(), name: h.name || 'Привычка', icon: icon, color: h.color || PALETTE[i % PALETTE.length], target: h.target || 1, schedule: h.schedule || { type: 'daily' }, checks: h.checks || {}, skips: h.skips || {}, archived: h.archived || false, order: h.order != null ? h.order : i, createdAt: h.createdAt || Date.now() };
+    return { ...h, id: h.id || uid(), name: h.name || 'Привычка', icon: icon, color: h.color || PALETTE[i % PALETTE.length], target: h.target || 1, schedule: h.schedule || { type: 'daily' }, checks: h.checks || {}, skips: h.skips || {}, archived: h.archived || false, order: h.order != null ? h.order : i, createdAt: h.createdAt || Date.now() };
   });
-  s.tasks = (s.tasks || []).map(t => ({ id: t.id || uid(), title: t.title || '', description: t.description || '', done: t.done || false, date: t.date || null, startTime: t.startTime || null, duration: t.duration || null, priority: t.priority || 4, projectId: t.projectId || null, subtasks: t.subtasks || [], tags: t.tags || [], recurrence: t.recurrence || null, completions: t.completions || {}, createdAt: t.createdAt || Date.now() }));
+  s.tasks = (s.tasks || []).map(t => ({ ...t, id: t.id || uid(), title: t.title || '', description: t.description || '', done: t.done || false, date: t.date || null, startTime: t.startTime || null, duration: t.duration || null, priority: t.priority || 4, projectId: t.projectId || null, subtasks: t.subtasks || [], tags: t.tags || [], recurrence: t.recurrence || null, completions: t.completions || {}, createdAt: t.createdAt || Date.now() }));
   s.projects = s.projects || [{ id: 1, name: 'Личное', color: '#007AFF' }];
   s.notes = (s.notes || []).map(n => ({ id: n.id || uid(), title: n.title || 'Без названия', body: n.body || '', folderId: n.folderId || null, pinned: n.pinned || false, createdAt: n.createdAt || Date.now(), updatedAt: n.updatedAt || Date.now(), deletedAt: n.deletedAt || null }));
   s.noteFolders = s.noteFolders || [{ id: 'default', name: 'Заметки', icon: '📝' }];
@@ -69,6 +69,9 @@ window.save = save;
 export let supabaseClient = null, syncTimer = null, currentUser = null, pollInterval = null;
 export let lastCloudUpdate = 0, isPushing = false, askedAboutOverwrite = false;
 
+export function setSupabaseClient(c) { supabaseClient = c; window.supabaseClient = c; }
+export function setCurrentUser(u) { currentUser = u; window.currentUser = u; }
+
 export async function initSupabase() {
   if (!state.supabase.url || !state.supabase.key || !window.supabase) return;
   if (supabaseClient) return;
@@ -77,7 +80,7 @@ export async function initSupabase() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session) {
       currentUser = session.user;
-      await pullFromCloud(true, false);
+      await pullFromCloud(false, true);
       startPolling();
     }
   } catch (e) { console.warn(e); }
@@ -125,7 +128,9 @@ export async function pushToCloud() {
   isPushing = true;
   try {
     const nowISO = new Date().toISOString();
-    await supabaseClient.from('cantilena_data').upsert({ user_id: currentUser.id, data: state, updated_at: nowISO }, { onConflict: 'user_id' });
+    const toPush = JSON.parse(JSON.stringify(state));
+    if (toPush.supabase) delete toPush.supabase;
+    await supabaseClient.from('cantilena_data').upsert({ user_id: currentUser.id, data: toPush, updated_at: nowISO }, { onConflict: 'user_id' });
     lastCloudUpdate = new Date(nowISO).getTime();
   } catch (e) {}
   finally { setTimeout(() => { isPushing = false; }, 2000); }
