@@ -505,3 +505,48 @@ input:checked + .slider:before{transform:translateX(18px)}
 }
 .stats-details summary::-webkit-details-marker { display: none; }
 .stats-details[open] summary { color: var(--text); }
+
+
+/* ===== Weekday cards ===== */
+.weekday-cards { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.weekday-card { text-align: center; padding: 8px 2px; border-radius: 12px; background: var(--input-bg); }
+.weekday-card-top { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-bottom: 6px; }
+.weekday-emoji { font-size: 18px; line-height: 1; }
+.weekday-name { font-size: 10px; font-weight: 600; color: var(--text-sec); text-transform: uppercase; }
+.weekday-bar { height: 4px; background: var(--separator); border-radius: 2px; overflow: hidden; margin: 0 4px 6px; }
+.weekday-bar > div { height: 100%; background: linear-gradient(90deg, var(--pink), var(--orange)); border-radius: 2px; }
+.weekday-meta { font-size: 9px; color: var(--text-tert); line-height: 1.2; }
+
+/* ===== Survey more ===== */
+.survey-more { margin: 8px 0 4px; border-radius: 12px; background: var(--input-bg); padding: 4px 12px 8px; }
+.survey-more summary { cursor: pointer; font-weight: 600; font-size: 14px; padding: 10px 0; color: var(--text-sec); list-style: none; }
+.survey-more summary::-webkit-details-marker { display: none; }
+.survey-more[open] summary { color: var(--text); }
+
+/* ===== UX air & touch ===== */
+.task-row, .habit-row, .swipe-content {
+  min-height: 48px;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+}
+.filter-pill, .folder-chip { min-height: 36px; padding: 8px 14px !important; }
+.empty-hint.warm { padding: 28px 16px; line-height: 1.5; color: var(--text-sec); font-size: 14px; text-align: center; }
+.section-title { margin-top: 20px; margin-bottom: 10px; letter-spacing: -0.2px; }
+
+/* ===== Notes desktop ===== */
+@media (min-width: 900px) {
+  #screen-notes .folder-chips { flex-wrap: wrap; }
+  #notes-search { font-size: 16px; padding: 12px 14px; min-height: 44px; }
+}
+
+/* ===== Onboarding tip ===== */
+.onboard-tip {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 14px 16px; border-radius: 14px;
+  background: var(--accent-soft); margin-bottom: 12px;
+  font-size: 13px; line-height: 1.45; color: var(--text);
+}
+.onboard-tip button {
+  margin-left: auto; border: none; background: transparent;
+  color: var(--text-sec); font-size: 18px; cursor: pointer; padding: 0 4px;
+}
