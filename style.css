@@ -25,6 +25,8 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;height:100dvh;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
 .app{width:100%;height:100%;display:flex;background:var(--bg);overflow:hidden;position:relative;}
 
+
+
 /* ===== SIDEBAR (desktop) ===== */
 .sidebar {
   display: none;
@@ -93,7 +95,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-s
   stroke: var(--accent);
 }
 
-/* Показываем сайдбар только на широких экранах */
 @media (min-width: 900px) {
   .sidebar {
     display: flex;
@@ -128,6 +129,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-s
 .screen.active{display:block;}
 .screen.slide-in-right{animation:screenInRight .3s cubic-bezier(.2,.9,.3,1)}
 .screen.slide-in-left{animation:screenInLeft .3s cubic-bezier(.2,.9,.3,1)}
+
+/* Экран заметок — flex только когда активен */
+#screen-notes.active {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 150px);
+  height: calc(100dvh - 150px);
+  padding-bottom: 0;
+}
 
 .topbar{padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 8px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
 .topbar-info{flex:1;min-width:0}
