@@ -420,15 +420,16 @@ export function renderTasks() {
 
 function renderTodoistCalendar() {
   const realToday = todayStr();
-  const todayObj = new Date();
+  const todayObj = window._calMonth || new Date();
   const y = todayObj.getFullYear(), m = todayObj.getMonth();
   
   // Складной календарь
   let miniCal = `
     <div class="mini-cal-wrapper">
-      <div class="mini-cal-header" onclick="window.toggleCalendarExpand()">
-        <span>${todayObj.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</span>
-        <span>${calendarExpanded ? '▲' : '▼'}</span>
+      <div class="mini-cal-header">
+        <button type="button" onclick="window.changeCalMonth(-1)" style="background:none;border:none;font-size:18px;cursor:pointer;padding:4px 8px;">‹</button>
+        <span onclick="window.toggleCalendarExpand()" style="cursor:pointer;">${todayObj.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })} ${calendarExpanded ? '▲' : '▼'}</span>
+        <button type="button" onclick="window.changeCalMonth(1)" style="background:none;border:none;font-size:18px;cursor:pointer;padding:4px 8px;">›</button>
       </div>
       <div class="mini-cal-grid">
   `;
@@ -491,9 +492,7 @@ function renderTodoistCalendar() {
           <span>${dateLabel} · ${dayName}${isToday ? ' · Сегодня' : ''}${isSelected && !isToday ? ' · Выбрано' : ''}</span>
           <button onclick="window.setCurrentDateAndOpenTask('${dateStr}')" style="background:none;border:none;color:var(--text-sec);cursor:pointer;padding:4px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         </div>
-        <div class="card tight" style="margin-bottom:0; min-height: 40px;" ondragover="event.preventDefault(); this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="window.dropTask(event, '${dateStr}'); this.classList.remove('drag-over')">
-          ${dayTasks.length ? dayTasks.map(t => taskRowHTML(t, dateStr, { hideDate: true, draggable: true })).join('') : ''}
-        </div>
+        ${dayTasks.length ? `<div class="card tight" style="margin-bottom:0;" ondragover="event.preventDefault(); this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="window.dropTask(event, '${dateStr}'); this.classList.remove('drag-over')">${dayTasks.map(t => taskRowHTML(t, dateStr, { hideDate: true, draggable: true })).join('')}</div>` : ''}
       </div>
     `;
   }
@@ -510,10 +509,6 @@ window.goToDate = function(dateStr) {
   if (!document.getElementById('screen-tasks')?.classList.contains('active')) {
     window.switchTab('tasks');
   }
-  setTimeout(() => {
-    const el = document.getElementById('cal-day-' + dateStr);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 60);
 };
 
 window.setCurrentDateAndOpenTask = function(dateStr) {
