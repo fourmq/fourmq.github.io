@@ -30,10 +30,37 @@ export const CONTEXT_TAGS = [
   { id: 'creative', icon: '🎨', label: 'Творчество' }
 ];
 
-export const todayStr = () => new Date().toISOString().slice(0, 10);
+export const ymdLocal = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 export const uid = () => Date.now() + Math.floor(Math.random() * 10000);
 export const escapeHtml = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const stripHtml = s => String(s || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+
+const ALLOWED_TAGS = new Set(['b', 'i', 'u', 'h2', 'ul', 'ol', 'li', 'div', 'br', 'p', 'strong', 'em']);
+export function sanitizeHtml(html) {
+  if (!html) return '';
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(String(html), 'text/html');
+  function clean(node) {
+    if (node.nodeType === Node.TEXT_NODE) return;
+    if (node.nodeType !== Node.ELEMENT_NODE) {
+      node.remove();
+      return;
+    }
+    const tag = node.tagName.toLowerCase();
+    if (!ALLOWED_TAGS.has(tag)) {
+      const parent = node.parentNode;
+      if (parent) {
+        while (node.firstChild) parent.insertBefore(node.firstChild, node);
+        parent.removeChild(node);
+      }
+      return;
+    }
+    [...node.attributes].forEach(attr => node.removeAttribute(attr.name));
+    [...node.childNodes].forEach(clean);
+  }
+  [...doc.body.childNodes].forEach(clean);
+  return doc.body.innerHTML;
+}
 export const hexToRgba = (hex, a) => { if (!hex) return `rgba(0,0,0,${a})`; const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16); return `rgba(${r},${g},${b},${a})`; };
 export const WEEKDAYS_SHORT = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
 export const WEEKDAYS_LONG = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
