@@ -162,7 +162,12 @@ export function openTaskEditor(id) {
     <input type="hidden" id="t-editing-id" value="${editingTaskId || ''}">
   `);
   window.updateTaskChipDate(t.date || '');
-  setTimeout(() => { const el = document.getElementById('t-title'); if (el) el.focus(); }, 100);
+  if (!id) window._draftTask = t;
+  else window._draftTask = null;
+  setTimeout(() => {
+    window.renderSubtasksEditor(id ? state.tasks.find(x => x.id === id) : window._draftTask);
+    const el = document.getElementById('t-title'); if (el) el.focus();
+  }, 50);
 }
 window.renderSubtasksEditor = function(task) {
   const cont = document.getElementById('subtasks-container');
@@ -418,97 +423,130 @@ export function renderTasks() {
   content.innerHTML = tasks.length ? `<div class="card tight">${tasks.map(t => taskRowHTML(t, today)).join('')}</div>` : `<div class="card"><div class="empty-hint">Задач нет.<br>Нажмите +, чтобы добавить.</div></div>`;
 }
 
+function ymdLocal(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function renderTodoistCalendar() {
   const realToday = todayStr();
-  const todayObj = window._calMonth || new Date();
-  const y = todayObj.getFullYear(), m = todayObj.getMonth();
-  
-  // Складной календарь
-  let miniCal = `
-    <div class="mini-cal-wrapper">
-      <div class="mini-cal-header">
-        <button type="button" onclick="window.changeCalMonth(-1)" style="background:none;border:none;font-size:18px;cursor:pointer;padding:4px 8px;">‹</button>
-        <span onclick="window.toggleCalendarExpand()" style="cursor:pointer;">${todayObj.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })} ${calendarExpanded ? '▲' : '▼'}</span>
-        <button type="button" onclick="window.changeCalMonth(1)" style="background:none;border:none;font-size:18px;cursor:pointer;padding:4px 8px;">›</button>
-      </div>
-      <div class="mini-cal-grid">
-  `;
-  
-  const shortDays = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-  shortDays.forEach(d => miniCal += `<div class="mini-cal-dow">${d}</div>`);
-  
+  const anchorStr = window._calendarAnchor || realToday;
+  const anchor = new Date(anchorStr + 'T12:00:00');
+  const monthsShort = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'нояб', 'дек'];
+  const dow = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
+  const calBase = window._calMonth ? new Date(window._calMonth) : new Date(anchor);
+  const y = calBase.getFullYear();
+  const m = calBase.getMonth();
+
+  const weekStart = new Date(anchor);
+  const mondayOffset = (weekStart.getDay() + 6) % 7;
+  weekStart.setDate(weekStart.getDate() - mondayOffset);
+
+  let weekHtml = '';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate() + i);
+    const dateStr = ymdLocal(d);
+    const isToday = dateStr === realToday;
+    const isSelected = dateStr === anchorStr;
+    weekHtml += `<button type="button" class="week-cell ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" onclick="window.goToDate('${dateStr}')"><span class="dn">${dow[i]}</span><span class="n">${d.getDate()}</span></button>`;
+  }
+
+  let popover = '';
   if (calendarExpanded) {
+    const monthTitle = calBase.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+    let grid = dow.map(name => `<div class="cal-pop-dow">${name}</div>`).join('');
     const firstDay = (new Date(y, m, 1).getDay() + 6) % 7;
     const daysInMonth = new Date(y, m + 1, 0).getDate();
-    for (let i = 0; i < firstDay; i++) miniCal += `<div></div>`;
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const hasTasks = state.tasks.some(t => t.date === dateStr);
+    for (let i = 0; i < firstDay; i++) grid += '<div></div>';
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const isToday = dateStr === realToday;
-      const isSelected = dateStr === (window._calendarAnchor || window.currentDate);
-      miniCal += `<div class="mini-cal-day ${hasTasks ? 'has-tasks' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" onclick="event.stopPropagation();window.goToDate('${dateStr}')">${d}</div>`;
+      const isSelected = dateStr === anchorStr;
+      grid += `<button type="button" class="cal-pop-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" onclick="window.goToDate('${dateStr}')">${day}</button>`;
     }
-  } else {
-    // Показываем только текущую неделю
-    const currentDayOfWeek = (todayObj.getDay() + 6) % 7; // 0 - пн
-    const startOfWeek = new Date(todayObj);
-    startOfWeek.setDate(todayObj.getDate() - currentDayOfWeek);
-    
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(startOfWeek);
-      d.setDate(startOfWeek.getDate() + i);
-      const dateStr = d.toISOString().slice(0, 10);
-      const hasTasks = state.tasks.some(t => t.date === dateStr);
+    const next = new Date(y, m + 1, 1);
+    const nextTitle = next.toLocaleDateString('ru-RU', { month: 'long' });
+    const nextDays = new Date(y, m + 2, 0).getDate();
+    const nextFirst = (next.getDay() + 6) % 7;
+    let nextGrid = `<div class="cal-pop-next">${nextTitle}</div>`;
+    for (let i = 0; i < nextFirst; i++) nextGrid += '<div></div>';
+    const peek = Math.min(14, nextDays);
+    for (let day = 1; day <= peek; day++) {
+      const dateStr = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const isToday = dateStr === realToday;
-      const isSelected = dateStr === (window._calendarAnchor || window.currentDate);
-      miniCal += `<div class="mini-cal-day ${hasTasks ? 'has-tasks' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" onclick="event.stopPropagation();window.goToDate('${dateStr}')">${d.getDate()}</div>`;
+      const isSelected = dateStr === anchorStr;
+      nextGrid += `<button type="button" class="cal-pop-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" onclick="window.goToDate('${dateStr}')">${day}</button>`;
     }
-  }
-  miniCal += `</div></div>`;
-
-  // Все дни недели (или месяца)
-  let listHtml = '';
-  // Якорь — выбранная дата (клик по дню в мини-календаре)
-  const anchorStr = window._calendarAnchor || window.currentDate || realToday;
-  const startDate = new Date(anchorStr + 'T12:00:00');
-  const daysToRender = calendarExpanded ? 31 : 7;
-  // Свёрнутый вид: 7 дней начиная с выбранной даты
-  const listStart = calendarExpanded ? new Date(y, m, 1) : new Date(startDate);
-
-  for (let i = 0; i < daysToRender; i++) {
-    const d = new Date(listStart); d.setDate(listStart.getDate() + i);
-    const dateStr = d.toISOString().slice(0, 10);
-    const dayName = WEEKDAYS_LONG[d.getDay()];
-    const isToday = dateStr === realToday;
-    const isSelected = dateStr === (window._calendarAnchor || window.currentDate);
-    
-    const dayTasks = state.tasks.filter(t => t.recurrence ? matchesRecurrence(t, dateStr) : t.date === dateStr);
-    dayTasks.sort((a, b) => a.priority - b.priority);
-    let dateLabel = `${d.getDate()} ${['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'][d.getMonth()]}`;
-    
-    listHtml += `
-      <div style="margin-bottom: 24px;" id="cal-day-${dateStr}">
-        <div style="font-size: 13px; font-weight: 700; color: ${isSelected || isToday ? 'var(--td-red)' : 'var(--text)'}; margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center;">
-          <span>${dateLabel} · ${dayName}${isToday ? ' · Сегодня' : ''}${isSelected && !isToday ? ' · Выбрано' : ''}</span>
-          <button onclick="window.setCurrentDateAndOpenTask('${dateStr}')" style="background:none;border:none;color:var(--text-sec);cursor:pointer;padding:4px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    popover = `
+      <div class="cal-popover" onclick="event.stopPropagation()">
+        <div class="cal-pop-head">
+          <strong>${monthTitle}</strong>
+          <span>
+            <button type="button" onclick="window.changeCalMonth(-1)" aria-label="Предыдущий месяц">‹</button>
+            <button type="button" onclick="window.goToDate('${realToday}')" aria-label="Сегодня">●</button>
+            <button type="button" onclick="window.changeCalMonth(1)" aria-label="Следующий месяц">›</button>
+          </span>
         </div>
-        ${dayTasks.length ? `<div class="card tight" style="margin-bottom:0;" ondragover="event.preventDefault(); this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="window.dropTask(event, '${dateStr}'); this.classList.remove('drag-over')">${dayTasks.map(t => taskRowHTML(t, dateStr, { hideDate: true, draggable: true })).join('')}</div>` : ''}
-      </div>
-    `;
+        <div class="cal-pop-grid">${grid}</div>
+        <div class="cal-pop-grid">${nextGrid}</div>
+      </div>`;
   }
 
-  return { html: `<div style="padding: 8px 0;">${miniCal}${listHtml}</div>` };
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = ymdLocal(tomorrow);
+
+  let listHtml = '';
+  for (let i = 0; i < 21; i++) {
+    const d = new Date(anchor);
+    d.setDate(anchor.getDate() + i);
+    const dateStr = ymdLocal(d);
+    const isToday = dateStr === realToday;
+    const isTomorrow = dateStr === tomorrowStr;
+    const dayName = WEEKDAYS_LONG[d.getDay()];
+    const rel = isToday ? ' · Сегодня' : (isTomorrow ? ' · Завтра' : '');
+    const dayTasks = state.tasks.filter(t => t.recurrence ? matchesRecurrence(t, dateStr) : t.date === dateStr && !t.deletedAt);
+    dayTasks.sort((a, b) => a.priority - b.priority);
+    const tasksHtml = dayTasks.map(t => taskRowHTML(t, dateStr, { hideDate: true, draggable: true })).join('');
+    listHtml += `
+      <section class="up-day" id="cal-day-${dateStr}">
+        <div class="up-day-title ${isToday ? 'today' : ''}">${d.getDate()} ${monthsShort[d.getMonth()]}${rel} · ${dayName}</div>
+        ${tasksHtml ? `<div class="up-tasks" ondragover="event.preventDefault()" ondrop="window.dropTask(event, '${dateStr}')">${tasksHtml}</div>` : ''}
+        <button type="button" class="up-add" onclick="window.setCurrentDateAndOpenTask('${dateStr}')">+ Добавить задачу</button>
+      </section>`;
+  }
+
+  const monthLabel = anchor.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+  return { html: `
+    <div class="upcoming">
+      <div class="upcoming-bar">
+        <button type="button" class="upcoming-month" onclick="window.toggleCalendarExpand()">${monthLabel} <span>${calendarExpanded ? '▴' : '▾'}</span></button>
+        ${popover}
+      </div>
+      <div class="week-strip">${weekHtml}</div>
+      <div class="upcoming-list">${listHtml}</div>
+    </div>` };
 }
 
 window.goToDate = function(dateStr) {
   window.currentDate = dateStr;
   state.taskFilter = 'calendar';
   window._calendarAnchor = dateStr;
+  window._calMonth = new Date(dateStr + 'T12:00:00');
+  calendarExpanded = false;
   haptic();
   window.renderAll();
   if (!document.getElementById('screen-tasks')?.classList.contains('active')) {
     window.switchTab('tasks');
   }
+};
+
+window.changeCalMonth = function(delta) {
+  const base = window._calMonth ? new Date(window._calMonth) : new Date();
+  window._calMonth = new Date(base.getFullYear(), base.getMonth() + delta, 1);
+  calendarExpanded = true;
+  renderTasks();
 };
 
 window.setCurrentDateAndOpenTask = function(dateStr) {
@@ -575,3 +613,8 @@ export function deleteProject(id) {
   save(); window.closeSheet(); renderTasks();
 }
 window.deleteProject = deleteProject;
+
+window.toggleCompletedTasks = function() {
+  window._showCompletedTasks = !window._showCompletedTasks;
+  renderTasksTodayMini();
+};
