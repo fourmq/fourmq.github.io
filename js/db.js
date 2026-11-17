@@ -28,9 +28,13 @@ export function migrateState(s) {
   s.taskFilter = s.taskFilter || 'today';
   s.taskAllFilter = s.taskAllFilter || 'active';
   s.selectedFolder = s.selectedFolder || 'all';
-  s.dream = s.dream || { vision: '', markers: [], reviews: {}, createdAt: null, updatedAt: null };
-  if (!Array.isArray(s.dream.markers)) s.dream.markers = [];
-  if (!s.dream.reviews) s.dream.reviews = {};
+  // dream removed from product
+  if (s.dream) delete s.dream;
+  s.sleep = s.sleep || {}; // dateStr -> { hours, quality, bedTime, wakeTime }
+  s.settings = s.settings || {};
+  s.settings.surveyRemindHour = s.settings.surveyRemindHour ?? 21;
+  s.settings.surveyRemindEnabled = s.settings.surveyRemindEnabled ?? false;
+  s.settings.onboardingDone = s.settings.onboardingDone ?? false;
   return s;
 }
 
