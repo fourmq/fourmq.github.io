@@ -288,8 +288,10 @@ export function renderTasks() {
   const todayTasks = state.tasks.filter(t => t.recurrence ? (matchesRecurrence(t, today) && !isTaskDoneOn(t, today)) : (t.date === today && !t.done));
   const allActive = state.tasks.filter(t => !isTaskDoneOn(t, realToday));
   
+  const overdueList = (window.getOverdueTasks && window.getOverdueTasks()) || [];
   const filters = [
     { id: 'today', label: 'Сегодня', count: todayTasks.length },
+    { id: 'overdue', label: 'Просрочено', count: overdueList.length },
     { id: 'calendar', label: 'Календарь', count: null },
     { id: 'all', label: 'Все', count: allActive.length },
     { id: 'projects', label: 'Проекты', count: state.projects.length }
@@ -324,6 +326,13 @@ export function renderTasks() {
     return;
   }
   
+  if (state.taskFilter === 'overdue') {
+    const list = window.getOverdueTasks ? window.getOverdueTasks() : [];
+    content.innerHTML = list.length
+      ? list.map(t => taskRowHTML(t, t.date)).join('')
+      : '<div class="empty-hint warm">✅ Просроченных нет — отличная новость.</div>';
+    return;
+  }
   if (state.taskFilter === 'calendar') {
     content.innerHTML = renderTodoistCalendar().html;
     return;
