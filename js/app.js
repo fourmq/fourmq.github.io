@@ -568,13 +568,90 @@ window.openFolderEditor = function(id) { const folder = id ? state.noteFolders.f
 window.saveFolder = function(id) { const name = document.getElementById('f-name').value.trim(); const icon = document.getElementById('f-icon').value.trim() || '📁'; if (!name) return; if (id) { const f = state.noteFolders.find(x => x.id === id); if (f) { f.name = name; f.icon = icon; } } else { state.noteFolders.push({ id: uid() + '', name, icon }); } save(); window.closeSheet(); window.renderNotes(); };
 window.deleteFolder = function(id) { if (!confirm('Удалить папку?')) return; state.noteFolders = state.noteFolders.filter(f => f.id !== id); state.notes.forEach(n => { if (n.folderId === id) n.folderId = null; }); if (state.selectedFolder === id) state.selectedFolder = 'all'; save(); window.closeSheet(); window.renderNotes(); };
 window.addNote = function() { const folderId = state.selectedFolder === 'all' ? (state.noteFolders[0]?.id || null) : state.selectedFolder; const n = { id: uid(), title: 'Без названия', body: '', folderId, pinned: false, createdAt: Date.now(), updatedAt: Date.now() }; state.notes.push(n); haptic(); save(); window.openNote(n.id); };
-window.openNote = function(id) { if (currentNoteId && currentNoteId !== id) window.saveCurrentNote(); const n = state.notes.find(x => x.id === id); if (!n) return; currentNoteId = id; document.getElementById('edit-note-title').value = n.title; document.getElementById('edit-note-body').innerHTML = n.body; document.getElementById('notes-list-view').style.display = 'none'; document.getElementById('note-edit-view').style.display = 'flex'; document.getElementById('note-edit-view').style.flexDirection = 'column'; window.updatePinBtn(); 
+window.openNote = function(id) {
+  if (currentNoteId && currentNoteId !== id) window.saveCurrentNote();
+  const n = state.notes.find(x => x.id === id);
+  if (!n) return;
+  currentNoteId = id;
+  document.getElementById('edit-note-title').value = n.title || '';
+  document.getElementById('edit-note-body').innerHTML = n.body || '';
+  document.getElementById('notes-list-view').style.display = 'none';
+  const edit = document.getElementById('note-edit-view');
+  edit.style.display = 'flex';
+  edit.style.flexDirection = 'column';
+  window.updatePinBtn();
+  window.updateNoteTrashActions(n);
   const dt = new Date(n.updatedAt);
-  document.getElementById('note-last-modified').textContent = `Изменено: ${dt.toLocaleDateString('ru-RU')} в ${dt.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'})}`;
+  const mod = document.getElementById('note-last-modified');
+  if (mod) {
+    mod.textContent = n.deletedAt
+      ? `В корзине · ${dt.toLocaleDateString('ru-RU')} ${dt.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'})}`
+      : `Изменено ${dt.toLocaleDateString('ru-RU')} в ${dt.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'})}`;
+  }
+};
+
+window.updateNoteTrashActions = function(n) {
+  const actions = document.getElementById('note-header-actions');
+  if (!actions) return;
+  if (n && n.deletedAt) {
+    actions.innerHTML = `
+      <button class="note-ios-iconbtn" onclick="window.restoreCurrentNote()" title="Восстановить" style="color:var(--green);">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      </button>
+      <button class="note-ios-iconbtn" onclick="window.deleteCurrentNote()" title="Удалить навсегда" style="color:var(--red);">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+      </button>`;
+  } else {
+    actions.innerHTML = `
+      <button id="pin-btn" class="note-ios-iconbtn" onclick="togglePinNote()" title="Закрепить">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+      </button>
+      <button class="note-ios-iconbtn" onclick="deleteCurrentNote()" title="Удалить" style="color:var(--red);">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+      </button>`;
+    window.updatePinBtn();
+  }
+};
+
+window.restoreCurrentNote = function() {
+  if (!currentNoteId) return;
+  const n = state.notes.find(x => x.id === currentNoteId);
+  if (!n) return;
+  n.deletedAt = null;
+  n.updatedAt = Date.now();
+  haptic('success');
+  save();
+  window.showToast('Восстановлено');
+  currentNoteId = null;
+  document.getElementById('notes-list-view').style.display = 'block';
+  document.getElementById('note-edit-view').style.display = 'none';
+  state.selectedFolder = 'all';
+  window.renderNotes();
 };
 window.updatePinBtn = function() { const n = state.notes.find(x => x.id === currentNoteId); const btn = document.getElementById('pin-btn'); if (n && btn) { btn.style.color = n.pinned ? 'var(--orange)' : 'var(--text-sec)'; btn.style.background = n.pinned ? 'var(--accent-soft)' : 'var(--chip-bg)'; } };
 window.togglePinNote = function() { const n = state.notes.find(x => x.id === currentNoteId); if (!n) return; n.pinned = !n.pinned; n.updatedAt = Date.now(); haptic(); save(); window.updatePinBtn(); window.renderNotes(); };
 window.closeNoteEditor = function() { window.saveCurrentNote(); currentNoteId = null; document.getElementById('notes-list-view').style.display = 'block'; document.getElementById('note-edit-view').style.display = 'none'; window.renderNotes(); };
+
+// Панель форматирования над клавиатурой (iOS-like)
+(function setupNoteToolbarKeyboard() {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  const update = () => {
+    const tb = document.getElementById('note-toolbar-ios');
+    const edit = document.getElementById('note-edit-view');
+    if (!tb || !edit || edit.style.display === 'none') {
+      if (tb) tb.style.transform = '';
+      return;
+    }
+    // Разница между layout viewport и visual viewport = высота клавиатуры
+    const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    tb.style.transform = kb > 40 ? `translateY(-${kb}px)` : '';
+    tb.style.transition = 'transform 0.15s ease-out';
+  };
+  vv.addEventListener('resize', update);
+  vv.addEventListener('scroll', update);
+})();
+
 window.deleteCurrentNote = function() {
   if (!currentNoteId) return;
   const n = state.notes.find(x => x.id === currentNoteId);
@@ -602,15 +679,53 @@ function surveyMetric(dateStr,path){const s=state.surveys[dateStr];if(!s)return 
 
 window.renderStats = function() {
   const d14 = lastNDates(14);
+  const d7 = lastNDates(7);
   const daysWithData = Object.keys(state.surveys).filter(d => state.surveys[d] && (state.surveys[d].evening || (state.surveys[d].emotions && state.surveys[d].emotions.joy))).length;
   const summaryEl = document.getElementById('stats-summary');
-  if (daysWithData === 0) summaryEl.innerHTML = '📊 Пока нет данных. Пройди первый вечерний опрос — начнёт появляться аналитика.';
-  else if (daysWithData < 3) summaryEl.innerHTML = `📊 Данных пока мало (${daysWithData} дн.). Пройди ещё ${3 - daysWithData} опроса — появятся графики и паттерны.`;
-  else summaryEl.innerHTML = `📊 Статистика на основе <b>${daysWithData}</b> дней опросов.`;
 
-  renderFocusAnalytics(); renderAutoInsights();
-  renderChart([{ color: 'var(--td-orange)', data: d14.map(d => surveyMetric(d, 'emotions.joy')) }, { color: 'var(--td-blue)', data: d14.map(d => surveyMetric(d, 'mental.productivity')) }, { color: 'var(--pink)', data: d14.map(d => surveyMetric(d, 'emotions.anxiety')) }]);
-  renderTrends4W(); renderStatsGrid(); renderWeekdayPatterns(); renderCorrMatrix(); renderPsyProfile(); renderPedRecommendations(); renderYearInPixels();
+  // Hero insight
+  const joy = avgOf(d7.map(d => surveyMetric(d, 'emotions.joy')));
+  const energy = avgOf(d7.map(d => surveyMetric(d, 'physical.energy')));
+  const prod = avgOf(d7.map(d => surveyMetric(d, 'mental.productivity')));
+  const anx = avgOf(d7.map(d => surveyMetric(d, 'emotions.anxiety')));
+  let heroEmoji = '🌱', heroTitle = 'Начинаем собирать картину', heroSub = 'Пара вечерних опросов — и здесь появится смысл';
+  if (daysWithData === 0) {
+    heroEmoji = '✨'; heroTitle = 'Пока тихо'; heroSub = 'Пройди первый вечерний опрос — откроется аналитика';
+  } else if (daysWithData < 3) {
+    heroEmoji = '📊'; heroTitle = `Уже ${daysWithData} дн. данных`; heroSub = `Ещё ${3 - daysWithData} — и появятся паттерны`;
+  } else {
+    if (energy != null && energy >= 7 && (anx == null || anx <= 4)) { heroEmoji = '⚡'; heroTitle = 'Неделя на энергии'; heroSub = 'Силы есть, тревога под контролем — хороший момент для важного'; }
+    else if (anx != null && anx >= 7) { heroEmoji = '🫧'; heroTitle = 'Неделя была напряжённой'; heroSub = 'Тревога выше обычного — чуть больше отдыха не помешает'; }
+    else if (prod != null && prod >= 7) { heroEmoji = '🚀'; heroTitle = 'Продуктивная неделя'; heroSub = 'Дела двигаются. Зафиксируй, что сработало'; }
+    else if (energy != null && energy <= 4) { heroEmoji = '😴'; heroTitle = 'Сил маловато'; heroSub = 'Посмотри на сон и нагрузку — тело просит паузу'; }
+    else { heroEmoji = '🙂'; heroTitle = 'Стабильная неделя'; heroSub = `На основе ${daysWithData} дней опросов`; }
+  }
+
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+      <div class="stats-hero">
+        <div class="stats-hero-emoji">${heroEmoji}</div>
+        <div class="stats-hero-text">
+          <div class="stats-hero-title">${heroTitle}</div>
+          <div class="stats-hero-sub">${heroSub}</div>
+        </div>
+      </div>`;
+  }
+
+  renderFocusAnalytics();
+  renderAutoInsights();
+  renderChart([
+    { color: 'var(--td-orange)', data: d14.map(d => surveyMetric(d, 'emotions.joy')) },
+    { color: 'var(--td-blue)', data: d14.map(d => surveyMetric(d, 'mental.productivity')) },
+    { color: 'var(--pink)', data: d14.map(d => surveyMetric(d, 'emotions.anxiety')) }
+  ]);
+  renderTrends4W();
+  renderStatsGrid();
+  renderWeekdayPatterns();
+  renderCorrMatrix();
+  renderPsyProfile();
+  renderPedRecommendations();
+  renderYearInPixels();
 };
 
 function renderFocusAnalytics() {
