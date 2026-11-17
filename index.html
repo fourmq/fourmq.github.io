@@ -269,48 +269,40 @@ window.addEventListener('error', function(event) {
       </section>
 
       <section id="screen-stats" class="screen">
-        <div id="stats-summary" class="card stats-summary-card" style="font-size:16px;line-height:1.5;"></div>
+        <div id="stats-summary" class="card stats-hero-card"></div>
 
-        <div class="section-title"><span>✨ Как у тебя сейчас</span></div>
+        <div class="stat-blocks" id="stat-blocks"></div>
+
+        <div class="section-title"><span>Связи</span></div>
         <div class="card" id="auto-insights"></div>
 
-        <div class="section-title"><span>📅 Ритм недели</span></div>
-        <div class="card" id="weekday-patterns"></div>
-
-        <div class="section-title"><span>🌲 Фокус</span></div>
-        <div class="card" id="focus-analytics"></div>
-
-        <div class="section-title"><span>📈 14 дней</span></div>
-        <div class="card">
-          <div id="chart-mood-prod"></div>
-          <div class="chart-legend" style="display:flex;gap:16px;justify-content:center;font-size:12px;color:var(--text-sec);margin-top:6px;flex-wrap:wrap;">
-            <span><span class="dot" style="background:var(--td-orange)"></span>Настроение</span>
-            <span><span class="dot" style="background:var(--td-blue)"></span>Продуктивность</span>
-            <span><span class="dot" style="background:var(--pink)"></span>Тревога</span>
-          </div>
-        </div>
-
-        <div class="section-title"><span>✨ Метрики недели</span></div>
-        <div class="stat-grid" id="stats-grid"></div>
-
-
-        <div class="section-title"><span>📉 Тренды (4 недели)</span></div>
-        <div class="card" id="trends-4w"></div>
+        <div class="section-title"><span>Совет</span></div>
+        <div class="card" id="stats-advice"></div>
 
         <details class="stats-details">
-          <summary>🔬 Подробнее</summary>
-          <div class="section-title"><span>Связи между показателями</span></div>
+          <summary>Подробнее</summary>
+          <div class="section-title"><span>Ритм недели</span></div>
+          <div class="card" id="weekday-patterns"></div>
+          <div class="section-title"><span>Фокус</span></div>
+          <div class="card" id="focus-analytics"></div>
+          <div class="section-title"><span>14 дней</span></div>
+          <div class="card">
+            <div id="chart-mood-prod"></div>
+            <div class="chart-legend" style="display:flex;gap:16px;justify-content:center;font-size:12px;color:var(--text-sec);margin-top:6px;flex-wrap:wrap;">
+              <span><span class="dot" style="background:var(--td-orange)"></span>Настроение</span>
+              <span><span class="dot" style="background:var(--td-blue)"></span>Продуктивность</span>
+              <span><span class="dot" style="background:var(--pink)"></span>Тревога</span>
+            </div>
+          </div>
+          <div class="section-title"><span>Метрики</span></div>
+          <div class="stat-grid" id="stats-grid"></div>
+          <div class="section-title"><span>Тренды</span></div>
+          <div class="card" id="trends-4w"></div>
+          <div class="section-title"><span>Матрица</span></div>
           <div class="card" id="corr-matrix"></div>
-          <div class="section-title"><span>Картина состояния</span></div>
-          <div class="card" id="psy-profile"></div>
-          <div class="section-title"><span>Что попробовать</span></div>
-          <div class="card" id="ped-recommendations"></div>
+          <div class="section-title"><span>Год</span></div>
+          <div class="card"><div class="year-grid" id="year-grid"></div></div>
         </details>
-
-        <div class="section-title"><span>🗓️ Год в пикселях</span></div>
-        <div class="card"><div class="year-grid" id="year-grid"></div>
-          <div style="font-size:11px;color:var(--text-sec);margin-top:8px;text-align:center;">Чем ярче квадрат — тем полнее день</div>
-        </div>
 
         <div class="section-title"><span>Данные</span></div>
         <div class="card" style="display:flex;gap:10px;flex-wrap:wrap;">
