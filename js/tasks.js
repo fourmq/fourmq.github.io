@@ -1,11 +1,11 @@
-import { escapeHtml, svgIcon, todayStr, uid, WEEKDAYS_LONG, haptic, playSound, PALETTE } from './utils.js';
+import { escapeHtml, svgIcon, todayStr, uid, WEEKDAYS_LONG, haptic, playSound, PALETTE, ymdLocal } from './utils.js';
 import { state, save } from './db.js';
 
 export function matchesRecurrence(t, dateStr) {
   const r = t.recurrence;
   if (!r) return t.date === dateStr;
   const d = new Date(dateStr + 'T12:00:00');
-  const startStr = t.date || (t.createdAt ? new Date(t.createdAt).toISOString().slice(0,10) : dateStr);
+  const startStr = t.date || (t.createdAt ? ymdLocal(new Date(t.createdAt)) : dateStr);
   if (dateStr < startStr) return false;
   if (r === 'daily') return true;
   if (r === 'weekdays') return d.getDay() >= 1 && d.getDay() <= 5;
@@ -96,7 +96,7 @@ export function postponeTask(id) {
   const t = state.tasks.find(x => x.id === id);
   if (t) {
     const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
-    t.date = tomorrow.toISOString().slice(0, 10);
+    t.date = ymdLocal(tomorrow);
     save(); window.renderAll(); window.showToast('Задача перенесена на завтра');
   }
 }
@@ -428,10 +428,6 @@ export function renderTasks() {
     return 0; 
   });
   content.innerHTML = tasks.length ? `<div class="card tight">${tasks.map(t => taskRowHTML(t, today)).join('')}</div>` : `<div class="card"><div class="empty-hint">Задач нет.<br>Нажмите +, чтобы добавить.</div></div>`;
-}
-
-function ymdLocal(d) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function renderTodoistCalendar() {
