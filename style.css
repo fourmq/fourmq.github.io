@@ -689,3 +689,64 @@ input:checked + .slider:before{transform:translateX(18px)}
 .insight-card { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--separator); font-size: 14px; line-height: 1.4; }
 .insight-card:last-child { border-bottom: none; }
 .insight-emoji { font-size: 18px; flex-shrink: 0; }
+
+/* Swipe actions match card radius */
+.swipe-row-container { border-radius: 12px; overflow: hidden; }
+.swipe-actions { border-radius: 0 12px 12px 0; overflow: hidden; }
+.swipe-btn { border-radius: 0; }
+
+/* Form inputs consistent */
+.td-title-input, .td-desc-input, .subtask-row input[type="text"] {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  color: var(--text);
+  outline: none;
+}
+.td-title-input { font-size: 20px; font-weight: 600; padding: 8px 0; }
+.td-desc-input { font-size: 15px; color: var(--text-sec); padding: 4px 0 12px; border-bottom: 1px solid var(--separator); }
+.subtask-row input[type="text"] {
+  background: var(--input-bg);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 14px;
+}
+.td-btn {
+  border-radius: 20px;
+  border: 1px solid var(--separator);
+  background: var(--card);
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.td-toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.td-detail-row { display: flex; gap: 12px; margin: 8px 0; }
+.td-detail-item { flex: 1; display: flex; align-items: center; gap: 6px; background: var(--input-bg); border-radius: 10px; padding: 8px 10px; }
+.td-detail-item input { border: none; background: transparent; font-family: inherit; color: var(--text); outline: none; width: 100%; }
+.td-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+.btn-save-task { background: var(--td-red); color: #fff; border: none; border-radius: 10px; padding: 10px 20px; font-weight: 600; cursor: pointer; font-family: inherit; }
+
+/* Form actions consistent on both */
+.sheet-actions { display: flex; gap: 8px; margin-top: 16px; }
+.sheet-actions .btn-cancel, .sheet-actions .btn-primary, .sheet-actions .btn-danger {
+  width: auto; flex: 1; margin-top: 0;
+}
+.sheet h2 { font-size: 20px; font-weight: 700; margin: 4px 0 12px; }
+.sheet .field input, .sheet .field textarea, .sheet .field select {
+  border-radius: 10px;
+  border: 1px solid var(--separator);
+  background: var(--input-bg);
+  padding: 10px 12px;
+}
+/* Desktop modal: slightly tighter */
+@media (min-width: 900px) {
+  .sheet-actions { justify-content: flex-end; }
+  .sheet-actions .btn-cancel, .sheet-actions .btn-primary { flex: 0 0 auto; min-width: 100px; }
+}
