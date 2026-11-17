@@ -24,12 +24,6 @@ window.setAllFilter = (f) => { state.taskAllFilter = f; haptic(); save(); Tasks.
 window.openDailySurvey = Surveys.openDailySurvey;
 window.openChangelog = Surveys.openChangelog;
 window.openWeeklySurvey = Surveys.openWeeklySurvey;
-window.openDreamEditor = Surveys.openDreamEditor;
-window.openMonthlyReview = Surveys.openMonthlyReview;
-window.addMarker = Surveys.addMarker;
-window.removeMarker = Surveys.removeMarker;
-window.saveDream = Surveys.saveDream;
-window.saveMonthlyReview = Surveys.saveMonthlyReview;
 window.saveDailySurvey = Surveys.saveDailySurvey;
 window.saveWeeklySurvey = Surveys.saveWeeklySurvey;
 
@@ -38,11 +32,10 @@ window.openSheet = (html) => { document.getElementById('sheet-content').innerHTM
 window.closeSheet = () => { const s = document.getElementById('sheet'); s.classList.remove('open'); document.getElementById('backdrop').classList.remove('open'); window.closePopover(); };
 window.closePopover = () => { document.getElementById('popover-overlay').classList.remove('open'); };
 
-// ============ 3. СВАЙПЫ (Навигация и действия со строками) ============
+// ============ 3. СВАЙПЫ (Только строки) ============
 let touchStartX = 0, touchStartY = 0;
 let touchEndX = 0, touchEndY = 0;
 let swipingRow = null, isSwiping = false;
-let swipeDirection = 'left';
 
 document.addEventListener('touchstart', e => {
   touchStartX = e.changedTouches[0].screenX;
@@ -88,26 +81,6 @@ document.addEventListener('touchend', e => {
     }
     swipingRow = null; isSwiping = false;
     return;
-  }
-  
-  // Навигация свайпами (если не по элементам)
-  const dx = touchEndX - touchStartX;
-  const dy = touchEndY - touchStartY;
-  
-  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
-    const activeScreen = document.querySelector('.screen.active').id;
-    swipeDirection = dx > 0 ? 'right' : 'left';
-    
-    if (activeScreen === 'screen-today') {
-      if (dx > 0) window.changeDay(-1);
-      else window.changeDay(1);
-    } else if (activeScreen === 'screen-tasks') {
-      const tabs = ['today', 'calendar', 'all', 'projects'];
-      const cur = state.taskFilter || 'today';
-      let idx = tabs.indexOf(cur);
-      if (dx > 0 && idx > 0) window.setTaskFilter(tabs[idx - 1]);
-      else if (dx < 0 && idx < tabs.length - 1) window.setTaskFilter(tabs[idx + 1]);
-    }
   }
 }, { passive: true });
 
@@ -170,6 +143,8 @@ window.updateDateNav = function() {
 };
 
 window.switchTab = function(name) {
+  window.updateTopbar(); // Сразу меняем заголовок, чтобы не было задержки
+  
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.querySelectorAll('.sidebar-nav button').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.querySelectorAll('.screen').forEach(s => {
@@ -180,7 +155,7 @@ window.switchTab = function(name) {
   const targetScreen = document.getElementById('screen-' + name);
   if (targetScreen) {
     void targetScreen.offsetWidth;
-    targetScreen.classList.add(swipeDirection === 'left' ? 'slide-in-right' : 'slide-in-left');
+    targetScreen.classList.add('slide-in-right');
   }
   
   document.querySelector('main').scrollTop = 0;
@@ -197,10 +172,7 @@ window.switchTab = function(name) {
   
   window.renderAll();
 };
-document.querySelectorAll('.tab, .sidebar-nav button').forEach(tab => tab.onclick = () => {
-  swipeDirection = 'left'; // По умолчанию свайп влево
-  window.switchTab(tab.dataset.tab);
-});
+document.querySelectorAll('.tab, .sidebar-nav button').forEach(tab => tab.onclick = () => window.switchTab(tab.dataset.tab));
 
 // ============ 6. ТЕМА И НАСТРОЙКИ ============
 window.applyTheme = function() {
@@ -531,7 +503,8 @@ window.renderNotes = function() {
     notesHtml += `
       <div class="swipe-row-container">
         <div class="swipe-actions">
-          <button class="swipe-btn delete" onclick="event.stopPropagation();window.deleteNoteById(${n.id})">Удалить</button>
+          <button class="swipe-btn unpin" onclick="event.stopPropagation();window.unpinNoteById(${n.id})">${svgIcon('pin','#fff',18)}</button>
+          <button class="swipe-btn delete" onclick="event.stopPropagation();window.deleteNoteById(${n.id})">${svgIcon('trash','#fff',18)}</button>
         </div>
         <div class="swipe-content" onclick="window.openNote(${n.id})">
           ${pinIcon}
@@ -549,14 +522,26 @@ window.deleteNoteById = function(id) {
   save(); window.renderNotes();
 };
 
+window.unpinNoteById = function(id) {
+  const n = state.notes.find(n => n.id === id);
+  if (n && n.pinned) {
+    n.pinned = false;
+    n.updatedAt = Date.now();
+    save(); window.renderNotes();
+  }
+};
+
 window.onFolderChip = function(id, isCustom) { if (isCustom && state.selectedFolder === id) { window.openFolderEditor(id); return; } state.selectedFolder = id; haptic(); save(); window.renderNotes(); };
 window.openFolderEditor = function(id) { const folder = id ? state.noteFolders.find(f => f.id === id) : null; window.openSheet(`<h2>${folder ? 'Папка' : 'Новая папка'}</h2><div class="field"><label>Название</label><input type="text" id="f-name" value="${folder ? escapeHtml(folder.name) : ''}"></div><div class="field"><label>Иконка</label><input type="text" id="f-icon" value="${folder ? escapeHtml(folder.icon || '📁') : '📁'}" maxlength="2"></div><div class="sheet-actions">${folder ? `<button class="btn-danger" onclick="window.deleteFolder('${id}')">Удалить</button>` : ''}<button class="btn-cancel" onclick="window.closeSheet()">Отмена</button><button class="btn-primary" onclick="window.saveFolder('${id || ''}')">Сохранить</button></div>`); };
 window.saveFolder = function(id) { const name = document.getElementById('f-name').value.trim(); const icon = document.getElementById('f-icon').value.trim() || '📁'; if (!name) return; if (id) { const f = state.noteFolders.find(x => x.id === id); if (f) { f.name = name; f.icon = icon; } } else { state.noteFolders.push({ id: uid() + '', name, icon }); } save(); window.closeSheet(); window.renderNotes(); };
 window.deleteFolder = function(id) { if (!confirm('Удалить папку?')) return; state.noteFolders = state.noteFolders.filter(f => f.id !== id); state.notes.forEach(n => { if (n.folderId === id) n.folderId = null; }); if (state.selectedFolder === id) state.selectedFolder = 'all'; save(); window.closeSheet(); window.renderNotes(); };
 window.addNote = function() { const folderId = state.selectedFolder === 'all' ? (state.noteFolders[0]?.id || null) : state.selectedFolder; const n = { id: uid(), title: 'Без названия', body: '', folderId, pinned: false, createdAt: Date.now(), updatedAt: Date.now() }; state.notes.push(n); haptic(); save(); window.openNote(n.id); };
-window.openNote = function(id) { if (currentNoteId && currentNoteId !== id) window.saveCurrentNote(); const n = state.notes.find(x => x.id === id); if (!n) return; currentNoteId = id; document.getElementById('edit-note-title').value = n.title; document.getElementById('edit-note-body').innerHTML = n.body; document.getElementById('notes-list-view').style.display = 'none'; document.getElementById('note-edit-view').style.display = 'block'; window.updatePinBtn(); };
+window.openNote = function(id) { if (currentNoteId && currentNoteId !== id) window.saveCurrentNote(); const n = state.notes.find(x => x.id === id); if (!n) return; currentNoteId = id; document.getElementById('edit-note-title').value = n.title; document.getElementById('edit-note-body').innerHTML = n.body; document.getElementById('notes-list-view').style.display = 'none'; document.getElementById('note-edit-view').style.display = 'flex'; document.getElementById('note-edit-view').style.flexDirection = 'column'; window.updatePinBtn(); 
+  const dt = new Date(n.updatedAt);
+  document.getElementById('note-last-modified').textContent = `Изменено: ${dt.toLocaleDateString('ru-RU')} в ${dt.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'})}`;
+};
 window.updatePinBtn = function() { const n = state.notes.find(x => x.id === currentNoteId); const btn = document.getElementById('pin-btn'); if (n && btn) { btn.style.color = n.pinned ? 'var(--orange)' : 'var(--text-sec)'; btn.style.background = n.pinned ? 'var(--accent-soft)' : 'var(--chip-bg)'; } };
-window.togglePinNote = function() { const n = state.notes.find(x => x.id === currentNoteId); if (!n) return; n.pinned = !n.pinned; n.updatedAt = Date.now(); haptic(); save(); window.updatePinBtn(); };
+window.togglePinNote = function() { const n = state.notes.find(x => x.id === currentNoteId); if (!n) return; n.pinned = !n.pinned; n.updatedAt = Date.now(); haptic(); save(); window.updatePinBtn(); window.renderNotes(); };
 window.closeNoteEditor = function() { window.saveCurrentNote(); currentNoteId = null; document.getElementById('notes-list-view').style.display = 'block'; document.getElementById('note-edit-view').style.display = 'none'; window.renderNotes(); };
 window.deleteCurrentNote = function() { if (!currentNoteId || !confirm('Удалить?')) return; state.notes = state.notes.filter(n => n.id !== currentNoteId); save(); currentNoteId = null; document.getElementById('notes-list-view').style.display = 'block'; document.getElementById('note-edit-view').style.display = 'none'; window.renderNotes(); };
 
@@ -574,7 +559,7 @@ window.renderStats = function() {
   else if (daysWithData < 3) summaryEl.innerHTML = `📊 Данных пока мало (${daysWithData} дн.). Пройди ещё ${3 - daysWithData} опроса — появятся графики и паттерны.`;
   else summaryEl.innerHTML = `📊 Статистика на основе <b>${daysWithData}</b> дней опросов.`;
 
-  renderFocusAnalytics(); renderAutoInsights(); renderDreamProgress();
+  renderFocusAnalytics(); renderAutoInsights();
   renderChart([{ color: 'var(--td-orange)', data: d14.map(d => surveyMetric(d, 'emotions.joy')) }, { color: 'var(--td-blue)', data: d14.map(d => surveyMetric(d, 'mental.productivity')) }, { color: 'var(--pink)', data: d14.map(d => surveyMetric(d, 'emotions.anxiety')) }]);
   renderTrends4W(); renderStatsGrid(); renderWeekdayPatterns(); renderCorrMatrix(); renderPsyProfile(); renderPedRecommendations(); renderYearInPixels();
 };
@@ -675,15 +660,6 @@ function renderTrends4W() {
   el.innerHTML = rows.map(r => `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:.5px solid var(--separator);"><div style="flex:1;font-size:13px;">${r.label}</div>${r.vals.map(v => `<div style="width:32px;text-align:center;font-size:11px;color:var(--text-sec);font-variant-numeric:tabular-nums;">${v != null ? v.toFixed(1) : '·'}</div>`).join('')}<div style="width:52px;text-align:right;font-size:13px;font-weight:700;color:${r.good ? 'var(--green)' : r.bad ? 'var(--red)' : 'var(--text-sec)'};">${r.arrow}${r.delta != null ? Math.abs(r.delta).toFixed(1) : ''}</div></div>`).join('') + `<div style="display:flex;gap:10px;font-size:10px;color:var(--text-sec);margin-top:8px;"><div style="flex:1;"></div>${['−3н', '−2н', '−1н', 'сейчас'].map(w => `<div style="width:32px;text-align:center;">${w}</div>`).join('')}<div style="width:52px;"></div></div>`;
 }
 
-function renderDreamProgress() {
-  const el = document.getElementById('dream-progress'); if (!el) return;
-  if (!Surveys.hasDream()) { el.innerHTML = `<div class="empty-hint">🌱 Определи мечту — и здесь появятся маркеры прогресса и ревизии месяцев.</div><button class="btn-primary" style="margin-top:8px;" onclick="window.openDreamEditor()">Определить мечту</button>`; return; }
-  const dream = state.dream; const reviews = Object.entries(dream.reviews || {}).sort((a, b) => a[0].localeCompare(b[0])).slice(-6); const lastReview = reviews.length ? reviews[reviews.length - 1][1] : null;
-  let markersHtml = ''; if (dream.markers.filter(Boolean).length) { markersHtml = `<div style="margin-bottom:12px;">${dream.markers.filter(Boolean).map(m => `<div class="insight" style="font-size:13px;">◦ ${escapeHtml(m)}</div>`).join('')}</div>`; }
-  let reviewsHtml = ''; if (reviews.length) { reviewsHtml = `<div style="font-size:11px;font-weight:700;color:var(--text-sec);text-transform:uppercase;margin-top:12px;margin-bottom:6px;">Ревизии месяцев</div>${reviews.map(([key, r]) => `<div class="insight" style="display:flex;justify-content:space-between;align-items:center;"><div><b>${key}</b>${r.note ? `<div style="font-size:12px;color:var(--text-sec);margin-top:2px;">${escapeHtml(r.note)}</div>` : ''}</div><b style="color:${r.score >= 7 ? 'var(--green)' : r.score >= 4 ? 'var(--orange)' : 'var(--red)'};">${r.score}/10</b></div>`).join('')}`; }
-  el.innerHTML = `<div style="font-size:14px;font-weight:600;margin-bottom:6px;">${escapeHtml(dream.vision)}</div>${markersHtml}${reviewsHtml}<button class="btn-primary" style="margin-top:12px;background:var(--indigo);" onclick="window.openMonthlyReview()">${lastReview ? 'Новая ревизия месяца' : 'Сделать первую ревизию'}</button>`;
-}
-
 function renderPsyProfile() {
   const el = document.getElementById('psy-profile'); const days = lastNDates(14); const get = k => avgOf(days.map(d => surveyMetric(d, k)));
   const joy = get('emotions.joy'), anx = get('emotions.anxiety'), sad = get('emotions.sadness'), irr = get('emotions.irritation'), meaning = get('mental.meaning'); const posAvg = joy; const negAvg = avgOf([anx, sad, irr].filter(x => x != null)); const balance = (posAvg != null && negAvg != null) ? posAvg - negAvg : null; const balanceLabel = balance == null ? 'мало данных' : balance > 2 ? '🟢 позитивный' : balance > 0 ? '🟡 сбалансированный' : '🔴 негативный';
@@ -709,13 +685,6 @@ function renderYearInPixels() {
   const el = document.getElementById('year-grid'); if (!el) return; const days = []; for (let i = 364; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(d.toISOString().slice(0, 10)); }
   el.innerHTML = days.map(d => { const sPct = state.surveys[d]?.evening ? 1 : 0; const sched = window.habitsScheduledForDate(d); const hPct = sched.length ? sched.filter(h => window.isHabitDoneForDate(h, d)).length / sched.length : 0; const tToday = state.tasks.filter(x => x.recurrence ? Tasks.matchesRecurrence(x, d) : x.date === d); const tPct = tToday.length ? tToday.filter(x => Tasks.isTaskDoneOn(x, d)).length / tToday.length : 0; const score = (sPct + hPct + tPct) / 3; let cls = ''; if (score > 0.75) cls = 'level-4'; else if (score > 0.5) cls = 'level-3'; else if (score > 0.25) cls = 'level-2'; else if (score > 0) cls = 'level-1'; return `<div class="year-cell ${cls}" title="${d}"></div>`; }).join('');
 }
-
-window.renderDreamCard = function() {
-  const container = document.getElementById('dream-card-container'); if (!container) return;
-  if (!Surveys.hasDream()) { container.innerHTML = `<div class="card dream-card" onclick="window.openDreamEditor()"><div class="dream-label">${svgIcon('compass', 'currentColor', 14)} Моя мечта</div><div class="dream-empty">Определи мечту →</div><div class="dream-meta">Одно предложение о будущем + 3-5 маркеров.</div></div>`; return; }
-  const dream = state.dream; const markersCount = dream.markers.filter(Boolean).length; const now = new Date(); const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`; const hasReview = !!dream.reviews[monthKey];
-  container.innerHTML = `<div class="card dream-card" onclick="window.openDreamEditor()"><div class="dream-label">${svgIcon('compass', 'currentColor', 14)} Моя мечта</div><div class="dream-title">${escapeHtml(dream.vision || 'Определи мечту')}</div><div class="dream-meta">${markersCount} маркеров · ${hasReview ? '✅ ревизия месяца сделана' : '⏳ пора сделать ревизию'}</div></div>${!hasReview ? `<button class="btn-primary" style="margin-bottom:10px;background:var(--indigo);" onclick="window.openMonthlyReview()">Сделать ревизию месяца</button>` : ''}`;
-};
 
 window.renderWeeklyCard = function() {
   const container = document.getElementById('weekly-survey-container'); if (!container) return; const wk = window.isoWeek(); const s = state.weeklySurveys[wk]; const passed = s && s.ts;
@@ -744,7 +713,6 @@ window.renderAll = function() {
   window.renderNotes(); 
   window.updateRings();
   window.renderStats(); 
-  window.renderDreamCard(); 
   window.renderWeeklyCard();
 };
 
@@ -789,21 +757,31 @@ function updateFocusDisplay() {
   const treePath = document.getElementById('tree-path');
   if (treePath && focusMode === 'focus') {
     const progress = 1 - (focusTimeLeft / focusTotalTime);
-    const dashLen = 200 * progress; 
-    treePath.style.strokeDasharray = `${dashLen} 300`;
+    const dashOffset = 200 * (1 - progress);
+    treePath.style.strokeDashoffset = dashOffset;
   }
 }
 
 window.startFocusTimer = function() {
-  setFocusTime();
+  const taskSelect = document.getElementById('focus-task-select');
+  const descInput = document.getElementById('focus-desc');
+  const taskId = taskSelect.value;
+  const desc = descInput.value.trim();
+  
+  if (!taskId && !desc) {
+    window.showToast('⚠️ Выберите задачу или введите название');
+    if (!desc) descInput.focus();
+    return;
+  }
+  
+  if (focusTotalTime <= 0) setFocusTime();
   playTick();
   
   document.getElementById('focus-setup-controls').style.display = 'none';
   document.getElementById('focus-start-btn-container').style.display = 'none';
   document.getElementById('focus-active-controls').style.display = 'flex';
   
-  const taskSelect = document.getElementById('focus-task-select'); 
-  let taskName = document.getElementById('focus-desc').value.trim() || 'Фокус';
+  let taskName = desc || 'Фокус';
   if (taskSelect && taskSelect.value) { const t = state.tasks.find(x => x.id == taskSelect.value); if (t) taskName = t.title; }
   
   const floatTask = document.getElementById('float-task'); if (floatTask) floatTask.textContent = taskName;
@@ -835,6 +813,12 @@ window.toggleFocusTimer = function() {
   }
 };
 
+window.confirmStopFocus = function() {
+  if (confirm('Вы уверены, что хотите сбросить таймер? Прогресс не сохранится.')) {
+    stopFocusTimer();
+  }
+};
+
 window.stopFocusTimer = function() { 
   clearInterval(focusInterval); focusRunning = false; focusTimeLeft = focusTotalTime; 
   updateFocusDisplay(); 
@@ -847,7 +831,7 @@ window.stopFocusTimer = function() {
   const status = document.getElementById('focus-status'); if (status) status.textContent = 'Готов к работе'; 
   
   const treePath = document.getElementById('tree-path');
-  if (treePath) treePath.style.stroke = '#555';
+  if (treePath) { treePath.style.strokeDashoffset = 200; treePath.style.stroke = '#555'; }
   setTimeout(() => { if(treePath) treePath.style.stroke = ''; }, 2000);
 };
 
@@ -869,7 +853,7 @@ function completeFocusSession() {
   setTimeout(() => { if(treePath) treePath.classList.remove('tree-completed'); }, 3000);
   
   if (focusMode === 'focus') {
-    playFocusSound(document.getElementById('focus-sound-select').value);
+    playSound('success');
     
     if (!state.focusSessions) state.focusSessions = []; 
     const taskSelect = document.getElementById('focus-task-select'); 
@@ -898,15 +882,8 @@ function completeFocusSession() {
   focusTimeLeft = focusTotalTime; 
   updateFocusDisplay();
   window.renderFocusHistory();
-}
-
-function playFocusSound(type) {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)(); const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.connect(gain); gain.connect(ctx.destination);
-    if (type === 'beep') { osc.type = 'square'; osc.frequency.setValueAtTime(800, ctx.currentTime); gain.gain.setValueAtTime(0.1, ctx.currentTime); setTimeout(() => { osc.frequency.setValueAtTime(1000, ctx.currentTime); }, 200); setTimeout(() => { osc.frequency.setValueAtTime(800, ctx.currentTime); }, 400); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1); osc.start(); osc.stop(ctx.currentTime + 1); }
-    else if (type === 'ping') { osc.type = 'sine'; osc.frequency.setValueAtTime(1200, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(2000, ctx.currentTime + 0.5); gain.gain.setValueAtTime(0.2, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5); osc.start(); osc.stop(ctx.currentTime + 1.5); }
-    else { osc.type = 'sine'; osc.frequency.setValueAtTime(880, ctx.currentTime); gain.gain.setValueAtTime(0.2, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 2); osc.start(); osc.stop(ctx.currentTime + 2); }
-  } catch(e) {}
+  const treePathReset = document.getElementById('tree-path');
+  if(treePathReset) treePathReset.style.strokeDashoffset = 200;
 }
 
 window.populateFocusTasks = function() { 
@@ -923,12 +900,17 @@ window.renderFocusHistory = function() {
   if (!sessions.length) { el.innerHTML = '<div class="empty-hint">Пока нет завершенных сессий</div>'; return; }
   
   el.innerHTML = sessions.map(s => {
-    const time = new Date(s.ts).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    const dt = new Date(s.ts);
+    const dateStr = dt.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+    const timeStr = dt.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
     const task = s.taskId ? state.tasks.find(t => t.id == s.taskId) : null;
     const name = task ? task.title : (s.desc || 'Фокус');
     return `<div style="display:flex; justify-content:space-between; align-items:center; padding: 8px 0; border-bottom: .5px solid var(--separator); font-size:13px;">
-      <div><span style="color:var(--text-sec); font-size:11px; margin-right:8px;">${time}</span><span>${escapeHtml(name)}</span></div>
-      <b style="color:var(--green);">${s.duration} мин 🌳</b>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(name)}</div>
+        <div style="font-size:11px; color:var(--text-sec); margin-top:2px;">${dateStr} · ${timeStr}</div>
+      </div>
+      <b style="color:var(--green);margin-left:8px;">${s.duration} мин 🌳</b>
     </div>`;
   }).join('');
 };
