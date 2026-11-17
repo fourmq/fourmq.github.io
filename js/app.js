@@ -145,6 +145,7 @@ window.updateDateNav = function() {
 };
 
 window.switchTab = function(name) {
+  if (name === 'today') window.currentDate = todayStr();
   window.updateTopbar(); // Сразу меняем заголовок, чтобы не было задержки
   
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
@@ -1338,8 +1339,8 @@ window.renderAll = function() {
 
 window.updateRings = function() {
   const t = window.currentDate; const sPct = state.surveys[t]?.evening ? 1 : 0; const sched = window.habitsScheduledForDate(t); const hPct = sched.length ? sched.filter(h => window.isHabitDoneForDate(h, t)).length / sched.length : 0; const tToday = state.tasks.filter(x => x.recurrence ? Tasks.matchesRecurrence(x, t) : x.date === t); const tPct = tToday.length ? tToday.filter(x => Tasks.isTaskDoneOn(x, t)).length / tToday.length : 0;
-  const setRing = (id, r, pct) => { const el = document.getElementById(id); const c = 2 * Math.PI * r; el.setAttribute('stroke-dasharray', `${c * Math.max(0, Math.min(1, pct))} ${c}`); };
-  setRing('ring-survey', 52, sPct); setRing('ring-habits', 38, hPct); setRing('ring-tasks', 24, tPct);
+  const setBar = (id, pct) => { const el = document.getElementById(id); if (el) el.style.width = Math.round(Math.max(0, Math.min(1, pct)) * 100) + '%'; };
+  setBar('bar-survey', sPct); setBar('bar-habits', hPct); setBar('bar-tasks', tPct);
   document.getElementById('pct-survey').textContent = Math.round(sPct * 100) + '%'; document.getElementById('pct-habits').textContent = Math.round(hPct * 100) + '%'; document.getElementById('pct-tasks').textContent = Math.round(tPct * 100) + '%';
   const btn = document.getElementById('survey-btn'); const btnContent = document.getElementById('survey-btn-content'); const btnTime = document.getElementById('survey-btn-time');
   if (sPct) { btn.classList.add('done'); btnContent.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg> <span>Опрос пройден</span>`; btnTime.textContent = state.surveys[t].eveningTime || 'Сегодня'; }
