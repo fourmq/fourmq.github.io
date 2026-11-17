@@ -750,3 +750,11 @@ input:checked + .slider:before{transform:translateX(18px)}
   .sheet-actions { justify-content: flex-end; }
   .sheet-actions .btn-cancel, .sheet-actions .btn-primary { flex: 0 0 auto; min-width: 100px; }
 }
+
+/* Larger tap targets */
+.check-circle { width: 28px; height: 28px; }
+.section-title .actions button { width: 32px; height: 32px; }
+.icon-btn, .tab { min-width: 44px; min-height: 44px; }
+@media (max-width: 899px) {
+  .check-circle { width: 32px; height: 32px; }
+}
