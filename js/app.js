@@ -499,10 +499,12 @@ let moodTimerInterval = null;
 window.quickMood = function(value) {
   const t = window.currentDate; if (!state.moods[t]) state.moods[t] = [];
   const now = Date.now(); const lastMood = state.moods[t][state.moods[t].length - 1];
-  if (lastMood && (now - lastMood.ts < 3600000)) { window.showToast(`⏳ Следующая отметка через ${Math.ceil((3600000 - (now - lastMood.ts)) / 60000)} мин.`); return; }
-  
   const timeStr = new Date(now).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-  state.moods[t].push({ time: timeStr, val: value, ts: now });
+  if (lastMood && (now - lastMood.ts < 3600000)) {
+    lastMood.val = value; lastMood.ts = now; lastMood.time = timeStr;
+  } else {
+    state.moods[t].push({ time: timeStr, val: value, ts: now });
+  }
   if (!state.surveys[t]) state.surveys[t] = {}; if (!state.surveys[t].emotions) state.surveys[t].emotions = {};
   state.surveys[t].emotions.joy = Math.round(state.moods[t].reduce((sum, m) => sum + m.val, 0) / state.moods[t].length);
   haptic('success'); playSound('success'); save(); window.renderAll(); window.showToast(`✓ Настроение (${value}) сохранено`);
@@ -516,15 +518,13 @@ window.renderQuickMoodUI = function() {
   clearInterval(moodTimerInterval);
   const lastMood = moods[moods.length - 1]; const now = Date.now(); const cooldown = 3600000; // 1 час
   
+  container.style.display = 'block';
+  if (countEl) countEl.textContent = `Отметок: ${moods.length}`;
+  document.querySelectorAll('#quick-mood-row button').forEach(b => { b.style.opacity = '1'; b.style.pointerEvents = 'auto'; });
   if (lastMood && (now - lastMood.ts < cooldown)) {
-    container.style.display = 'none'; // Скрываем полностью
-    const timeLeft = cooldown - (now - lastMood.ts);
-    moodTimerInterval = setTimeout(() => { window.renderQuickMoodUI(); }, timeLeft);
+    container.classList.remove('pulse-glow');
   } else {
-    container.style.display = 'block';
-    container.classList.add('pulse-glow'); // Добавляем свечение
-    if (countEl) countEl.textContent = `Отметок: ${moods.length}`;
-    document.querySelectorAll('#quick-mood-row button').forEach(b => { b.style.opacity = '1'; b.style.pointerEvents = 'auto'; });
+    container.classList.add('pulse-glow');
   }
 };
 
@@ -643,8 +643,9 @@ window.openNote = function(id) {
   currentNoteId = id;
   document.getElementById('edit-note-title').value = n.title || '';
   document.getElementById('edit-note-body').innerHTML = stripHtml(n.body || '');
-  document.getElementById('notes-list-view').style.display = 'none';
+  const list = document.getElementById('notes-list-view');
   const edit = document.getElementById('note-edit-view');
+  if (window.innerWidth < 1100) list.style.display = 'none';
   edit.style.display = 'flex';
   edit.style.flexDirection = 'column';
   window.updatePinBtn();
@@ -698,7 +699,12 @@ window.restoreCurrentNote = function() {
 };
 window.updatePinBtn = function() { const n = state.notes.find(x => x.id === currentNoteId); const btn = document.getElementById('pin-btn'); if (n && btn) { btn.style.color = n.pinned ? 'var(--orange)' : 'var(--text-sec)'; btn.style.background = n.pinned ? 'var(--accent-soft)' : 'var(--chip-bg)'; } };
 window.togglePinNote = function() { const n = state.notes.find(x => x.id === currentNoteId); if (!n) return; n.pinned = !n.pinned; n.updatedAt = Date.now(); haptic(); save(); window.updatePinBtn(); window.renderNotes(); };
-window.closeNoteEditor = function() { window.saveCurrentNote(); currentNoteId = null; document.getElementById('notes-list-view').style.display = 'block'; document.getElementById('note-edit-view').style.display = 'none'; window.renderNotes(); };
+window.closeNoteEditor = function() {
+  window.saveCurrentNote(); currentNoteId = null;
+  document.getElementById('notes-list-view').style.display = 'block';
+  if (window.innerWidth < 1100) document.getElementById('note-edit-view').style.display = 'none';
+  window.renderNotes();
+};
 
 // Панель форматирования над клавиатурой (iOS-like)
 (function setupNoteToolbarKeyboard() {
@@ -1331,21 +1337,22 @@ window.setupSurveyReminder = async function() {
   window.scheduleSurveyReminderTick();
 };
 
+window.checkRemind = function() {
+  if (!state.settings?.surveyRemindEnabled) return;
+  if (Notification.permission !== 'granted') return;
+  const hour = state.settings.surveyRemindHour ?? 21;
+  const now = new Date();
+  if (now.getHours() !== hour || now.getMinutes() > 2) return;
+  const t = todayStr();
+  if (state.surveys[t]?.evening) return;
+  const key = 'survey_notif_' + t;
+  if (sessionStorage.getItem(key)) return;
+  sessionStorage.setItem(key, '1');
+  try { new Notification('Cantilena', { body: 'Вечерний опрос — 3 касания, и день в данных.', tag: 'survey' }); } catch(e) {}
+};
 window.scheduleSurveyReminderTick = function() {
   if (window.__surveyRemindTimer) clearInterval(window.__surveyRemindTimer);
-  window.__surveyRemindTimer = setInterval(() => {
-    if (!state.settings?.surveyRemindEnabled) return;
-    if (Notification.permission !== 'granted') return;
-    const hour = state.settings.surveyRemindHour ?? 21;
-    const now = new Date();
-    if (now.getHours() !== hour || now.getMinutes() > 2) return;
-    const t = todayStr();
-    if (state.surveys[t]?.evening) return;
-    const key = 'survey_notif_' + t;
-    if (sessionStorage.getItem(key)) return;
-    sessionStorage.setItem(key, '1');
-    try { new Notification('Cantilena', { body: 'Вечерний опрос — 3 касания, и день в данных.', tag: 'survey' }); } catch(e) {}
-  }, 60000);
+  window.__surveyRemindTimer = setInterval(window.checkRemind, 60000);
 };
 
 // ===== ONBOARDING =====
@@ -1672,7 +1679,12 @@ window.loginWithPassword = async function() { const email = document.getElementB
 window.registerWithPassword = async function() { const email = document.getElementById('sb-email').value.trim(); const password = document.getElementById('sb-password').value; const url = document.getElementById('sb-url').value.trim(); const key = document.getElementById('sb-key').value.trim(); if (!email || !password || !url || !key) { alert('Заполните все поля'); return; } state.supabase.url = url; state.supabase.key = key; state.supabase.email = email; save(); try { if (!supabaseClient) setSupabaseClient(window.supabase.createClient(url, key)); const { data, error } = await supabaseClient.auth.signUp({ email, password }); if (error) throw error; setCurrentUser(data.user); window.closeSheet(); window.renderAll(); } catch (e) { alert('Ошибка: ' + e.message); } };
 window.manualSync = async function() { await pullFromCloud(false, false); await pushToCloud(); window.showToast('🔄 Синхронизировано'); window.closeSheet(); };
 window.signOut = async function() { if (supabaseClient) await supabaseClient.auth.signOut(); setCurrentUser(null); window.updateSyncStatus('online', 'Не вошли'); window.closeSheet(); window.showToast('Вы вышли из аккаунта'); };
-window.manualSyncWithUI = async function(btn) { const icon = btn.querySelector('.sync-icon'); if (icon) icon.classList.add('spinning'); await pullFromCloud(false, false); await pushToCloud(); if (icon) icon.classList.remove('spinning'); window.showToast('🔄 Обновлено'); };
+window.manualSyncWithUI = async function(btn) {
+  if (!currentUser) { window.showToast('Сначала войдите в настройках'); return; }
+  const icon = btn.querySelector('.sync-icon'); if (icon) icon.classList.add('spinning');
+  await pullFromCloud(false, false); await pushToCloud();
+  if (icon) icon.classList.remove('spinning'); window.showToast('🔄 Обновлено');
+};
 
 document.addEventListener('DOMContentLoaded', () => {
   window.renderAll();
@@ -1703,4 +1715,26 @@ document.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('unhandledrejection', (e) => {
   console.warn('Unhandled:', e.reason);
   if (window.showToast) window.showToast('Что-то пошло не так');
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.target.matches('input, textarea, [contenteditable]')) return;
+  if (e.key === 'Escape') {
+    const sheet = document.getElementById('sheet');
+    if (sheet && sheet.classList.contains('open')) window.closeSheet();
+  }
+  if (e.key === 'n' || e.key === 'N') { e.preventDefault(); window.openTaskEditor(); }
+  if (e.key === '/') { e.preventDefault(); const s = document.getElementById('notes-search'); if (s) { window.switchTab('notes'); setTimeout(() => s.focus(), 50); } }
+});
+
+window.fmt = function(cmd, val) {
+  const body = document.getElementById('edit-note-body');
+  if (!body) return;
+  body.focus();
+  try { document.execCommand(cmd, false, val || null); } catch (e) {}
+  if (window.scheduleNoteSave) window.scheduleNoteSave();
+};
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && window.checkRemind) window.checkRemind();
 });
