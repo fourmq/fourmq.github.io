@@ -457,15 +457,18 @@ function renderTodoistCalendar() {
 }
 
 window.goToDate = function(dateStr) {
-  // Как в Todoist: остаёмся в календаре, выбранная дата становится якорем списка
   window.currentDate = dateStr;
   state.taskFilter = 'calendar';
-  window._calendarAnchor = dateStr; // список дней начинается с этой даты
+  window._calendarAnchor = dateStr;
   haptic();
   window.renderAll();
   if (!document.getElementById('screen-tasks')?.classList.contains('active')) {
     window.switchTab('tasks');
   }
+  setTimeout(() => {
+    const el = document.getElementById('cal-day-' + dateStr);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 60);
 };
 
 window.setCurrentDateAndOpenTask = function(dateStr) {
@@ -473,6 +476,7 @@ window.setCurrentDateAndOpenTask = function(dateStr) {
   window.openTaskEditor();
 };
 
+window._showCompletedTasks = window._showCompletedTasks ?? false;
 export function renderTasksTodayMini() {
   const t = window.currentDate;
   const tasks = state.tasks.filter(x => x.recurrence ? matchesRecurrence(x, t) : x.date === t);
@@ -483,7 +487,19 @@ export function renderTasksTodayMini() {
     if (aDone !== bDone) return aDone - bDone; 
     return a.priority - b.priority; 
   });
-  document.getElementById('tasks-today-mini').innerHTML = tasks.length ? tasks.map(x => taskRowHTML(x, t)).join('') : '<div class="empty-hint warm">🍃 Список пуст — можно выдохнуть или добавить одну важную.</div>';
+  const done = tasks.filter(x => isTaskDoneOn(x, t));
+  const open = tasks.filter(x => !isTaskDoneOn(x, t));
+  const showDone = window._showCompletedTasks;
+  let html = '';
+  if (open.length) html += open.map(x => taskRowHTML(x, t)).join('');
+  if (done.length) {
+    html += `<div class="completed-toggle" onclick="window._showCompletedTasks=!window._showCompletedTasks;window.renderTasksTodayMini()" style="padding:10px 12px;font-size:13px;color:var(--text-sec);cursor:pointer;text-align:center;">
+      ${showDone ? 'Скрыть' : 'Показать'} выполненные (${done.length})
+    </div>`;
+    if (showDone) html += done.map(x => taskRowHTML(x, t)).join('');
+  }
+  if (!tasks.length) html = '<div class="empty-hint warm">🍃 Список пуст — можно выдохнуть или добавить одну важную.</div>';
+  document.getElementById('tasks-today-mini').innerHTML = html;
   if (window.renderAnxietyTaskHint) window.renderAnxietyTaskHint();
 }
 
