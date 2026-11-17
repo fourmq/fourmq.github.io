@@ -846,3 +846,155 @@ button:focus-visible, .sidebar-nav button:focus-visible, .tab:focus-visible, .ic
 }
 .toast { bottom: calc(env(safe-area-inset-bottom, 0px) + 90px) !important; }
 @media (min-width: 768px) { .toast { bottom: 24px !important; } }
+
+/* ===== Опросник (daily + weekly) ===== */
+.survey-q {
+  margin-bottom: 18px;
+}
+.survey-q-title {
+  font-size: 15px;
+  font-weight: 650;
+  margin-bottom: 8px;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+.score-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+}
+.score-chips.compact {
+  justify-content: flex-start;
+}
+.score-chip {
+  flex: 1 1 0;
+  min-width: 56px;
+  max-width: 90px;
+  background: var(--input-bg);
+  border: 1.5px solid var(--separator);
+  border-radius: 14px;
+  padding: 8px 4px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text);
+  transition: all .18s cubic-bezier(.2,.9,.3,1);
+  -webkit-tap-highlight-color: transparent;
+}
+.score-chips.compact .score-chip {
+  flex: 0 0 auto;
+  min-width: 52px;
+  padding: 8px 10px;
+}
+.score-chip:active {
+  transform: scale(0.96);
+}
+.score-chip.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.score-emoji {
+  font-size: 22px;
+  line-height: 1;
+}
+.score-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+  color: var(--text-sec);
+}
+.score-chip.active .score-label {
+  color: var(--accent);
+}
+.ctx-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+.ctx-tag {
+  background: var(--chip-bg);
+  border: 1px solid transparent;
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 550;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text);
+  transition: all .15s;
+}
+.ctx-tag.on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.ctx-tag:active {
+  transform: scale(0.96);
+}
+.survey-more {
+  margin: 8px 0 16px;
+  border: none;
+}
+.survey-more summary {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 8px 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.survey-more summary::-webkit-details-marker {
+  display: none;
+}
+.survey-more summary::before {
+  content: "›";
+  font-size: 18px;
+  transition: transform .2s;
+  display: inline-block;
+}
+.survey-more[open] summary::before {
+  transform: rotate(90deg);
+}
+.survey-more .survey-q {
+  margin-top: 12px;
+}
+/* Inputs inside survey */
+.survey-q input[type="time"],
+.survey-q input[type="text"],
+.survey-q textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--separator-med);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 16px;
+  font-family: inherit;
+  outline: none;
+}
+.survey-q textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+.survey-q .field {
+  margin-bottom: 0;
+}
+.survey-q .field label {
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+/* Weekly obstacle chips already use score-chip */
+#obstacle-chips {
+  margin-top: 4px;
+}
