@@ -1,158 +1,316 @@
-import { uid, ICONS, PALETTE, todayStr } from './utils.js';
-
-export const SEED_KEY = 'cantilena_seed_v4', STORAGE = 'cantilena_v21';
-
-export function migrateState(s) {
-  s.surveys = s.surveys || {};
-  s.weeklySurveys = s.weeklySurveys || {};
-  s.theme = s.theme || 'auto';
-  s.settings = s.settings || {};
-  if (s.settings.haptics === undefined) s.settings.haptics = true;
-  if (s.settings.sounds === undefined) s.settings.sounds = true;
-  s.reminders = s.reminders || [];
-  s.moods = s.moods || {};
-  s.focusSessions = s.focusSessions || []; 
-  s.focusSettings = s.focusSettings || { autoBreak: false, autoComplete: true, customMins: 25, customSecs: 0 };
-  
-  s.supabase = s.supabase || { url: '', key: '', email: '', lastSync: null };
-  s.habits = (s.habits || []).map((h, i) => {
-    let icon = h.icon || 'sparkle';
-    if (!ICONS[icon]) icon = 'sparkle';
-    return { ...h, id: h.id || uid(), name: h.name || 'Привычка', icon: icon, color: h.color || PALETTE[i % PALETTE.length], target: h.target || 1, schedule: h.schedule || { type: 'daily' }, checks: h.checks || {}, skips: h.skips || {}, archived: h.archived || false, order: h.order != null ? h.order : i, createdAt: h.createdAt || Date.now() };
-  });
-  s.tasks = (s.tasks || []).map(t => ({ ...t, id: t.id || uid(), title: t.title || '', description: t.description || '', done: t.done || false, date: t.date || null, startTime: t.startTime || null, duration: t.duration || null, priority: t.priority || 4, projectId: t.projectId || null, subtasks: t.subtasks || [], tags: t.tags || [], recurrence: t.recurrence || null, completions: t.completions || {}, createdAt: t.createdAt || Date.now() }));
-  s.projects = s.projects || [{ id: 1, name: 'Личное', color: '#007AFF' }];
-  s.notes = (s.notes || []).map(n => ({ ...n, id: n.id || uid(), title: n.title || 'Без названия', body: n.body || '', folderId: n.folderId || null, pinned: n.pinned || false, createdAt: n.createdAt || Date.now(), updatedAt: n.updatedAt || Date.now(), deletedAt: n.deletedAt || null }));
-  s.noteFolders = s.noteFolders || [{ id: 'default', name: 'Заметки', icon: '📝' }];
-  if (s.taskFilter === 'inbox') s.taskFilter = 'all';
-  s.taskFilter = s.taskFilter || 'today';
-  s.taskAllFilter = s.taskAllFilter || 'active';
-  s.selectedFolder = s.selectedFolder || 'all';
-  // dream removed from product
-  if (s.dream) delete s.dream;
-  s.sleep = s.sleep || {}; // dateStr -> { hours, quality, bedTime, wakeTime }
-  s.settings = s.settings || {};
-  s.settings.surveyRemindHour = s.settings.surveyRemindHour ?? 21;
-  s.settings.surveyRemindEnabled = s.settings.surveyRemindEnabled ?? false;
-  s.settings.onboardingDone = s.settings.onboardingDone ?? false;
-  return s;
-}
-
-export function loadState() {
-  let raw = null;
-  for (const key of [STORAGE, 'cantilena_v20', 'cantilena_v19']) {
-    try { const s = JSON.parse(localStorage.getItem(key)); if (s && Array.isArray(s.habits)) { raw = s; break; } } catch (e) {}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0, user-scalable=yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<script>
+(function(){
+  try {
+    const raw = localStorage.getItem('cantilena_v21');
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    const sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const dark = s.theme === 'dark' || (s.theme === 'auto' && sysDark);
+    if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+  } catch(e) {}
+})();
+</script>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='115' fill='%231D1D1F'/%3E%3Cpath d='M 70 340 C 120 220, 170 200, 220 270 C 270 340, 310 380, 360 340 C 400 310, 420 280, 440 250' fill='none' stroke='%23FF375F' stroke-width='28' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='115' fill='%231D1D1F'/%3E%3Cpath d='M 70 340 C 120 220, 170 200, 220 270 C 270 340, 310 380, 360 340 C 400 310, 420 280, 440 250' fill='none' stroke='%23FF375F' stroke-width='28' stroke-linecap='round'/%3E%3C/svg%3E">
+<title>Cantilena</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script>
+window.addEventListener('error', function(event) {
+  console.error(event.error || event.message);
+  if (window.showToast) window.showToast('Ошибка: ' + (event.message || 'см. консоль'));
+  else {
+    const t = document.createElement('div');
+    t.style.cssText = 'position:fixed;bottom:24px;left:16px;right:16px;background:#222;color:#fff;padding:12px 16px;border-radius:12px;z-index:99999;font-size:14px;';
+    t.textContent = 'Что-то сломалось. Обнови страницу, если мешает.';
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 5000);
   }
-  const s = migrateState(raw || {});
-  localStorage.setItem(STORAGE, JSON.stringify(s));
-  return s;
-}
+});
+</script>
+</head>
+<body>
 
-export let state = loadState();
-window.state = state;
+<div id="onboarding" class="onboarding" style="display:none;">
+  <div class="onboarding-inner">
+    <div class="onboarding-step" data-step="0">
+      <div class="onboarding-emoji">🌱</div>
+      <h2>Привычки</h2>
+      <p>Отмечай маленькие действия каждый день. Серии помогут не бросать.</p>
+    </div>
+    <div class="onboarding-step" data-step="1" style="display:none;">
+      <div class="onboarding-emoji">✅</div>
+      <h2>Задачи</h2>
+      <p>Держи список коротким. В тревожные дни — 2–3 дела, не больше.</p>
+    </div>
+    <div class="onboarding-step" data-step="2" style="display:none;">
+      <div class="onboarding-emoji">✨</div>
+      <h2>Вечерний опрос</h2>
+      <p>Три касания — и статистика начнёт показывать твои паттерны.</p>
+    </div>
+    <div class="onboarding-actions">
+      <button type="button" class="btn-cancel" id="onboard-skip">Пропустить</button>
+      <button type="button" class="btn-primary" id="onboard-next">Далее</button>
+    </div>
+  </div>
+</div>
+<div id="breath-overlay" class="breath-overlay" style="display:none;">
+  <div class="breath-inner">
+    <div class="breath-circle" id="breath-circle"></div>
+    <p id="breath-text">Вдох…</p>
+    <button type="button" class="btn-cancel" onclick="window.skipBreathAndStart()">Пропустить</button>
+  </div>
+</div>
+<div id="splash">
+  <svg class="splash-svg" viewBox="0 0 512 512">
+    <rect width="512" height="512" rx="115" fill="none" />
+    <path d="M 70 340 C 120 220, 170 200, 220 270 C 270 340, 310 380, 360 340 C 400 310, 420 280, 440 250" fill="none" stroke="var(--td-red)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle r="18" fill="var(--td-red)" cx="0" cy="0">
+      <animateMotion dur="2.2s" fill="freeze" begin="0.3s" path="M 70 340 C 120 220, 170 200, 220 270 C 270 340, 310 380, 360 340 C 400 310, 420 280, 440 250" />
+    </circle>
+  </svg>
+  <div class="splash-title">Cantilena</div>
+</div>
 
-let saveIndicatorTimer;
-export const save = () => {
-  if (!state.supabase) state.supabase = {};
-  state.supabase.lastSync = Date.now();
-  localStorage.setItem(STORAGE, JSON.stringify(state));
-  if (window.scheduleSync) window.scheduleSync();
-  const ind = document.getElementById('save-indicator');
-  if (ind) {
-    ind.classList.add('show');
-    clearTimeout(saveIndicatorTimer);
-    saveIndicatorTimer = setTimeout(() => { ind.classList.remove('show'); }, 2000);
-  }
-};
-window.save = save;
+<div class="floating-timer" id="floating-timer">
+  <div style="font-variant-numeric:tabular-nums;" id="float-time">25:00</div>
+  <div style="font-size:12px;color:var(--text-sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px;" id="float-task">Фокус</div>
+  <button onclick="toggleFocusTimer()" class="float-btn" aria-label="Пауза">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" id="float-play-icon"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+  </button>
+  <button onclick="stopFocusTimer()" class="float-btn float-stop" aria-label="Стоп"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+</div>
 
-export let supabaseClient = null, syncTimer = null, currentUser = null, pollInterval = null;
-export let lastCloudUpdate = 0, isPushing = false, askedAboutOverwrite = false;
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-brand" onclick="window.switchTab('today')" style="cursor:pointer;">Cantilena</div>
+    <nav class="sidebar-nav" id="sidebar-nav">
+      <button data-tab="today" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V21H3z" stroke-linejoin="round"/></svg><span>Сегодня</span></button>
+      <button data-tab="tasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="6" cy="18" r="2"/><path d="M11 6h9M11 12h9M11 18h9" stroke-linecap="round"/></svg><span>Задачи</span></button>
+      <button data-tab="focus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>Фокус</span></button>
+      <button data-tab="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2" stroke-linecap="round"/></svg><span>Статистика</span></button>
+    </nav>
+    <div class="sidebar-footer" id="sidebar-footer">
+      <button type="button" class="sidebar-settings" onclick="window.openSettings()" aria-label="Настройки">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Настройки</span>
+      </button>
+      <div class="sidebar-clock" id="sidebar-clock">--:--:--</div>
+      <div class="sidebar-date" id="sidebar-date">—</div>
+    </div>
+  </aside>
 
-export function setSupabaseClient(c) { supabaseClient = c; window.supabaseClient = c; }
-export function setCurrentUser(u) { currentUser = u; window.currentUser = u; }
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-info">
+        <div style="display:flex; align-items:center;">
+          <h1 id="topbar-title">Доброе утро</h1>
+          <div class="save-indicator" id="save-indicator"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg> Сохранено</div>
+        </div>
+        <div class="topbar-meta"><span class="time-mono" id="clock">--:--:--</span><span>·</span><span id="datestr">—</span></div>
+      </div>
+      <button class="icon-btn" onclick="manualSyncWithUI(this)" title="Синхронизировать">
+        <svg class="sync-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+      </button>
+      <button class="icon-btn" onclick="openSettings()" title="Настройки"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    </div>
 
-export async function initSupabase() {
-  if (!state.supabase.url || !state.supabase.key || !window.supabase) return;
-  if (supabaseClient) return;
-  try {
-    supabaseClient = window.supabase.createClient(state.supabase.url, state.supabase.key);
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (session) {
-      currentUser = session.user;
-      await pullFromCloud(false, true);
-      startPolling();
-    }
-  } catch (e) { console.warn(e); }
-}
+    <main>
+      <section id="screen-today" class="screen active">
+        <div class="date-nav"><button class="nav-arrow" onclick="changeDay(-1)">‹</button><div class="date-nav-center" id="date-nav-label"></div><button class="nav-arrow" onclick="changeDay(1)">›</button></div>
 
-export function startPolling() {
-  if (pollInterval) clearInterval(pollInterval);
-  pollInterval = setInterval(async () => {
-    if (!currentUser || !supabaseClient || isPushing) return;
-    try {
-      const { data, error } = await supabaseClient.from('cantilena_data').select('updated_at').eq('user_id', currentUser.id).maybeSingle();
-      if (error || !data) return;
-      if (new Date(data.updated_at).getTime() > lastCloudUpdate) await pullFromCloud(false, false);
-    } catch (e) {}
-  }, 5000);
-}
+        <!-- Главная петля: 1 вывод + 1 действие -->
+        <div class="card today-hero" id="today-hero"></div>
 
-export async function pullFromCloud(force = false, askBeforeOverwrite = false) {
-  if (!currentUser || !supabaseClient) return;
-  try {
-    const { data, error } = await supabaseClient.from('cantilena_data').select('*').eq('user_id', currentUser.id).maybeSingle();
-    if (error) throw error;
-    if (!data || !data.data || !data.data.habits) { await pushToCloud(); return; }
-    if (force || new Date(data.updated_at).getTime() > lastCloudUpdate) {
-      if (askBeforeOverwrite && !askedAboutOverwrite) {
-        if ((state.habits && state.habits.length > 0) || (state.tasks && state.tasks.length > 0)) {
-          if (!confirm('В облаке есть сохранённые данные.\n\nЗагрузить их?')) {
-            askedAboutOverwrite = true; // не спрашивать снова и не перезаписывать автоматически
-            return;
-          }
-          askedAboutOverwrite = true;
-        }
-      }
-      // Сохраняем локальные device-специфичные данные
-      const localSupabase = { ...state.supabase };
-      const localSettings = { ...state.settings };
-      const localTheme = state.theme;
-      const localReminders = [...(state.reminders || [])];
+        <div class="card day-status">
+          <div class="status-item">
+            <div class="status-ring" id="ring-survey-wrap"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="var(--pink-soft)" stroke-width="3"/><circle id="ring-survey" cx="18" cy="18" r="15" fill="none" stroke="var(--pink)" stroke-width="3" stroke-linecap="round" transform="rotate(-90 18 18)"/></svg><span id="pct-survey">0%</span></div>
+            <div class="status-label">Опрос</div>
+          </div>
+          <div class="status-item">
+            <div class="status-ring" id="ring-habits-wrap"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="var(--green-soft)" stroke-width="3"/><circle id="ring-habits" cx="18" cy="18" r="15" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" transform="rotate(-90 18 18)"/></svg><span id="pct-habits">0%</span></div>
+            <div class="status-label">Привычки</div>
+          </div>
+          <div class="status-item">
+            <div class="status-ring" id="ring-tasks-wrap"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="rgba(219,76,63,0.15)" stroke-width="3"/><circle id="ring-tasks" cx="18" cy="18" r="15" fill="none" stroke="var(--td-red)" stroke-width="3" stroke-linecap="round" transform="rotate(-90 18 18)"/></svg><span id="pct-tasks">0%</span></div>
+            <div class="status-label">Задачи</div>
+          </div>
+        </div>
 
-      const newState = migrateState(data.data);
-      Object.keys(state).forEach(k => delete state[k]);
-      Object.assign(state, newState);
+        <div id="overdue-block"></div>
 
-      // Восстанавливаем
-      state.supabase = localSupabase;
-      state.theme = localTheme;
-      state.settings = { ...state.settings, ...localSettings };
-      state.reminders = localReminders;
+        <div class="card quick-mood-card" id="quick-mood-card">
+          <div class="quick-mood-label"><span>Пульс дня</span><span id="mood-count" style="color:var(--text-tert);text-transform:none;font-size:11px;">Отметок: 0</span></div>
+          <div class="quick-mood" id="quick-mood-row">
+            <button data-val="2" onclick="quickMood(2)">😞</button><button data-val="4" onclick="quickMood(4)">😐</button><button data-val="6" onclick="quickMood(6)">🙂</button><button data-val="8" onclick="quickMood(8)">😄</button><button data-val="10" onclick="quickMood(10)">😍</button>
+          </div>
+        </div>
 
-      lastCloudUpdate = new Date(data.updated_at).getTime();
-      localStorage.setItem(STORAGE, JSON.stringify(state));
-      if (window.applyTheme) window.applyTheme();
-      if (window.renderAll) window.renderAll();
-    }
-  } catch (e) {}
-}
 
-export async function pushToCloud() {
-  if (!currentUser || !supabaseClient) return;
-  isPushing = true;
-  try {
-    const nowISO = new Date().toISOString();
-    const toPush = JSON.parse(JSON.stringify(state));
-    if (toPush.supabase) delete toPush.supabase;
-    await supabaseClient.from('cantilena_data').upsert({ user_id: currentUser.id, data: toPush, updated_at: nowISO }, { onConflict: 'user_id' });
-    lastCloudUpdate = new Date(nowISO).getTime();
-  } catch (e) {}
-  finally { setTimeout(() => { isPushing = false; }, 2000); }
-}
+        <button class="survey-btn" id="survey-btn" onclick="openDailySurvey()">
+          <div class="left" id="survey-btn-content"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span>Опрос</span></div>
+          <div class="right" id="survey-btn-time"></div>
+        </button>
 
-window.scheduleSync = function() {
-  if (!currentUser || !supabaseClient) return;
-  clearTimeout(syncTimer);
-  syncTimer = setTimeout(pushToCloud, 1500);
-};
+        <div class="section-title"><span>Задачи на сегодня</span><div class="actions"><button onclick="openTaskEditor()" title="Добавить"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span class="link" onclick="switchTab('tasks')">Все →</span></div></div>
+        <div class="card tight" id="tasks-today-mini"></div>
+
+        <div class="section-title"><span>Привычки</span><div class="actions"><button onclick="openHabitSettings()" style="background:transparent;color:var(--text-sec);width:auto;padding:8px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button onclick="openHabitEditor()" style="background:transparent;color:var(--text-sec);width:auto;padding:8px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
+        <div class="card tight" id="habits-today"></div>
+
+        <div id="onboard-survey-tip"></div>
+        <div id="weekly-survey-container"></div>
+        <div id="weekly-report-card"></div>
+      </section>
+
+      
+<section id="screen-tasks" class="screen">
+        <div class="tabs-scroll" id="task-filters" style="display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;"></div>
+        <div id="tasks-content"></div>
+      </section>
+
+      <section id="screen-focus" class="screen">
+        <div class="card" style="text-align:center; padding:32px 16px; position: relative;">
+          
+          <div class="tree-container" id="tree-container">
+            <svg class="tree-svg" viewBox="0 0 100 110" id="focus-tree-svg">
+              <ellipse cx="50" cy="102" rx="28" ry="4" fill="var(--green)" opacity="0.15"/>
+              <path id="tree-trunk" class="tree-path" d="M50 100 L50 55" stroke="#8B5A2B" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.3"/>
+              <g id="tree-branches" opacity="0">
+                <path d="M50 70 C40 65, 32 55, 28 42" stroke="#8B5A2B" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M50 70 C60 65, 68 55, 72 42" stroke="#8B5A2B" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M50 58 C38 52, 30 40, 25 28" stroke="#8B5A2B" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <path d="M50 58 C62 52, 70 40, 75 28" stroke="#8B5A2B" stroke-width="2" fill="none" stroke-linecap="round"/>
+              </g>
+              <g id="tree-leaves" opacity="0">
+                <circle cx="28" cy="40" r="10" fill="var(--green)" opacity="0.85"/>
+                <circle cx="72" cy="40" r="10" fill="var(--green)" opacity="0.85"/>
+                <circle cx="25" cy="26" r="9" fill="var(--green)"/>
+                <circle cx="50" cy="22" r="12" fill="var(--green)"/>
+                <circle cx="75" cy="26" r="9" fill="var(--green)"/>
+                <circle cx="40" cy="32" r="8" fill="var(--green)" opacity="0.9"/>
+                <circle cx="60" cy="32" r="8" fill="var(--green)" opacity="0.9"/>
+              </g>
+              <circle id="tree-seed" cx="50" cy="95" r="4" fill="var(--green)"/>
+            </svg>
+          </div>
+
+          <h2 style="font-size:56px; font-weight:800; font-variant-numeric:tabular-nums; margin-bottom:4px; color:var(--text); transition: all 0.3s; cursor:pointer;" id="focus-display" onclick="window.openFocusTimePicker()">25:00</h2>
+          <div style="font-size:13px; color:var(--text-sec); margin-bottom:20px; font-weight:500;" id="focus-status">Нажми на время · Готов к работе</div>
+          
+          <div id="focus-setup-controls" style="transition: opacity 0.3s;">
+            <input type="hidden" id="focus-mins" value="25">
+            <input type="hidden" id="focus-secs" value="0">
+
+            <div class="field" style="text-align:left; max-width:400px; margin:0 auto 16px;">
+              <label>Связать с задачей</label>
+              <select id="focus-task-select" style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--separator-med); background:var(--input-bg); color:var(--text); font-size:15px; outline:none;"></select>
+            </div>
+
+            <div class="field" style="text-align:left; max-width:400px; margin:0 auto 16px;">
+              <label>Описание (если без задачи)</label>
+              <input type="text" id="focus-desc" placeholder="Например: Читать статью" onkeydown="if(event.key==='Enter') window.startFocusWithBreath()" style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--separator-med); background:var(--input-bg); color:var(--text); font-size:15px; outline:none;">
+            </div>
+
+            <div style="display:flex; justify-content:center; gap:16px; margin-bottom:24px; font-size:13px; color:var(--text-sec);">
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="focus-auto-complete"> Выполнить задачу
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="focus-auto-break"> Авто-перерыв
+              </label>
+            </div>
+          </div>
+
+          <div id="focus-active-controls" style="display:none; gap:12px; justify-content:center; margin-top:24px; align-items:center;">
+            <button class="btn-primary" style="max-width:120px; margin:0;" onclick="toggleFocusTimer()" id="focus-main-btn">Пауза</button>
+            <button class="btn-cancel" style="max-width:120px; margin:0;" onclick="confirmStopFocus()">Сброс</button>
+            <button onclick="exitFocusMode()" style="background:none; border:none; color:var(--red); cursor:pointer; padding:8px; display:flex; align-items:center; justify-content:center; position:relative; top:-4px;">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+          </div>
+          
+          <div id="focus-start-btn-container" style="margin-top:24px;">
+             <button class="btn-primary" style="max-width:300px; margin:0 auto; font-size:18px; padding:16px; border-radius:16px;" onclick="window.startFocusWithBreath()">Начать фокус</button>
+          </div>
+
+        </div>
+        
+        <!-- История фокуса -->
+        <div class="section-title">Последние сессии</div>
+        <div class="card tight" id="focus-history-list" style="margin-bottom:20px;"></div>
+      </section>
+<section id="screen-stats" class="screen">
+        <div id="stats-summary" class="card stats-hero-card"></div>
+
+        <div class="stat-blocks" id="stat-blocks"></div>
+
+        <div class="section-title"><span>Связи</span></div>
+        <div class="card" id="auto-insights"></div>
+
+        <div class="section-title"><span>Совет</span></div>
+        <div class="card" id="stats-advice"></div>
+
+        <details class="stats-details">
+          <summary>Подробнее</summary>
+          <div class="section-title"><span>Ритм недели</span></div>
+          <div class="card" id="weekday-patterns"></div>
+          <div class="section-title"><span>Фокус</span></div>
+          <div class="card" id="focus-analytics"></div>
+          <div class="section-title"><span>14 дней</span></div>
+          <div class="card">
+            <div id="chart-mood-prod"></div>
+            <div class="chart-legend" style="display:flex;gap:16px;justify-content:center;font-size:12px;color:var(--text-sec);margin-top:6px;flex-wrap:wrap;">
+              <span><span class="dot" style="background:var(--td-orange)"></span>Настроение</span>
+              <span><span class="dot" style="background:var(--td-blue)"></span>Продуктивность</span>
+              <span><span class="dot" style="background:var(--pink)"></span>Тревога</span>
+            </div>
+          </div>
+          <div class="section-title"><span>Метрики</span></div>
+          <div class="stat-grid" id="stats-grid"></div>
+          <div class="section-title"><span>Тренды</span></div>
+          <div class="card" id="trends-4w"></div>
+          <div class="section-title"><span>Матрица</span></div>
+          <div class="card" id="corr-matrix"></div>
+          <div class="section-title"><span>Год</span></div>
+          <div class="card"><div class="year-grid" id="year-grid"></div></div>
+        </details>
+
+        <div class="section-title"><span>Данные</span></div>
+        <div class="card" style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn-cancel" style="flex:1;" onclick="exportWeeklyReport()">🗓 Неделя</button>
+          <button class="btn-cancel" style="flex:1;" onclick="exportCSV()">📄 CSV</button>
+          <button class="btn-cancel" style="flex:1;" onclick="exportData()">⬇️ JSON</button>
+          <button class="btn-cancel" style="flex:1;" onclick="document.getElementById('import-file').click()">⬆️ Импорт</button>
+          <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+        </div>
+      </section>
+    </main>
+
+    <nav class="tabbar">
+      <button class="tab active" data-tab="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5L12 3l9 7.5V21H3z" stroke-linejoin="round"/></svg><span>Сегодня</span></button>
+      <button class="tab" data-tab="tasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="6" cy="18" r="2"/><path d="M11 6h9M11 12h9M11 18h9" stroke-linecap="round"/></svg><span>Задачи</span></button>
+      <button class="tab" data-tab="focus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>Фокус</span></button>
+      <button class="tab" data-tab="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2" stroke-linecap="round"/></svg><span>Статистика</span></button>
+    </nav>
+
+    <button class="fab" id="fab-tasks" onclick="openTaskEditor()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+
+    <div class="backdrop" id="backdrop" onclick="closeSheet()"></div>
+    <div class="sheet" id="sheet"><div class="sheet-handle-wrap" id="sheet-handle-wrap"><div class="sheet-handle"></div></div><div id="sheet-content"></div></div>
+    <div class="td-popover-overlay" id="popover-overlay"><div class="td-popover-backdrop" onclick="closePopover()"></div><div class="td-popover" id="popover-content"></div></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
