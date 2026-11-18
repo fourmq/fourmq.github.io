@@ -122,97 +122,302 @@ window.dropTask = function(event, dateStr) {
 
 export function openTaskEditor(id) {
   const editingTaskId = id || null;
-  const t = id ? state.tasks.find(x => x.id === id) : { title: '', description: '', date: window.currentDate, startTime: null, duration: null, priority: 4, projectId: null, recurrence: null };
-  const project = t.projectId ? state.projects.find(p => p.id === t.projectId) : null;
-  const prioLabel = t.priority < 4 ? 'P' + t.priority : 'Приоритет';
-  const prioClass = t.priority < 4 ? 'p' + t.priority : '';
-  const recurLabel = t.recurrence ? ({daily:'Каждый день', weekdays:'Будни', weekly:'Раз в неделю'}[t.recurrence]) : 'Повтор';
+  const isNew = !id;
+  const t = id ? state.tasks.find(x => x.id === id) : { title: '', description: '', date: window.currentDate, startTime: null, duration: null, priority: 4, projectId: null, recurrence: null, subtasks: [], tags: [], notes: '' };
+  if (!t) return;
+  window._editingTask = t;
+  window._isNewTask = isNew;
 
-  window.openSheet(`
-    <div class="td-editor">
-      <input type="text" id="t-title" class="td-title-input" value="${escapeHtml(t.title)}" placeholder="Название задачи" autocomplete="off">
-      <input type="text" id="t-desc" class="td-desc-input" value="${escapeHtml(t.description || '')}" placeholder="Описание" autocomplete="off">
-      <div id="subtasks-container" style="margin:12px 0;"></div>
-      <div class="td-toolbar">
-        <button type="button" class="td-btn date-btn" id="chip-date" onclick="document.getElementById('t-date').showPicker()">
-          ${svgIcon('calendar', 'currentColor', 14)}
-          <span id="chip-date-text">${t.date ? formatTaskDate(t.date) : 'Дата'}</span>
-          <input type="date" id="t-date" value="${t.date || ''}" onchange="window.updateTaskChipDate(this.value)">
-        </button>
-        <button type="button" class="td-btn" id="chip-recur" onclick="window.openRecurrencePicker()">
-          ${svgIcon('refresh', 'currentColor', 14)}
-          <span id="chip-recur-text">${recurLabel}</span>
-        </button>
-        <button type="button" class="td-btn prio-btn ${prioClass}" id="chip-prio" onclick="window.openPriorityPicker()">
-          ${svgIcon('flag', 'currentColor', 14)}
-          <span id="chip-prio-text">${prioLabel}</span>
-        </button>
-        <button type="button" class="td-btn project-btn" onclick="window.openProjectPicker()">
-          <span class="project-dot" id="chip-project-dot" style="background:${project?.color || 'var(--text-tert)'}"></span>
-          <span id="chip-project-text">${project?.name || 'Проект'}</span>
-        </button>
+  const project = t.projectId ? state.projects.find(p => p.id === t.projectId) : null;
+  const dateLabel = t.date ? formatTaskDate(t.date) : 'Без срока';
+  const dateClass = t.date && t.date < todayStr() ? 'overdue' : (t.date === todayStr() ? 'today' : '');
+  const prioText = t.priority < 4 ? 'P' + t.priority : 'Без приоритета';
+
+  const html = `
+    <div class="task-modal-inner" role="dialog" aria-modal="true">
+      <div class="task-modal-header">
+        <div class="task-modal-header-left">
+          ${svgIcon('folder', 'currentColor', 16)}
+          <span id="header-project-name">${escapeHtml(project?.name || 'Входящие')}</span>
+          <span class="save-indicator-task" id="task-save-ind">Сохранено</span>
+        </div>
+        <div class="task-modal-header-right">
+          <button type="button" aria-label="Предыдущая" onclick="window.taskNav(-1)">${svgIcon('arrowRight', 'currentColor', 16)}</button>
+          <button type="button" aria-label="Следующая" onclick="window.taskNav(1)">${svgIcon('arrowRight', 'currentColor', 16)}</button>
+          <button type="button" aria-label="Меню" onclick="window.openTaskMenu()">${svgIcon('settings', 'currentColor', 16)}</button>
+          <button type="button" aria-label="Закрыть" onclick="window.closeTaskEditor()">×</button>
+        </div>
       </div>
-      <div class="td-detail-row">
-        <div class="td-detail-item">${svgIcon('clock', 'currentColor', 14)}<input type="time" id="t-time" value="${t.startTime || ''}"></div>
-        <div class="td-detail-item">${svgIcon('target', 'currentColor', 14)}<input type="number" id="t-duration" min="0" max="1440" step="5" value="${t.duration || ''}" placeholder="0"><span>мин</span></div>
-      </div>
-      <div class="td-actions">
-        <button class="btn-cancel" style="width:auto;margin:0;padding:10px 20px;" onclick="window.closeSheet()">Отмена</button>
-        <button class="btn-save-task" onclick="window.saveTask()">Сохранить</button>
+      <div class="task-modal-body">
+        <div class="task-main">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div class="check-circle p${t.priority}" style="margin-top:6px;" onclick="window.toggleCurrentTaskDone()"></div>
+            <textarea id="t-title" class="task-title-edit" placeholder="Название задачи" rows="1">${escapeHtml(t.title)}</textarea>
+          </div>
+          <div class="task-desc-wrap">
+            ${svgIcon('description', 'currentColor', 16)}
+            <textarea id="t-desc" class="task-desc-edit" placeholder="Описание" rows="2">${escapeHtml(t.description || '')}</textarea>
+          </div>
+          <div id="subtasks-container"></div>
+          <button type="button" class="add-subtask-btn" onclick="window.addSubtask()">+ Добавить подзадачу</button>
+          <div class="task-comment-pill" style="margin-top:24px;">
+            <input type="text" id="t-notes" placeholder="Заметка к задаче" value="${escapeHtml(t.notes || '')}">
+            ${svgIcon('description', 'currentColor', 16)}
+          </div>
+          ${isNew ? '<div style="margin-top:24px;"><button class="btn-primary" onclick="window.saveNewTask()">Добавить задачу</button></div>' : ''}
+        </div>
+        <div class="task-sidebar">
+          <div class="prop-block" onclick="window.openProjectPicker()">
+            <div class="prop-label">Проект</div>
+            <div class="prop-value" id="prop-project">
+              <span class="project-dot" style="background:${project?.color || 'var(--text-tert)'}"></span>
+              <span>${escapeHtml(project?.name || 'Входящие')}</span>
+            </div>
+          </div>
+          <div class="prop-block" id="prop-date-block" onclick="window.openDatePopover(event)">
+            <div class="prop-label">Срок</div>
+            <div class="prop-value ${dateClass}" id="prop-date">
+              ${svgIcon('calendar', 'currentColor', 16)}
+              <span>${dateLabel}</span>
+            </div>
+          </div>
+          <div class="prop-block" onclick="window.openPriorityPicker()">
+            <div class="prop-label">Приоритет</div>
+            <div class="prop-value" id="prop-prio">
+              ${svgIcon('flag', 'currentColor', 16)}
+              <span>${prioText}</span>
+            </div>
+          </div>
+          <div class="prop-block" onclick="window.openTagsEditor()">
+            <div class="prop-label">Метки</div>
+            <div class="prop-value" id="prop-tags">
+              ${svgIcon('sparkle', 'currentColor', 16)}
+              <span>${(t.tags || []).length ? (t.tags || []).map(escapeHtml).join(', ') : 'Нет меток'}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+    <input type="hidden" id="t-date" value="${t.date || ''}">
+    <input type="hidden" id="t-time" value="${t.startTime || ''}">
+    <input type="hidden" id="t-duration" value="${t.duration || ''}">
     <input type="hidden" id="t-priority" value="${t.priority}">
     <input type="hidden" id="t-project" value="${t.projectId || ''}">
     <input type="hidden" id="t-recurrence" value="${t.recurrence || ''}">
     <input type="hidden" id="t-editing-id" value="${editingTaskId || ''}">
-  `);
-  window.updateTaskChipDate(t.date || '');
-  if (!id) window._draftTask = t;
-  else window._draftTask = null;
+  `;
+
+  window.openSheet(html);
+  document.getElementById('sheet').classList.add('task-modal');
   setTimeout(() => {
-    window.renderSubtasksEditor(id ? state.tasks.find(x => x.id === id) : window._draftTask);
-    const el = document.getElementById('t-title'); if (el) el.focus();
+    const titleEl = document.getElementById('t-title');
+    if (titleEl) { titleEl.focus(); autoResize(titleEl); }
+    window.renderSubtasksEditor(t);
+    if (!isNew) setupAutoSave();
   }, 50);
 }
-window.renderSubtasksEditor = function(task) {
-  const cont = document.getElementById('subtasks-container');
-  if (!cont) return;
-  const subs = task.subtasks || [];
-  cont.innerHTML = `
-    <div style="font-size:13px;font-weight:600;color:var(--text-sec);margin-bottom:6px;">Подзадачи</div>
-    ${subs.map((s, i) => `
-      <div class="subtask-row" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-        <input type="checkbox" ${s.done?'checked':''} onchange="window.toggleSubtask(${i})" style="width:18px;height:18px;">
-        <input type="text" value="${escapeHtml(s.title)}" oninput="window.updateSubtaskTitle(${i}, this.value)" placeholder="Подзадача" style="flex:1;padding:6px 8px;border:1px solid var(--separator);border-radius:8px;background:var(--input-bg);font-size:14px;">
-        <button type="button" onclick="window.removeSubtask(${i})" style="background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;">×</button>
-      </div>
-    `).join('')}
-    <button type="button" class="btn-cancel" style="width:100%;font-size:13px;padding:8px;" onclick="window.addSubtask()">+ Подзадача</button>
-  `;
-};
-window.addSubtask = function() {
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+function setupAutoSave() {
+  const fields = ['t-title', 't-desc', 't-notes'];
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => {
+      if (id === 't-title') autoResize(el);
+      clearTimeout(window._taskSaveTimer);
+      window._taskSaveTimer = setTimeout(window.saveTaskSilent, 400);
+    });
+  });
+}
+
+window.saveTaskSilent = function() {
   const id = document.getElementById('t-editing-id')?.value;
-  const t = id ? state.tasks.find(x => x.id == id) : window._draftTask;
+  if (!id) return;
+  const t = state.tasks.find(x => x.id == id);
   if (!t) return;
-  if (!t.subtasks) t.subtasks = [];
-  t.subtasks.push({ id: uid(), title: '', done: false });
-  window.renderSubtasksEditor(t);
+  t.title = document.getElementById('t-title').value.trim() || 'Без названия';
+  t.description = document.getElementById('t-desc').value.trim();
+  t.notes = document.getElementById('t-notes').value.trim();
+  t.date = document.getElementById('t-date').value || null;
+  t.startTime = document.getElementById('t-time').value || null;
+  t.duration = parseInt(document.getElementById('t-duration').value) || null;
+  t.priority = parseInt(document.getElementById('t-priority').value) || 4;
+  t.projectId = document.getElementById('t-project').value ? parseInt(document.getElementById('t-project').value) : null;
+  t.recurrence = document.getElementById('t-recurrence').value || null;
+  save();
+  const ind = document.getElementById('task-save-ind');
+  if (ind) { ind.classList.add('show'); setTimeout(() => ind.classList.remove('show'), 1500); }
 };
-window.toggleSubtask = function(i) {
-  const id = document.getElementById('t-editing-id')?.value;
-  const t = id ? state.tasks.find(x => x.id == id) : window._draftTask;
-  if (t && t.subtasks[i]) t.subtasks[i].done = !t.subtasks[i].done;
+
+window.saveNewTask = function() {
+  const title = document.getElementById('t-title').value.trim();
+  if (!title) { window.showToast('Введите название'); return; }
+  const newTask = {
+    id: uid(),
+    title,
+    description: document.getElementById('t-desc').value.trim(),
+    notes: document.getElementById('t-notes').value.trim(),
+    done: false,
+    date: document.getElementById('t-date').value || null,
+    startTime: document.getElementById('t-time').value || null,
+    duration: parseInt(document.getElementById('t-duration').value) || null,
+    priority: parseInt(document.getElementById('t-priority').value) || 4,
+    projectId: document.getElementById('t-project').value ? parseInt(document.getElementById('t-project').value) : null,
+    recurrence: document.getElementById('t-recurrence').value || null,
+    subtasks: (window._editingTask?.subtasks || []).filter(s => s.title && s.title.trim()),
+    tags: window._editingTask?.tags || [],
+    completions: {},
+    createdAt: Date.now()
+  };
+  state.tasks.push(newTask);
+  haptic('success'); playSound('success'); save(); window.closeTaskEditor(); window.renderAll();
 };
-window.updateSubtaskTitle = function(i, val) {
-  const id = document.getElementById('t-editing-id')?.value;
-  const t = id ? state.tasks.find(x => x.id == id) : window._draftTask;
-  if (t && t.subtasks[i]) t.subtasks[i].title = val;
+
+window.closeTaskEditor = function() {
+  if (window._isNewTask) {
+    const title = document.getElementById('t-title')?.value.trim();
+    if (title && !confirm('Закрыть без сохранения?')) return;
+  }
+  document.getElementById('sheet').classList.remove('task-modal');
+  window.closeSheet();
+  window._editingTask = null;
+  window._isNewTask = false;
 };
-window.removeSubtask = function(i) {
+
+window.openDatePopover = function(ev) {
+  ev.stopPropagation();
+  const existing = document.getElementById('date-popover');
+  if (existing) { existing.remove(); return; }
+  const block = document.getElementById('prop-date-block');
+  const rect = block.getBoundingClientRect();
+  const pop = document.createElement('div');
+  pop.id = 'date-popover';
+  pop.className = 'date-popover';
+  pop.style.left = Math.min(rect.left, window.innerWidth - 300) + 'px';
+  pop.style.top = (rect.bottom + 8) + 'px';
+  const today = todayStr();
+  const tomorrow = ymdLocal(new Date(Date.now() + 86400000));
+  const weekend = (() => { const d = new Date(); d.setDate(d.getDate() + (6 - d.getDay() + 7) % 7); return ymdLocal(d); })();
+  const nextWeek = (() => { const d = new Date(); d.setDate(d.getDate() + (8 - d.getDay()) % 7 || 7); return ymdLocal(d); })();
+  pop.innerHTML = `
+    <input type="text" id="date-input" placeholder="Введите срок" style="width:100%;padding:8px;border:none;border-bottom:1px solid var(--separator);font-size:14px;outline:none;background:transparent;">
+    <div class="date-quick">
+      <button type="button" onclick="window.setTaskDate('${today}')">${svgIcon('calendar','var(--td-green)',16)} Сегодня <span class="day-hint">${new Date().toLocaleDateString('ru-RU',{weekday:'short'})}</span></button>
+      <button type="button" onclick="window.setTaskDate('${tomorrow}')">${svgIcon('sun','var(--td-orange)',16)} Завтра <span class="day-hint">${new Date(Date.now()+86400000).toLocaleDateString('ru-RU',{weekday:'short'})}</span></button>
+      <button type="button" onclick="window.setTaskDate('${weekend}')">${svgIcon('moon','var(--td-blue)',16)} На выходных <span class="day-hint">Сб</span></button>
+      <button type="button" onclick="window.setTaskDate('${nextWeek}')">${svgIcon('arrowRight','var(--purple)',16)} След. неделя <span class="day-hint">${new Date(nextWeek+'T12:00:00').toLocaleDateString('ru-RU',{weekday:'short',day:'numeric',month:'short'})}</span></button>
+    </div>
+    <div id="date-cal-container"></div>
+    <div class="date-footer">
+      <button type="button" onclick="window.openTimePicker()">${svgIcon('clock','currentColor',14)} Время</button>
+      <button type="button" onclick="window.openRecurrencePicker()">${svgIcon('refresh','currentColor',14)} Повтор</button>
+      <button type="button" onclick="window.setTaskDate('')">Без срока</button>
+    </div>
+  `;
+  document.body.appendChild(pop);
+  window.renderDateCalendar();
+  setTimeout(() => {
+    document.addEventListener('click', function close(e) {
+      if (!pop.contains(e.target) && e.target !== block) { pop.remove(); document.removeEventListener('click', close); }
+    });
+  }, 10);
+};
+
+window.setTaskDate = function(dateStr) {
+  document.getElementById('t-date').value = dateStr;
+  const label = dateStr ? formatTaskDate(dateStr) : 'Без срока';
+  const cls = dateStr && dateStr < todayStr() ? 'overdue' : (dateStr === todayStr() ? 'today' : '');
+  const el = document.getElementById('prop-date');
+  if (el) { el.className = 'prop-value ' + cls; el.innerHTML = svgIcon('calendar','currentColor',16) + ' <span>' + label + '</span>'; }
+  const pop = document.getElementById('date-popover');
+  if (pop) pop.remove();
+  if (!window._isNewTask) window.saveTaskSilent();
+};
+
+window.renderDateCalendar = function() {
+  const cont = document.getElementById('date-cal-container');
+  if (!cont) return;
+  const now = new Date();
+  let html = '';
+  for (let m = 0; m < 3; m++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + m, 1);
+    const title = d.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+    html += `<div class="cal-month-title">${title}</div><div class="cal-grid">`;
+    ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].forEach(w => html += `<div class="cal-dow">${w}</div>`);
+    const first = (d.getDay() + 6) % 7;
+    for (let i = 0; i < first; i++) html += '<div></div>';
+    const days = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    for (let day = 1; day <= days; day++) {
+      const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const isToday = ds === todayStr();
+      const isSel = ds === document.getElementById('t-date').value;
+      const isPast = ds < todayStr();
+      html += `<button type="button" class="cal-day ${isToday?'today':''} ${isSel?'selected':''} ${isPast?'past':''}" onclick="window.setTaskDate('${ds}')">${day}</button>`;
+    }
+    html += '</div>';
+  }
+  cont.innerHTML = html;
+};
+
+window.openTimePicker = function() {
+  const curTime = document.getElementById('t-time').value || '';
+  const curDur = document.getElementById('t-duration').value || '';
+  window.openSheet(`
+    <h2>Время и длительность</h2>
+    <div class="field"><label>Время начала</label><input type="time" id="tmp-time" value="${curTime}"></div>
+    <div class="field"><label>Длительность (мин)</label><input type="number" id="tmp-dur" min="0" max="1440" value="${curDur}"></div>
+    <div class="sheet-actions"><button class="btn-cancel" onclick="window.closeSheet()">Отмена</button><button class="btn-primary" onclick="window.applyTime()">Готово</button></div>
+  `);
+};
+window.applyTime = function() {
+  document.getElementById('t-time').value = document.getElementById('tmp-time').value || '';
+  document.getElementById('t-duration').value = document.getElementById('tmp-dur').value || '';
+  window.closeSheet();
+  if (!window._isNewTask) window.saveTaskSilent();
+};
+
+window.openTagsEditor = function() {
+  const tags = (window._editingTask?.tags || []).join(', ');
+  window.openSheet(`
+    <h2>Метки</h2>
+    <div class="field"><label>Через запятую</label><input type="text" id="tmp-tags" value="${escapeHtml(tags)}" placeholder="работа, дом, срочно"></div>
+    <div class="sheet-actions"><button class="btn-cancel" onclick="window.closeSheet()">Отмена</button><button class="btn-primary" onclick="window.applyTags()">Готово</button></div>
+  `);
+};
+window.applyTags = function() {
+  const raw = document.getElementById('tmp-tags').value;
+  const tags = raw.split(',').map(s => s.trim()).filter(Boolean);
+  if (window._editingTask) window._editingTask.tags = tags;
+  const el = document.getElementById('prop-tags');
+  if (el) el.innerHTML = svgIcon('sparkle','currentColor',16) + ' <span>' + (tags.length ? tags.map(escapeHtml).join(', ') : 'Нет меток') + '</span>';
+  window.closeSheet();
+  if (!window._isNewTask) window.saveTaskSilent();
+};
+
+window.toggleCurrentTaskDone = function() {
   const id = document.getElementById('t-editing-id')?.value;
-  const t = id ? state.tasks.find(x => x.id == id) : window._draftTask;
-  if (t) t.subtasks.splice(i, 1);
-  window.renderSubtasksEditor(t);
+  if (!id) return;
+  const t = state.tasks.find(x => x.id == id);
+  if (t) { t.done = !t.done; save(); window.renderAll(); }
+};
+
+window.taskNav = function(dir) {
+  // placeholder for prev/next
+  window.showToast('Навигация по задачам скоро');
+};
+
+window.openTaskMenu = function() {
+  const id = document.getElementById('t-editing-id')?.value;
+  window.openSheet(`
+    <h2>Задача</h2>
+    <button class="btn-cancel" onclick="window.duplicateTask()">Дублировать</button>
+    <button class="btn-danger" onclick="window.removeTask(${id || 0}); window.closeSheet();">Удалить</button>
+    <button class="btn-cancel" onclick="window.closeSheet()">Закрыть</button>
+  `);
 };
 
 window.openTaskEditor = openTaskEditor;
