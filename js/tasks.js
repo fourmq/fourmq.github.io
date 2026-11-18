@@ -212,8 +212,8 @@ export function openTaskEditor(id) {
   setTimeout(() => {
     const titleEl = document.getElementById('t-title');
     if (titleEl) { titleEl.focus(); autoResize(titleEl); }
-    window.renderSubtasksEditor(t);
     if (!isNew) setupAutoSave();
+    window.renderSubtasksEditor(t);
   }, 50);
 }
 
@@ -221,6 +221,50 @@ function autoResize(el) {
   el.style.height = 'auto';
   el.style.height = el.scrollHeight + 'px';
 }
+window.renderSubtasksEditor = function(t) {
+  const cont = document.getElementById('subtasks-container');
+  if (!cont) return;
+  const subs = t.subtasks || [];
+  cont.innerHTML = subs.map((s, i) => `
+    <div class="subtask-item">
+      <input type="checkbox" ${s.done ? 'checked' : ''} onchange="window.toggleSubtask(${i})">
+      <input type="text" value="${escapeHtml(s.title || '')}" oninput="window.updateSubtask(${i}, this.value)">
+      <button type="button" onclick="window.removeSubtask(${i})" style="border:none;background:none;color:var(--red);cursor:pointer;">×</button>
+    </div>
+  `).join('');
+};
+window.addSubtask = function() {
+  if (!window._editingTask) window._editingTask = { subtasks: [] };
+  if (!window._editingTask.subtasks) window._editingTask.subtasks = [];
+  window._editingTask.subtasks.push({ title: '', done: false });
+  window.renderSubtasksEditor(window._editingTask);
+  if (!window._isNewTask) window.saveTaskSilent();
+};
+window.toggleSubtask = function(i) {
+  const s = window._editingTask?.subtasks?.[i];
+  if (s) { s.done = !s.done; if (!window._isNewTask) window.saveTaskSilent(); }
+};
+window.updateSubtask = function(i, val) {
+  const s = window._editingTask?.subtasks?.[i];
+  if (s) { s.title = val; if (!window._isNewTask) window.saveTaskSilent(); }
+};
+window.removeSubtask = function(i) {
+  if (window._editingTask?.subtasks) {
+    window._editingTask.subtasks.splice(i, 1);
+    window.renderSubtasksEditor(window._editingTask);
+    if (!window._isNewTask) window.saveTaskSilent();
+  }
+};
+window.duplicateTask = function() {
+  const id = document.getElementById('t-editing-id')?.value;
+  if (!id) return;
+  const t = state.tasks.find(x => x.id == id);
+  if (!t) return;
+  const copy = { ...t, id: uid(), title: t.title + ' (копия)', done: false, createdAt: Date.now() };
+  state.tasks.push(copy);
+  save(); window.closeSheet(); window.renderAll(); window.showToast('Задача скопирована');
+};
+
 
 function setupAutoSave() {
   const fields = ['t-title', 't-desc', 't-notes'];
@@ -239,7 +283,7 @@ window.saveTaskSilent = function() {
   if (!id) return;
   const t = state.tasks.find(x => x.id == id);
   if (!t) return;
-  t.title = document.getElementById('t-title').value.trim() || 'Без названия';
+  const title = document.getElementById('t-title').value.trim(); if (title) t.title = title;
   t.description = document.getElementById('t-desc').value.trim();
   t.notes = document.getElementById('t-notes').value.trim();
   t.date = document.getElementById('t-date').value || null;
@@ -278,6 +322,8 @@ window.saveNewTask = function() {
 };
 
 window.closeTaskEditor = function() {
+  clearTimeout(window._taskSaveTimer);
+  if (!window._isNewTask) window.saveTaskSilent();
   if (window._isNewTask) {
     const title = document.getElementById('t-title')?.value.trim();
     if (title && !confirm('Закрыть без сохранения?')) return;
@@ -364,19 +410,23 @@ window.renderDateCalendar = function() {
 };
 
 window.openTimePicker = function() {
-  const curTime = document.getElementById('t-time').value || '';
-  const curDur = document.getElementById('t-duration').value || '';
-  window.openSheet(`
-    <h2>Время и длительность</h2>
-    <div class="field"><label>Время начала</label><input type="time" id="tmp-time" value="${curTime}"></div>
-    <div class="field"><label>Длительность (мин)</label><input type="number" id="tmp-dur" min="0" max="1440" value="${curDur}"></div>
-    <div class="sheet-actions"><button class="btn-cancel" onclick="window.closeSheet()">Отмена</button><button class="btn-primary" onclick="window.applyTime()">Готово</button></div>
-  `);
+  const curTime = document.getElementById('t-time')?.value || '';
+  const curDur = document.getElementById('t-duration')?.value || '';
+  const content = document.getElementById('popover-content');
+  content.innerHTML = `
+    <h4 style="padding:4px 12px 8px;font-size:11px;color:var(--text-sec);font-weight:700;text-transform:uppercase;">Время</h4>
+    <div style="padding:8px 12px;"><input type="time" id="tmp-time" value="${curTime}" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--separator);background:var(--input-bg);color:var(--text);"></div>
+    <div style="padding:8px 12px;"><input type="number" id="tmp-dur" min="0" max="1440" value="${curDur}" placeholder="минут" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--separator);background:var(--input-bg);color:var(--text);"></div>
+    <div style="padding:8px 12px;display:flex;gap:8px;"><button class="btn-cancel" onclick="window.closePopover()">Отмена</button><button class="btn-primary" onclick="window.applyTime()">Готово</button></div>
+  `;
+  document.getElementById('popover-overlay').classList.add('open');
 };
 window.applyTime = function() {
-  document.getElementById('t-time').value = document.getElementById('tmp-time').value || '';
-  document.getElementById('t-duration').value = document.getElementById('tmp-dur').value || '';
-  window.closeSheet();
+  const tEl = document.getElementById('t-time');
+  const dEl = document.getElementById('t-duration');
+  if (tEl) tEl.value = document.getElementById('tmp-time')?.value || '';
+  if (dEl) dEl.value = document.getElementById('tmp-dur')?.value || '';
+  window.closePopover();
   if (!window._isNewTask) window.saveTaskSilent();
 };
 
@@ -451,9 +501,8 @@ window.openRecurrencePicker = function() {
 
 window.pickRecurrence = function(val) {
   document.getElementById('t-recurrence').value = val;
-  const text = document.getElementById('chip-recur-text');
-  text.textContent = val ? ({daily:'Каждый день', weekdays:'Будни', weekly:'Раз в неделю'}[val]) : 'Повтор';
   window.closePopover();
+  if (!window._isNewTask) window.saveTaskSilent();
 };
 
 window.openPriorityPicker = function() {
@@ -474,11 +523,12 @@ window.openPriorityPicker = function() {
 
 window.pickPriority = function(p) {
   document.getElementById('t-priority').value = p;
-  const chip = document.getElementById('chip-prio');
-  const text = document.getElementById('chip-prio-text');
-  chip.className = 'td-btn prio-btn' + (p < 4 ? ' p' + p : '');
-  text.textContent = p < 4 ? 'P' + p : 'Приоритет';
+  const span = document.querySelector('#prop-prio span');
+  if (span) span.textContent = p < 4 ? 'P' + p : 'Без приоритета';
+  const circle = document.querySelector('.task-modal .check-circle');
+  if (circle) circle.className = 'check-circle p' + p;
   window.closePopover();
+  if (!window._isNewTask) window.saveTaskSilent();
 };
 
 window.openProjectPicker = function() {
@@ -502,11 +552,20 @@ window.openProjectPicker = function() {
 
 window.pickProject = function(id) {
   document.getElementById('t-project').value = id;
-  const dot = document.getElementById('chip-project-dot');
-  const text = document.getElementById('chip-project-text');
-  if (!id) { dot.style.background = 'var(--text-tert)'; text.textContent = 'Проект'; }
-  else { const p = state.projects.find(x => x.id === +id); if (p) { dot.style.background = p.color; text.textContent = p.name; } }
+  const el = document.getElementById('prop-project');
+  const header = document.getElementById('header-project-name');
+  if (!id) {
+    if (el) el.innerHTML = '<span class="project-dot" style="background:var(--text-tert)"></span><span>Входящие</span>';
+    if (header) header.textContent = 'Входящие';
+  } else {
+    const p = state.projects.find(x => x.id === +id);
+    if (p) {
+      if (el) el.innerHTML = `<span class="project-dot" style="background:${p.color}"></span><span>${escapeHtml(p.name)}</span>`;
+      if (header) header.textContent = p.name;
+    }
+  }
   window.closePopover();
+  if (!window._isNewTask) window.saveTaskSilent();
 };
 
 window.saveTask = function() {
