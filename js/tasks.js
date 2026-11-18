@@ -211,7 +211,15 @@ export function openTaskEditor(id) {
   document.getElementById('sheet').classList.add('task-modal');
   setTimeout(() => {
     const titleEl = document.getElementById('t-title');
-    if (titleEl) { titleEl.focus(); autoResize(titleEl); }
+    if (titleEl) {
+      titleEl.focus();
+      autoResize(titleEl);
+      if (isNew) {
+        titleEl.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.saveNewTask(); }
+        });
+      }
+    }
     if (!isNew) setupAutoSave();
     window.renderSubtasksEditor(t);
   }, 50);
@@ -226,12 +234,22 @@ window.renderSubtasksEditor = function(t) {
   if (!cont) return;
   const subs = t.subtasks || [];
   cont.innerHTML = subs.map((s, i) => `
-    <div class="subtask-item">
+    <div class="subtask-row" data-idx="${i}">
+      <div class="subtask-drag" title="Перетащить">⋮⋮</div>
       <input type="checkbox" ${s.done ? 'checked' : ''} onchange="window.toggleSubtask(${i})">
-      <input type="text" value="${escapeHtml(s.title || '')}" oninput="window.updateSubtask(${i}, this.value)">
-      <button type="button" onclick="window.removeSubtask(${i})" style="border:none;background:none;color:var(--red);cursor:pointer;">×</button>
+      <input type="text" value="${escapeHtml(s.title || '')}" placeholder="Подзадача" oninput="window.updateSubtask(${i}, this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();window.addSubtask();}">
+      <div class="subtask-actions">
+        <button type="button" onclick="window.editSubtask(${i})" title="Изменить">${svgIcon('pencil','currentColor',14)}</button>
+        <button type="button" onclick="window.removeSubtask(${i})" title="Удалить" class="del">${svgIcon('trash','currentColor',14)}</button>
+      </div>
     </div>
   `).join('');
+};
+window.editSubtask = function(i) {
+  const s = window._editingTask?.subtasks?.[i];
+  if (!s) return;
+  const newTitle = prompt('Название подзадачи', s.title || '');
+  if (newTitle !== null) { s.title = newTitle.trim(); window.renderSubtasksEditor(window._editingTask); if (!window._isNewTask) window.saveTaskSilent(); }
 };
 window.addSubtask = function() {
   if (!window._editingTask) window._editingTask = { subtasks: [] };
@@ -523,8 +541,11 @@ window.openPriorityPicker = function() {
 
 window.pickPriority = function(p) {
   document.getElementById('t-priority').value = p;
-  const span = document.querySelector('#prop-prio span');
-  if (span) span.textContent = p < 4 ? 'P' + p : 'Без приоритета';
+  const colors = { 1: 'var(--td-red)', 2: 'var(--td-orange)', 3: 'var(--td-blue)', 4: 'var(--text-sec)' };
+  const el = document.getElementById('prop-prio');
+  if (el) {
+    el.innerHTML = svgIcon('flag', colors[p] || 'currentColor', 16) + ' <span>' + (p < 4 ? 'P' + p : 'Без приоритета') + '</span>';
+  }
   const circle = document.querySelector('.task-modal .check-circle');
   if (circle) circle.className = 'check-circle p' + p;
   window.closePopover();
@@ -629,18 +650,21 @@ export function renderTasks() {
     state.projects.forEach(p => {
       const c = state.tasks.filter(t => t.projectId === p.id && !isTaskDoneOn(t, realToday)).length;
       projHtml += `
-        <div class="card flat" style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="window.openProject(${p.id})">
-          <span style="width:12px;height:12px;border-radius:3px;background:${p.color};"></span>
-          <div style="flex:1;font-weight:600;">${escapeHtml(p.name)}</div>
-          <span style="color:var(--text-sec);font-size:13px;">${c}</span>
+        <div class="project-card" onclick="window.openProject(${p.id})">
+          <div class="project-color-bar" style="background:${p.color}"></div>
+          <div class="project-info">
+            <div class="project-name">${escapeHtml(p.name)}</div>
+            <div class="project-count">${c} ${c === 1 ? 'задача' : c < 5 ? 'задачи' : 'задач'}</div>
+          </div>
+          ${svgIcon('arrowRight', 'var(--text-tert)', 16)}
         </div>
       `;
     });
     
     content.innerHTML = `
-      <div style="display:flex;gap:8px;margin-bottom:8px;">
-        <input id="new-project" placeholder="Новый проект" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--separator-med);background:var(--card);color:var(--text);outline:none;font-size:16px;height:42px;" onkeydown="if(event.key==='Enter')window.addProject()">
-        <button onclick="window.addProject()" style="padding:10px 18px;background:var(--td-red);color:#fff;border:none;border-radius:10px;font-size:18px;cursor:pointer;">+</button>
+      <div class="project-add-row">
+        <input id="new-project" placeholder="Новый проект" onkeydown="if(event.key==='Enter')window.addProject()">
+        <button onclick="window.addProject()">+</button>
       </div>
       ${projHtml}
     `;
