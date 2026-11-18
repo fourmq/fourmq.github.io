@@ -1309,3 +1309,378 @@ button:focus-visible, .sidebar-nav button:focus-visible, .tab:focus-visible, .ic
     gap: 8px;
   }
 }
+
+/* ===== Полировка задач ===== */
+/* Кружок не на границе, свайп-кнопки не обрезаются */
+.card.tight .task-row,
+.swipe-content.task-row {
+  padding: 12px 8px;
+}
+.swipe-row-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  margin-bottom: 2px;
+}
+.swipe-actions {
+  border-radius: 0 12px 12px 0;
+  overflow: hidden;
+}
+.swipe-btn {
+  border-radius: 0;
+}
+.swipe-btn:first-child { border-radius: 0; }
+.swipe-btn:last-child { border-radius: 0 12px 12px 0; }
+
+/* Топбар на уровне бренда на десктопе */
+@media (min-width: 900px) {
+  .topbar {
+    padding-top: 20px;
+    min-height: 56px;
+  }
+  .sidebar-brand {
+    padding-top: 8px;
+  }
+}
+
+/* Скрыть пустую today-hero если нет контента */
+#today-hero:empty {
+  display: none;
+}
+#today-hero {
+  min-height: 0;
+  padding: 0;
+}
+#today-hero:not(:empty) {
+  padding: 14px 16px;
+}
+
+/* Пустое состояние просроченных */
+.empty-overdue {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 16px;
+  background: var(--green-soft);
+  border-radius: 14px;
+  margin: 8px 0 16px;
+  color: var(--green-text);
+  font-size: 14px;
+  font-weight: 500;
+}
+.empty-overdue-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 18px;
+}
+
+/* Проекты: карточки вместо плоских строк */
+.project-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--card);
+  border-radius: 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  border: 1px solid var(--separator);
+  transition: background .15s, transform .1s;
+}
+.project-card:hover {
+  background: var(--chip-bg);
+}
+.project-card:active {
+  transform: scale(0.99);
+}
+.project-color-bar {
+  width: 4px;
+  height: 32px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.project-info {
+  flex: 1;
+  min-width: 0;
+}
+.project-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.project-count {
+  font-size: 12px;
+  color: var(--text-sec);
+  margin-top: 2px;
+}
+.project-add-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.project-add-row input {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--separator);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+}
+.project-add-row button {
+  width: 48px;
+  border-radius: 12px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* Привычка: иконки меньше, форма скруглена, влезает на экран */
+.icon-grid {
+  grid-template-columns: repeat(auto-fill, 40px) !important;
+  gap: 6px !important;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.icon-opt {
+  width: 40px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  border-radius: 10px !important;
+}
+.icon-opt svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+.sheet.open {
+  border-radius: 16px !important;
+}
+@media (min-width: 600px) {
+  .sheet.open {
+    max-height: 80vh;
+  }
+}
+
+/* Кружок задачи с отступом от края */
+.task-row .check-circle {
+  margin-left: 4px;
+  margin-top: 2px;
+}
+.swipe-content.task-row {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+/* Hover-кнопки на десктопе: не обрезаются */
+@media (hover: hover) and (pointer: fine) {
+  .swipe-row-container {
+    overflow: visible;
+  }
+  .swipe-actions {
+    opacity: 0;
+    pointer-events: none;
+    right: 8px;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+    width: auto;
+    background: transparent;
+    gap: 4px;
+  }
+  .swipe-row-container:hover .swipe-actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .swipe-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,.15);
+  }
+}
+
+/* Подзадачи: крестики на hover */
+.subtask-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  border-radius: 8px;
+  position: relative;
+}
+.subtask-row:hover {
+  background: var(--chip-bg);
+}
+.subtask-drag {
+  color: var(--text-tert);
+  cursor: grab;
+  font-size: 12px;
+  letter-spacing: -2px;
+  opacity: 0;
+  transition: opacity .15s;
+}
+.subtask-row:hover .subtask-drag {
+  opacity: 1;
+}
+.subtask-row input[type="text"] {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  color: var(--text);
+  padding: 4px 0;
+}
+.subtask-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity .15s;
+}
+.subtask-row:hover .subtask-actions {
+  opacity: 1;
+}
+.subtask-actions button {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-sec);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.subtask-actions button:hover {
+  background: var(--input-bg);
+  color: var(--text);
+}
+.subtask-actions button.del:hover {
+  color: var(--red);
+}
+
+/* Плавающий таймер: перетаскиваемый */
+.floating-timer {
+  cursor: grab;
+  user-select: none;
+}
+.floating-timer.dragging {
+  cursor: grabbing;
+  transition: none;
+}
+.floating-timer.overtime {
+  border-color: var(--td-orange);
+  background: var(--orange-soft, rgba(235,137,9,.1));
+}
+
+/* Список привычек: drag-drop, скруглённые углы */
+.habit-list-wrap {
+  background: var(--card);
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--separator);
+}
+.habit-list-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: .5px solid var(--separator);
+  cursor: grab;
+}
+.habit-list-item:last-child {
+  border-bottom: none;
+}
+.habit-list-item:hover {
+  background: var(--chip-bg);
+}
+.habit-drag-handle {
+  color: var(--text-tert);
+  font-size: 14px;
+  letter-spacing: -2px;
+  cursor: grab;
+}
+.sheet.open {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+/* Футер сайдбара: иконка + время + подпись */
+.sidebar-footer-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.sidebar-settings {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin: 0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sidebar-time-block {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.sidebar-clock {
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.sidebar-date {
+  font-size: 11px;
+  color: var(--text-sec);
+}
+.sidebar-credit {
+  font-size: 10px;
+  color: var(--text-tert);
+  opacity: 0.6;
+  padding-left: 2px;
+  letter-spacing: 0.2px;
+}
+.sidebar-ver {
+  margin-left: 6px;
+  opacity: 0.8;
+}
+
+/* На телефоне подпись в конце главной */
+.mobile-credit {
+  display: none;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-tert);
+  opacity: 0.5;
+  padding: 24px 16px 16px;
+  margin-top: auto;
+}
+.mobile-credit span {
+  margin-left: 6px;
+}
+@media (max-width: 899px) {
+  .sidebar-credit {
+    display: none;
+  }
+  .mobile-credit {
+    display: block;
+  }
+}
