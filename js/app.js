@@ -527,10 +527,16 @@ window.renderQuickMoodUI = function() {
   const t = window.currentDate; const moods = state.moods[t] || []; 
   const countEl = document.getElementById('mood-count');
   const container = document.getElementById('quick-mood-card');
+  if (!container) return;
   
   clearInterval(moodTimerInterval);
   const lastMood = moods[moods.length - 1]; const now = Date.now(); const cooldown = 3600000; // 1 час
   
+  // Скрыть если отмечено менее часа назад
+  if (lastMood && (now - lastMood.ts < cooldown)) {
+    container.style.display = 'none';
+    return;
+  }
   container.style.display = 'block';
   if (countEl) countEl.textContent = `Отметок: ${moods.length}`;
   document.querySelectorAll('#quick-mood-row button').forEach(b => { b.style.opacity = '1'; b.style.pointerEvents = 'auto'; });
