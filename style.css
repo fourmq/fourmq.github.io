@@ -1450,8 +1450,6 @@ button:focus-visible, .sidebar-nav button:focus-visible, .tab:focus-visible, .ic
 .icon-grid {
   grid-template-columns: repeat(auto-fill, 40px) !important;
   gap: 6px !important;
-  max-height: 160px;
-  overflow-y: auto;
 }
 .icon-opt {
   width: 40px !important;
@@ -1683,4 +1681,141 @@ button:focus-visible, .sidebar-nav button:focus-visible, .tab:focus-visible, .ic
   .mobile-credit {
     display: block;
   }
+}
+
+/* Исчезающий скроллбар для листов */
+.sheet {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.sheet:hover {
+  scrollbar-color: var(--text-tert) transparent;
+}
+.sheet::-webkit-scrollbar {
+  width: 6px;
+}
+.sheet::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sheet::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+}
+.sheet:hover::-webkit-scrollbar-thumb {
+  background: var(--text-tert);
+}
+
+/* Глобальный hover для кнопок */
+button, .btn-primary, .btn-cancel, .tab, .sidebar-nav button, .filter-pill, .chip, .score-chip, .ctx-tag, .icon-opt, .prop-block {
+  transition: transform .12s, background .15s, opacity .15s;
+}
+button:hover, .btn-primary:hover, .btn-cancel:hover, .tab:hover, .filter-pill:hover, .chip:hover, .score-chip:hover, .ctx-tag:hover, .icon-opt:hover, .prop-block:hover {
+  transform: translateY(-1px);
+}
+button:active, .btn-primary:active, .btn-cancel:active {
+  transform: scale(0.97);
+}
+
+/* Комментарии как сообщения */
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.comment-bubble {
+  background: var(--input-bg);
+  border-radius: 14px 14px 14px 4px;
+  padding: 8px 12px;
+  max-width: 85%;
+  align-self: flex-start;
+}
+.comment-text {
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text);
+}
+.comment-time {
+  font-size: 10px;
+  color: var(--text-tert);
+  margin-top: 2px;
+}
+.comment-input-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.comment-input-row input {
+  flex: 1;
+  border: 1px solid var(--separator);
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+}
+.comment-input-row button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Подзадачи: заголовок и приоритет */
+.subtask-title {
+  flex: 1;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.subtask-title.done {
+  text-decoration: line-through;
+  color: var(--text-sec);
+}
+.subtask-row .check-circle {
+  flex-shrink: 0;
+}
+.subtask-row .check-circle svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Главная: hover-кнопки как у подзадач */
+.task-row .swipe-actions {
+  opacity: 0;
+  transition: opacity .15s;
+}
+.task-row:hover .swipe-actions,
+.swipe-row-container:hover .swipe-actions {
+  opacity: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .swipe-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,.12);
+  }
+  .swipe-btn:hover {
+    transform: scale(1.08);
+  }
+}
+
+/* Лист не обрезает анимации */
+.sheet {
+  overflow: visible;
+}
+.sheet-content-scroll {
+  max-height: 75vh;
+  overflow-y: auto;
 }
