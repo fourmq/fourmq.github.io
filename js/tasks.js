@@ -160,9 +160,10 @@ export function openTaskEditor(id) {
           </div>
           <div id="subtasks-container"></div>
           <button type="button" class="add-subtask-btn" onclick="window.addSubtask()">+ Добавить подзадачу</button>
-          <div class="task-comment-pill" style="margin-top:24px;">
-            <input type="text" id="t-notes" placeholder="Заметка к задаче" value="${escapeHtml(t.notes || '')}">
-            ${svgIcon('description', 'currentColor', 16)}
+          <div id="comments-area" style="margin-top:20px;"></div>
+          <div class="comment-input-row">
+            <input type="text" id="t-comment-input" placeholder="Комментарий..." onkeydown="if(event.key==='Enter')window.addComment()">
+            <button type="button" onclick="window.addComment()">${svgIcon('arrowRight','#fff',16)}</button>
           </div>
           ${isNew ? '<div style="margin-top:24px;"><button class="btn-primary" onclick="window.saveNewTask()">Добавить задачу</button></div>' : ''}
         </div>
@@ -188,13 +189,7 @@ export function openTaskEditor(id) {
               <span>${prioText}</span>
             </div>
           </div>
-          <div class="prop-block" onclick="window.openTagsEditor()">
-            <div class="prop-label">Метки</div>
-            <div class="prop-value" id="prop-tags">
-              ${svgIcon('sparkle', 'currentColor', 16)}
-              <span>${(t.tags || []).length ? (t.tags || []).map(escapeHtml).join(', ') : 'Нет меток'}</span>
-            </div>
-          </div>
+
         </div>
       </div>
     </div>
@@ -222,6 +217,7 @@ export function openTaskEditor(id) {
     }
     if (!isNew) setupAutoSave();
     window.renderSubtasksEditor(t);
+    window.renderComments && window.renderComments();
   }, 50);
 }
 
@@ -232,18 +228,39 @@ function autoResize(el) {
 window.renderSubtasksEditor = function(t) {
   const cont = document.getElementById('subtasks-container');
   if (!cont) return;
-  const subs = t.subtasks || [];
+  const subs = (t.subtasks || []).filter(s => s.title && s.title.trim());
   cont.innerHTML = subs.map((s, i) => `
-    <div class="subtask-row" data-idx="${i}">
-      <div class="subtask-drag" title="Перетащить">⋮⋮</div>
-      <input type="checkbox" ${s.done ? 'checked' : ''} onchange="window.toggleSubtask(${i})">
-      <input type="text" value="${escapeHtml(s.title || '')}" placeholder="Подзадача" oninput="window.updateSubtask(${i}, this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();window.addSubtask();}">
+    <div class="subtask-row" draggable="true" data-idx="${i}" ondragstart="window.dragSubtask(event,${i})" ondragover="event.preventDefault()" ondrop="window.dropSubtask(event,${i})">
+      <div class="subtask-drag">⋮⋮</div>
+      <div class="check-circle p${s.priority || 4} ${s.done ? 'done' : ''}" onclick="window.toggleSubtask(${i})" style="width:18px;height:18px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7" stroke-linecap="round"/></svg>
+      </div>
+      <span class="subtask-title ${s.done ? 'done' : ''}" onclick="window.cycleSubtaskPriority(${i})" title="Приоритет">${escapeHtml(s.title)}</span>
       <div class="subtask-actions">
-        <button type="button" onclick="window.editSubtask(${i})" title="Изменить">${svgIcon('pencil','currentColor',14)}</button>
+        <button type="button" onclick="window.cycleSubtaskPriority(${i})" title="Приоритет">${svgIcon('flag', s.priority===1?'var(--td-red)':s.priority===2?'var(--td-orange)':s.priority===3?'var(--td-blue)':'currentColor', 14)}</button>
         <button type="button" onclick="window.removeSubtask(${i})" title="Удалить" class="del">${svgIcon('trash','currentColor',14)}</button>
       </div>
     </div>
   `).join('');
+};
+window.dragSubtask = function(e, i) { e.dataTransfer.setData('text/plain', i); };
+window.dropSubtask = function(e, targetIdx) {
+  e.preventDefault();
+  const srcIdx = +e.dataTransfer.getData('text/plain');
+  if (srcIdx === targetIdx || !window._editingTask?.subtasks) return;
+  const subs = window._editingTask.subtasks;
+  const [item] = subs.splice(srcIdx, 1);
+  subs.splice(targetIdx, 0, item);
+  window.renderSubtasksEditor(window._editingTask);
+  if (!window._isNewTask) window.saveTaskSilent();
+};
+window.cycleSubtaskPriority = function(i) {
+  const s = window._editingTask?.subtasks?.[i];
+  if (!s) return;
+  s.priority = ((s.priority || 4) % 4) + 1;
+  if (s.priority > 4) s.priority = 1;
+  window.renderSubtasksEditor(window._editingTask);
+  if (!window._isNewTask) window.saveTaskSilent();
 };
 window.editSubtask = function(i) {
   const s = window._editingTask?.subtasks?.[i];
@@ -252,9 +269,11 @@ window.editSubtask = function(i) {
   if (newTitle !== null) { s.title = newTitle.trim(); window.renderSubtasksEditor(window._editingTask); if (!window._isNewTask) window.saveTaskSilent(); }
 };
 window.addSubtask = function() {
+  const title = prompt('Название подзадачи');
+  if (!title || !title.trim()) return;
   if (!window._editingTask) window._editingTask = { subtasks: [] };
   if (!window._editingTask.subtasks) window._editingTask.subtasks = [];
-  window._editingTask.subtasks.push({ title: '', done: false });
+  window._editingTask.subtasks.push({ title: title.trim(), done: false, priority: 4 });
   window.renderSubtasksEditor(window._editingTask);
   if (!window._isNewTask) window.saveTaskSilent();
 };
@@ -303,7 +322,8 @@ window.saveTaskSilent = function() {
   if (!t) return;
   const title = document.getElementById('t-title').value.trim(); if (title) t.title = title;
   t.description = document.getElementById('t-desc').value.trim();
-  t.notes = document.getElementById('t-notes').value.trim();
+  t.subtasks = window._editingTask?.subtasks || [];
+  t.comments = window._editingTask?.comments || [];
   t.date = document.getElementById('t-date').value || null;
   t.startTime = document.getElementById('t-time').value || null;
   t.duration = parseInt(document.getElementById('t-duration').value) || null;
@@ -908,4 +928,26 @@ window.deleteProject = deleteProject;
 window.toggleCompletedTasks = function() {
   window._showCompletedTasks = !window._showCompletedTasks;
   renderTasksTodayMini();
+};
+
+window.renderComments = function() {
+  const area = document.getElementById('comments-area');
+  if (!area || !window._editingTask) return;
+  const comments = window._editingTask.comments || [];
+  area.innerHTML = comments.map(c => `
+    <div class="comment-bubble">
+      <div class="comment-text">${escapeHtml(c.text)}</div>
+      <div class="comment-time">${new Date(c.ts).toLocaleString('ru-RU', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</div>
+    </div>
+  `).join('');
+};
+window.addComment = function() {
+  const input = document.getElementById('t-comment-input');
+  const text = input?.value.trim();
+  if (!text || !window._editingTask) return;
+  if (!window._editingTask.comments) window._editingTask.comments = [];
+  window._editingTask.comments.push({ text, ts: Date.now() });
+  input.value = '';
+  window.renderComments();
+  if (!window._isNewTask) window.saveTaskSilent();
 };
