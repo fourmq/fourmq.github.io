@@ -100,12 +100,16 @@ window.addEventListener('error', function(event) {
       <button data-tab="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2" stroke-linecap="round"/></svg><span>Статистика</span></button>
     </nav>
     <div class="sidebar-footer" id="sidebar-footer">
-      <button type="button" class="sidebar-settings" onclick="window.openSettings()" aria-label="Настройки">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <span>Настройки</span>
-      </button>
-      <div class="sidebar-clock" id="sidebar-clock">--:--:--</div>
-      <div class="sidebar-date" id="sidebar-date">—</div>
+      <div class="sidebar-footer-row">
+        <button type="button" class="sidebar-settings" onclick="window.openSettings()" aria-label="Настройки">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+        <div class="sidebar-time-block">
+          <div class="sidebar-clock" id="sidebar-clock">--:--:--</div>
+          <div class="sidebar-date" id="sidebar-date">—</div>
+        </div>
+      </div>
+      <div class="sidebar-credit">2026 Alexey Filippov <span class="sidebar-ver">ver. 2.6.0</span></div>
     </div>
   </aside>
 
@@ -129,7 +133,7 @@ window.addEventListener('error', function(event) {
         <div class="date-nav"><button class="nav-arrow" onclick="changeDay(-1)">‹</button><div class="date-nav-center" id="date-nav-label"></div><button class="nav-arrow" onclick="changeDay(1)">›</button></div>
 
         <!-- Главная петля: 1 вывод + 1 действие -->
-        <div class="card today-hero" id="today-hero"></div>
+        <div id="today-hero" style="display:none;"></div>
 
         <div class="card day-status">
           <div class="status-item">
@@ -294,6 +298,7 @@ window.addEventListener('error', function(event) {
           <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
         </div>
       </section>
+      <div class="mobile-credit">2026 Alexey Filippov <span>ver. 2.6.0</span></div>
     </main>
 
     <nav class="tabbar">
