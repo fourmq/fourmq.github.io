@@ -432,14 +432,28 @@ window.openHabitSettings = function() {
   let list = '';
   habits.forEach(h => {
     list += `
-      <div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:.5px solid var(--separator);">
-        <div style="display:flex;flex-direction:column;gap:2px;"><button onclick="window.moveHabit(${h.id},-1)" style="width:28px;height:22px;border-radius:6px;border:none;background:var(--chip-bg);color:var(--text);">▲</button><button onclick="window.moveHabit(${h.id},1)" style="width:28px;height:22px;border-radius:6px;border:none;background:var(--chip-bg);color:var(--text);">▼</button></div>
-        <div style="width:36px;height:36px;border-radius:10px;background:${h.color}20;display:flex;align-items:center;justify-content:center;">${svgIcon(h.icon, h.color, 20)}</div>
+      <div class="habit-list-item" draggable="true" data-id="${h.id}" ondragstart="window.dragHabit(event,${h.id})" ondragover="event.preventDefault()" ondrop="window.dropHabit(event,${h.id})">
+        <div class="habit-drag-handle">⋮⋮</div>
+        <div style="width:36px;height:36px;border-radius:10px;background:${h.color}20;display:flex;align-items:center;justify-content:center;">${svgIcon(h.icon, h.color, 18)}</div>
         <div style="flex:1;cursor:pointer;" onclick="window.closeSheet();setTimeout(()=>window.openHabitEditor(${h.id}),100)"><h4 style="font-size:15px;font-weight:600;">${escapeHtml(h.name)}</h4><p style="font-size:12px;color:var(--text-sec);">${h.schedule.type === 'daily' ? 'Каждый день' : h.schedule.type === 'weekdays' ? 'Дни недели' : 'Раз в неделю'}</p></div>
-        <button onclick="event.stopPropagation();window.deleteHabit(${h.id})" style="background:none;border:none;color:var(--text-sec);display:flex;align-items:center;">${svgIcon('x', 'currentColor', 20)}</button>
+        <button onclick="event.stopPropagation();window.deleteHabit(${h.id})" style="background:none;border:none;color:var(--text-sec);display:flex;align-items:center;opacity:.5;">${svgIcon('x', 'currentColor', 18)}</button>
       </div>`;
   });
-  window.openSheet(`<h2>Привычки</h2><div class="card tight" style="margin-bottom:12px;">${list}</div><button class="btn-primary" onclick="window.closeSheet();setTimeout(window.openHabitEditor,100)">+ Новая привычка</button><div class="sheet-actions"><button class="btn-cancel" onclick="window.closeSheet()">Готово</button></div>`);
+  window.openSheet(`<h2>Привычки</h2><div class="habit-list-wrap">${list}</div><button class="btn-primary" style="margin-top:12px;" onclick="window.closeSheet();setTimeout(window.openHabitEditor,100)">+ Новая привычка</button><div class="sheet-actions"><button class="btn-cancel" onclick="window.closeSheet()">Готово</button></div>`);
+};
+window.dragHabit = function(e, id) { e.dataTransfer.setData('text/plain', id); };
+window.dropHabit = function(e, targetId) {
+  e.preventDefault();
+  const srcId = +e.dataTransfer.getData('text/plain');
+  if (srcId === targetId) return;
+  const sorted = state.habits.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+  const srcIdx = sorted.findIndex(h => h.id === srcId);
+  const tgtIdx = sorted.findIndex(h => h.id === targetId);
+  if (srcIdx < 0 || tgtIdx < 0) return;
+  const [item] = sorted.splice(srcIdx, 1);
+  sorted.splice(tgtIdx, 0, item);
+  sorted.forEach((h, i) => h.order = i);
+  haptic(); save(); window.openHabitSettings();
 };
 
 window.moveHabit = function(id, dir) {
@@ -955,6 +969,8 @@ window.renderTodayHero = function() {
   } else {
     emoji = '🌿'; title = 'С чего начнём?'; sub = 'Добавь задачу или отметь пульс дня'; cta = 'Новая задача'; ctaFn = 'window.openTaskEditor()';
   }
+  el.style.display = 'block';
+  el.className = 'card today-hero';
   el.innerHTML = `<div class="today-hero-row" onclick="${ctaFn || ''}" style="cursor:${ctaFn ? 'pointer' : 'default'}"><div class="today-hero-emoji">${emoji}</div><div class="today-hero-text"><div class="today-hero-title">${title}</div><div class="today-hero-sub">${sub}</div></div>${cta ? `<span class="today-hero-link">${cta} →</span>` : ''}</div>`;
 };
 
@@ -1359,6 +1375,7 @@ window.confirmStopFocus = function() {
 };
 
 window.stopFocusTimer = function() { 
+  if (window.dismissFocusComplete) window.dismissFocusComplete();
   clearInterval(focusInterval); focusRunning = false; focusTimeLeft = focusTotalTime; 
   updateFocusDisplay(); 
   document.getElementById('floating-timer').classList.remove('active'); 
@@ -1380,10 +1397,32 @@ window.exitFocusMode = function() {
   }
 };
 
+let overtimeInterval = null, overtimeSeconds = 0;
 function completeFocusSession() {
   clearInterval(focusInterval); focusRunning = false; 
-  document.getElementById('floating-timer').classList.remove('active'); 
-  document.getElementById('focus-status').textContent = focusMode === 'break' ? 'Отдых завершен!' : 'Сессия завершена! 🎉'; 
+  const floatEl = document.getElementById('floating-timer');
+  floatEl.classList.add('active', 'overtime');
+  document.getElementById('focus-status').textContent = focusMode === 'break' ? 'Отдых завершен!' : 'Сессия завершена! 🎉';
+  
+  // Секундомер после окончания
+  overtimeSeconds = 0;
+  const floatTime = document.getElementById('float-time');
+  overtimeInterval = setInterval(() => {
+    overtimeSeconds++;
+    const m = Math.floor(overtimeSeconds / 60);
+    const s = overtimeSeconds % 60;
+    if (floatTime) floatTime.textContent = '+' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }, 1000);
+  
+  // Звук до нажатия
+  const soundLoop = setInterval(() => playTimerEnd(), 3000);
+  window._focusSoundLoop = soundLoop;
+  window.dismissFocusComplete = function() {
+    clearInterval(overtimeInterval);
+    clearInterval(soundLoop);
+    floatEl.classList.remove('active', 'overtime');
+    window._focusSoundLoop = null;
+  }; 
   
   document.getElementById('focus-setup-controls').style.display = 'block';
   document.getElementById('focus-start-btn-container').style.display = 'block';
@@ -1523,3 +1562,35 @@ document.addEventListener('keydown', (e) => {
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && window.checkRemind) window.checkRemind();
 });
+
+// Перетаскивание плавающего таймера
+(function() {
+  const el = document.getElementById('floating-timer');
+  if (!el) return;
+  let startX, startY, startLeft, startTop, dragging = false;
+  el.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button')) return;
+    dragging = true;
+    el.classList.add('dragging');
+    const rect = el.getBoundingClientRect();
+    startX = e.clientX;
+    startY = e.clientY;
+    startLeft = rect.left;
+    startTop = rect.top;
+    el.style.transform = 'none';
+    el.style.left = startLeft + 'px';
+    el.style.top = startTop + 'px';
+    el.setPointerCapture(e.pointerId);
+  });
+  el.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    el.style.left = (startLeft + dx) + 'px';
+    el.style.top = (startTop + dy) + 'px';
+  });
+  el.addEventListener('pointerup', () => {
+    dragging = false;
+    el.classList.remove('dragging');
+  });
+})();
