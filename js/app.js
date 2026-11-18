@@ -140,7 +140,7 @@ window.updateTopbar = function() {
   const active = document.querySelector('.screen.active');
   const id = active ? active.id.replace('screen-', '') : 'today';
   const titleEl = document.getElementById('topbar-title');
-  const TITLES = { today: 'Сегодня', tasks: 'Задачи', focus: 'Фокус', notes: 'Заметки', stats: 'Статистика' };
+  const TITLES = { today: 'Сегодня', tasks: 'Задачи', focus: 'Фокус', stats: 'Статистика' };
   if (id === 'today') titleEl.textContent = window.getDynamicTitle();
   else titleEl.textContent = TITLES[id];
 };
@@ -209,7 +209,6 @@ window.switchTab = function(name) {
   
   document.querySelector('main').scrollTop = 0;
   document.getElementById('fab-tasks').classList.toggle('visible', name === 'tasks');
-  document.getElementById('fab-notes').classList.toggle('visible', name === 'notes');
   
   if (name === 'focus') {
     window.populateFocusTasks();
@@ -526,227 +525,6 @@ window.renderQuickMoodUI = function() {
   } else {
     container.classList.add('pulse-glow');
   }
-};
-
-// ============ 9. ЗАМЕТКИ ============
-let currentNoteId = null, noteSaveTimer = null;
-window.scheduleNoteSave = function() { clearTimeout(noteSaveTimer); noteSaveTimer = setTimeout(window.saveCurrentNote, 1500); };
-window.saveCurrentNote = function() {
-  if (!currentNoteId) return; clearTimeout(noteSaveTimer); const n = state.notes.find(x => x.id === currentNoteId); if (!n) return;
-  n.title = document.getElementById('edit-note-title').value.trim() || 'Без названия';
-  const body = document.getElementById('edit-note-body'); body.querySelectorAll('input[type=checkbox]').forEach(cb => { if (cb.checked) cb.setAttribute('checked', 'checked'); else cb.removeAttribute('checked'); });
-  n.body = body.innerHTML; n.updatedAt = Date.now(); save();
-};
-
-window.renderNotes = function() {
-  const chips = document.getElementById('folder-chips');
-  if (chips) {
-    const trashCount = (state.notes || []).filter(n => n.deletedAt).length;
-    const folders = [{ id: 'all', name: 'Все', icon: '📚' }, ...state.noteFolders, { id: 'trash', name: trashCount ? `Корзина (${trashCount})` : 'Корзина', icon: '🗑' }];
-    let chipsHtml = '';
-    folders.forEach(f => {
-      const isActive = state.selectedFolder === f.id;
-      const isCustom = f.id !== 'all' && f.id !== 'trash';
-      const bg = isActive ? (f.id === 'trash' ? 'var(--red)' : 'var(--orange)') : 'var(--chip-bg)';
-      const color = isActive ? '#fff' : 'var(--text)';
-      chipsHtml += `<button class="folder-chip" style="padding:7px 13px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:${bg};color:${color};white-space:nowrap;cursor:pointer;font-family:inherit;" onclick="window.onFolderChip('${f.id}',${isCustom})">${f.icon || ''} ${escapeHtml(f.name)}</button>`;
-    });
-    if (state.selectedFolder !== 'trash') chipsHtml += `<button class="folder-chip" style="padding:7px 10px;border-radius:14px;border:none;font-size:13px;font-weight:600;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;" onclick="window.openFolderEditor()">＋</button>`;
-    chips.innerHTML = chipsHtml;
-  }
-  const el = document.getElementById('notes-list'); if (!el) return;
-  const search = (document.getElementById('notes-search')?.value || '').toLowerCase();
-  const isTrash = state.selectedFolder === 'trash';
-  let notes = state.notes || [];
-  if (isTrash) notes = notes.filter(n => n.deletedAt);
-  else {
-    notes = notes.filter(n => !n.deletedAt);
-    if (state.selectedFolder !== 'all') notes = notes.filter(n => n.folderId === state.selectedFolder);
-  }
-  if (search) notes = notes.filter(n => (n.title || '').toLowerCase().includes(search) || stripHtml(n.body).toLowerCase().includes(search));
-  notes.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (b.updatedAt || 0) - (a.updatedAt || 0));
-  if (!notes.length) { el.innerHTML = isTrash ? '<div class="empty-hint">🗑 Корзина пуста — и это хорошо</div>' : '<div class="empty-hint">📝 Здесь будут твои мысли.<br>Нажми +, когда захочешь</div>'; return; }
-  
-  let notesHtml = '';
-  notes.forEach(n => {
-    const preview = stripHtml(n.body).slice(0, 80);
-    const dateStr = new Date(n.updatedAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
-    const pinIcon = (!isTrash && n.pinned) ? '<span style="color:var(--orange);font-size:12px;margin-top:3px;">📌</span>' : '';
-    const actions = isTrash
-      ? `<button class="swipe-btn post" onclick="event.stopPropagation();window.restoreNote(${n.id})">${svgIcon('refresh','#fff',18)}</button>
-          <button class="swipe-btn delete" onclick="event.stopPropagation();window.permanentlyDeleteNote(${n.id})">${svgIcon('trash','#fff',18)}</button>`
-      : `<button class="swipe-btn unpin" onclick="event.stopPropagation();window.unpinNoteById(${n.id})">${svgIcon('pin','#fff',18)}</button>
-          <button class="swipe-btn delete" onclick="event.stopPropagation();window.deleteNoteById(${n.id})">${svgIcon('trash','#fff',18)}</button>`;
-    notesHtml += `
-      <div class="swipe-row-container">
-        <div class="swipe-actions">${actions}</div>
-        <div class="swipe-content" onclick="window.openNote(${n.id})">
-          ${pinIcon}
-          <div style="flex:1;min-width:0;"><h4 style="font-size:15px;font-weight:600;margin-bottom:2px;${isTrash?'opacity:.7;':''}">${escapeHtml(n.title || 'Без названия')}</h4><p style="font-size:13px;color:var(--text-sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">${escapeHtml(preview) || 'Пустая'}</p></div>
-          <span style="font-size:11px;color:var(--text-sec);margin-left:auto;white-space:nowrap;">${dateStr}</span>
-        </div>
-      </div>`;
-  });
-  el.innerHTML = notesHtml + (isTrash ? '<button class="btn-cancel" style="width:100%;margin-top:12px;" onclick="window.clearOldTrash()">Очистить старше 30 дней</button>' : '');
-};
-
-window.deleteNoteById = function(id) {
-  const n = state.notes.find(x => x.id === id);
-  if (!n) return;
-  n.deletedAt = Date.now();
-  n.pinned = false;
-  haptic(); save(); window.renderNotes();
-  window.showToast('В корзине');
-};
-window.restoreNote = function(id) {
-  const n = state.notes.find(x => x.id === id);
-  if (!n) return;
-  n.deletedAt = null; n.updatedAt = Date.now();
-  haptic('success'); save(); window.renderNotes();
-  window.showToast('Восстановлено');
-};
-
-window.clearOldTrash = function() {
-  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-  const toRemove = (state.notes || []).filter(n => n.deletedAt && n.deletedAt < cutoff);
-  if (!toRemove.length) { window.showToast('Нечего удалять'); return; }
-  if (!confirm(`Удалить навсегда ${toRemove.length} зам. старше 30 дней?`)) return;
-  const ids = new Set(toRemove.map(n => n.id));
-  state.notes = state.notes.filter(n => !ids.has(n.id));
-  haptic(); save(); window.renderNotes(); window.showToast(`Удалено: ${toRemove.length}`);
-};
-
-window.permanentlyDeleteNote = function(id) {
-  if (!confirm('Удалить навсегда? Это нельзя отменить.')) return;
-  state.notes = state.notes.filter(n => n.id !== id);
-  haptic(); save(); window.renderNotes();
-};
-
-window.unpinNoteById = function(id) {
-  const n = state.notes.find(n => n.id === id);
-  if (n && n.pinned) {
-    n.pinned = false;
-    n.updatedAt = Date.now();
-    save(); window.renderNotes();
-  }
-};
-
-window.onFolderChip = function(id, isCustom) { if (isCustom && state.selectedFolder === id) { window.openFolderEditor(id); return; } state.selectedFolder = id; haptic(); save(); window.renderNotes(); };
-window.openFolderEditor = function(id) { const folder = id ? state.noteFolders.find(f => f.id === id) : null; window.openSheet(`<h2>${folder ? 'Папка' : 'Новая папка'}</h2><div class="field"><label>Название</label><input type="text" id="f-name" value="${folder ? escapeHtml(folder.name) : ''}"></div><div class="field"><label>Иконка</label><input type="text" id="f-icon" value="${folder ? escapeHtml(folder.icon || '📁') : '📁'}" maxlength="2"></div><div class="sheet-actions">${folder ? `<button class="btn-danger" onclick="window.deleteFolder('${id}')">Удалить</button>` : ''}<button class="btn-cancel" onclick="window.closeSheet()">Отмена</button><button class="btn-primary" onclick="window.saveFolder('${id || ''}')">Сохранить</button></div>`); };
-window.saveFolder = function(id) { const name = document.getElementById('f-name').value.trim(); const icon = document.getElementById('f-icon').value.trim() || '📁'; if (!name) return; if (id) { const f = state.noteFolders.find(x => x.id === id); if (f) { f.name = name; f.icon = icon; } } else { state.noteFolders.push({ id: uid() + '', name, icon }); } save(); window.closeSheet(); window.renderNotes(); };
-window.deleteFolder = function(id) { if (!confirm('Удалить папку?')) return; state.noteFolders = state.noteFolders.filter(f => f.id !== id); state.notes.forEach(n => { if (n.folderId === id) n.folderId = null; }); if (state.selectedFolder === id) state.selectedFolder = 'all'; save(); window.closeSheet(); window.renderNotes(); };
-window.addNote = function() { const folderId = state.selectedFolder === 'all' ? (state.noteFolders[0]?.id || null) : state.selectedFolder; const n = { id: uid(), title: 'Без названия', body: '', folderId, pinned: false, createdAt: Date.now(), updatedAt: Date.now() }; state.notes.push(n); haptic(); save(); window.openNote(n.id); };
-window.openNote = function(id) {
-  if (currentNoteId && currentNoteId !== id) window.saveCurrentNote();
-  const n = state.notes.find(x => x.id === id);
-  if (!n) return;
-  currentNoteId = id;
-  document.getElementById('edit-note-title').value = n.title || '';
-  document.getElementById('edit-note-body').innerHTML = sanitizeHtml(n.body || '');
-  const list = document.getElementById('notes-list-view');
-  const edit = document.getElementById('note-edit-view');
-  if (window.innerWidth < 1100) list.style.display = 'none';
-  edit.style.display = 'flex';
-  edit.style.flexDirection = 'column';
-  const ph = document.getElementById('note-placeholder');
-  if (ph) ph.style.display = 'none';
-  window.updatePinBtn();
-  window.updateNoteTrashActions(n);
-  const dt = new Date(n.updatedAt);
-  const mod = document.getElementById('note-last-modified');
-  if (mod) {
-    mod.textContent = n.deletedAt
-      ? `В корзине · ${dt.toLocaleDateString('ru-RU')} ${dt.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'})}`
-      : `Изменено ${dt.toLocaleDateString('ru-RU')} в ${dt.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'})}`;
-  }
-};
-
-window.updateNoteTrashActions = function(n) {
-  const actions = document.getElementById('note-header-actions');
-  if (!actions) return;
-  if (n && n.deletedAt) {
-    actions.innerHTML = `
-      <button class="note-ios-iconbtn" onclick="window.restoreCurrentNote()" title="Восстановить" style="color:var(--green);">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-      </button>
-      <button class="note-ios-iconbtn" onclick="window.deleteCurrentNote()" title="Удалить навсегда" style="color:var(--red);">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-      </button>`;
-  } else {
-    actions.innerHTML = `
-      <button id="pin-btn" class="note-ios-iconbtn" onclick="togglePinNote()" title="Закрепить">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
-      </button>
-      <button class="note-ios-iconbtn" onclick="deleteCurrentNote()" title="Удалить" style="color:var(--red);">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-      </button>`;
-    window.updatePinBtn();
-  }
-};
-
-window.restoreCurrentNote = function() {
-  if (!currentNoteId) return;
-  const n = state.notes.find(x => x.id === currentNoteId);
-  if (!n) return;
-  n.deletedAt = null;
-  n.updatedAt = Date.now();
-  haptic('success');
-  save();
-  window.showToast('Восстановлено');
-  currentNoteId = null;
-  document.getElementById('notes-list-view').style.display = 'block';
-  document.getElementById('note-edit-view').style.display = 'none';
-  state.selectedFolder = 'all';
-  window.renderNotes();
-};
-window.updatePinBtn = function() { const n = state.notes.find(x => x.id === currentNoteId); const btn = document.getElementById('pin-btn'); if (n && btn) { btn.style.color = n.pinned ? 'var(--orange)' : 'var(--text-sec)'; btn.style.background = n.pinned ? 'var(--accent-soft)' : 'var(--chip-bg)'; } };
-window.togglePinNote = function() { const n = state.notes.find(x => x.id === currentNoteId); if (!n) return; n.pinned = !n.pinned; n.updatedAt = Date.now(); haptic(); save(); window.updatePinBtn(); window.renderNotes(); };
-window.closeNoteEditor = function() {
-  window.saveCurrentNote(); currentNoteId = null;
-  document.getElementById('notes-list-view').style.display = 'block';
-  if (window.innerWidth < 1100) document.getElementById('note-edit-view').style.display = 'none';
-  const ph = document.getElementById('note-placeholder');
-  if (ph && window.innerWidth >= 1100) ph.style.display = 'flex';
-  window.renderNotes();
-};
-
-// Панель форматирования над клавиатурой (iOS-like)
-(function setupNoteToolbarKeyboard() {
-  const vv = window.visualViewport;
-  if (!vv) return;
-  const update = () => {
-    const tb = document.getElementById('note-toolbar-ios');
-    const edit = document.getElementById('note-edit-view');
-    if (!tb || !edit || edit.style.display === 'none') {
-      if (tb) tb.style.transform = '';
-      return;
-    }
-    // Разница между layout viewport и visual viewport = высота клавиатуры
-    const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-    tb.style.transform = kb > 40 ? `translateY(-${kb}px)` : '';
-    tb.style.transition = 'transform 0.15s ease-out';
-  };
-  vv.addEventListener('resize', update);
-  vv.addEventListener('scroll', update);
-})();
-
-window.deleteCurrentNote = function() {
-  if (!currentNoteId) return;
-  const n = state.notes.find(x => x.id === currentNoteId);
-  if (!n) return;
-  if (n.deletedAt) {
-    if (!confirm('Удалить навсегда?')) return;
-    state.notes = state.notes.filter(x => x.id !== currentNoteId);
-  } else {
-    n.deletedAt = Date.now();
-    n.pinned = false;
-    window.showToast('В корзине');
-  }
-  haptic(); save();
-  currentNoteId = null;
-  document.getElementById('notes-list-view').style.display = 'block';
-  document.getElementById('note-edit-view').style.display = 'none';
-  window.renderNotes();
 };
 
 // ============ 10. СТАТИСТИКА И ГРАФИКИ ============
@@ -1420,7 +1198,6 @@ window.renderAll = function() {
   window.renderQuickMoodUI();
   Tasks.renderTasksTodayMini(); 
   Tasks.renderTasks(); 
-  window.renderNotes(); 
   window.updateRings();
   window.renderStats(); 
   window.renderWeeklyCard(); window.renderOnboardTip && window.renderOnboardTip();
@@ -1741,16 +1518,7 @@ document.addEventListener('keydown', (e) => {
   if (e.target.matches('input, textarea, [contenteditable]')) return;
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.code === 'KeyN') { e.preventDefault(); window.openTaskEditor(); }
-  if (e.code === 'Slash') { e.preventDefault(); const s = document.getElementById('notes-search'); if (s) { window.switchTab('notes'); setTimeout(() => s.focus(), 50); } }
 });
-
-window.fmt = function(cmd, val) {
-  const body = document.getElementById('edit-note-body');
-  if (!body) return;
-  body.focus();
-  try { document.execCommand(cmd, false, val || null); } catch (e) {}
-  if (window.scheduleNoteSave) window.scheduleNoteSave();
-};
 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && window.checkRemind) window.checkRemind();
