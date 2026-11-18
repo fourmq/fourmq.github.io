@@ -17,7 +17,7 @@ self.addEventListener('install', (e) => {
 });
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(clients.claim());
+  e.waitUntil(clients.claim()); 
   e.waitUntil(caches.keys().then((keys) => {
     return Promise.all(keys.map((key) => { if (key !== CACHE_NAME) return caches.delete(key); }));
   }));
