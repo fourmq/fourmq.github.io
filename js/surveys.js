@@ -349,6 +349,6 @@ export function saveWeeklySurvey(wk) {
 }
 window.saveWeeklySurvey = saveWeeklySurvey;
 
-window.openDailySurvey = openDailySurvey; 
+window.openDailySurvey = openDailySurvey;
 window.openWeeklySurvey = openWeeklySurvey;
 window.openChangelog = openChangelog;
