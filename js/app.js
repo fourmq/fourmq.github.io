@@ -61,7 +61,7 @@ window.saveWeeklySurvey = Surveys.saveWeeklySurvey;
   });
 })();
 
-window.openSheet = (html) => { document.getElementById('sheet-content').innerHTML = html; document.getElementById('sheet').classList.add('open'); document.getElementById('backdrop').classList.add('open'); };
+window.openSheet = (html) => { const sh = document.getElementById('sheet'); sh.classList.remove('task-modal'); document.getElementById('sheet-content').innerHTML = html; sh.classList.add('open'); document.getElementById('backdrop').classList.add('open'); };
 window.closeSheet = () => { const s = document.getElementById('sheet'); s.classList.remove('open'); document.getElementById('backdrop').classList.remove('open'); window.closePopover(); };
 window.closePopover = () => { document.getElementById('popover-overlay').classList.remove('open'); };
 
